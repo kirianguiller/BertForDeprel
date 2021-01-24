@@ -4,6 +4,7 @@ import pathlib
 from parser.cmds import Evaluate, Predict, Train
 from parser.config import Config
 from parser.utils.os_utils import path_or_name
+from parser.utils.gpu_utils import get_gpus_configuration
 
 import torch
 
@@ -29,8 +30,8 @@ if __name__ == "__main__":
 
         # subparser.add_argument('--preprocess', '-p', action='store_true',
         #                        help='whether to preprocess the data first')
-        # subparser.add_argument('--device', '-d', default='-1',
-        #                        help='ID of GPU to use')
+        subparser.add_argument('--gpu_ids', default='-1',
+                               help='ID of GPU to use (-1 for cpu, -2 for all gpus, 0 for gpu 0; 0,1 for gpu 0 and 1)')
         subparser.add_argument(
             "--num_workers", default=8, type=int, help="Number of worker"
         )
@@ -44,8 +45,8 @@ if __name__ == "__main__":
         subparser.add_argument(
             "--bert_type",
             "-b",
-            default="bert",
-            help="bert type to use (bert/camembert/mbert)",
+            default="bert-multilingual-cased",
+            help="bert type to use (see huggingface models list)",
         )
 
     args = parser.parse_args()
@@ -65,7 +66,6 @@ if __name__ == "__main__":
     print(args.path_annotation_schema)
     # else:
     #     args.model = os.path.join(args.models, args.model)
-    zd
     print("args.model", args.model)
     # print(f"Set the max num of threads to {args.threads}")
     print(f"Set the seed for generating random numbers to {args.seed}")
@@ -74,28 +74,8 @@ if __name__ == "__main__":
     torch.manual_seed(args.seed)
     # os.environ['CUDA_VISIBLE_DEVICES'] = args.device
 
-    # Whether to train on a gpu
-    if args.train_on_gpu:
-        train_on_gpu = torch.cuda.is_available()
-
-    print(f"Train on gpu: {train_on_gpu}")
-
-    args.device = torch.device("cuda:0" if args.train_on_gpu else "cpu")
-
-    # args.train_on_gpu = train_on_gpu
-
-    # Number of gpus
-    if train_on_gpu:
-        gpu_count = torch.cuda.device_count()
-        print(f"{gpu_count} gpus detected.")
-        if gpu_count > 1:
-            multi_gpu = True
-        else:
-            multi_gpu = False
-    else:
-        multi_gpu = None
-
-    args.multi_gpu = multi_gpu
+    
+    args.device, args.train_on_gpu, args.multi_gpu = get_gpus_configuration(args.gpu_ids)
 
     print(f"Override the default configs with parsed arguments")
     path_file_directory = pathlib.Path(__file__).parent.absolute()

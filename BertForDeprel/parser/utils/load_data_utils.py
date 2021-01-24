@@ -4,34 +4,34 @@ import torch
 from torch import tensor, cuda
 
 
-# Whether to train on a gpu
-train_on_gpu = cuda.is_available()
-print(f'Train on gpu: {train_on_gpu}')
+# # Whether to train on a gpu
+# train_on_gpu = cuda.is_available()
+# print(f'Train on gpu: {train_on_gpu}')
 
 
 
-# Number of gpus
-if train_on_gpu:
-    gpu_count = cuda.device_count()
-    print(f'{gpu_count} gpus detected.')
-    if gpu_count > 1:
-        multi_gpu = True
-    else:
-        multi_gpu = False
-else :
-    multi_gpu = None
+# # Number of gpus
+# if train_on_gpu:
+#     gpu_count = cuda.device_count()
+#     print(f'{gpu_count} gpus detected.')
+#     if gpu_count > 1:
+#         multi_gpu = True
+#     else:
+#         multi_gpu = False
+# else :
+#     multi_gpu = None
 
-# Parameters
-if train_on_gpu:
-    params = {
-            'batch_size': 8,
-            # 'shuffle': True,
-            'num_workers': 6
-          }
-else :
-    params = {
-            'batch_size': 2,
-    }
+# # Parameters
+# if train_on_gpu:
+#     params = {
+#             'batch_size': 8,
+#             # 'shuffle': True,
+#             'num_workers': 6
+#           }
+# else :
+#     params = {
+#             'batch_size': 2,
+#     }
 
 
 

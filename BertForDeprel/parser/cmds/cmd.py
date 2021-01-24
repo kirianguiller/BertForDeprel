@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import os
-from parser import BertForDeprel #added
+from transformers import AutoTokenizer, BertTokenizer, CamembertTokenizer
 
-import torch
-import torch.nn as nn
-from transformers import BertTokenizer, CamembertTokenizer, AutoTokenizer
-
+# from parser import BertForDeprel #added
 
 
 class CMD(object):
@@ -16,12 +12,12 @@ class CMD(object):
 
     def load_tokenizer(self, args):
         print("LOAD TOKENIZER")
-        if args.bert_type == "bert":
-            self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        elif args.bert_type == "camembert":
-            self.tokenizer = CamembertTokenizer.from_pretrained('camembert-base')
-        elif args.bert_type == "mbert":
-            self.tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-uncased')
-        else:
-            self.tokenizer = AutoTokenizer.from_pretrained(args.bert_type)
+        # if args.bert_type == "bert":
+        #     self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        # elif args.bert_type == "camembert":
+        #     self.tokenizer = CamembertTokenizer.from_pretrained('camembert-base')
+        # elif args.bert_type == "mbert":
+        #     self.tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-uncased')
+        # else:
+        self.tokenizer = AutoTokenizer.from_pretrained(args.bert_type)
 
