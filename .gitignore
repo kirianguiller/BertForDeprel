@@ -1,0 +1,7 @@
+venv/
+training_scripts/
+
+test/test_folder/annotation_schema.json
+test/test_folder/models
+
+.vscode/

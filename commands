@@ -1,0 +1,45 @@
+// bert
+ python run.py train --folder ../data/naija_spoken/  --punct --model naija_spoken.pt --batch_size 8 --ftrain ../data/naija_spoken/train/naija_sud_agregate_MG.conllu --bert_type bert
+
+// bert continue training
+python run.py train --folder ../data/naija_spoken/  --punct --model naija_spoken_continue.pt --batch_size 8 --ftrain ../data/naija_spoken/train/naija_sud_agregate_MG.conllu --bert_type bert --fpretrain ../data/naija_spoken/models/naija_spoken.pt
+
+
+// mbert
+ python run.py train --folder ../data/naija_spoken_from_english_mbert/  --punct --model naija_spoken_mbert.pt --batch_size 8 --ftrain ../data/naija_spoken_from_english_mbert/train/naija_sud_agregate_MG.conllu --bert_type mbert
+
+ // mbert manual split
+ python run.py train --folder ../data/naija_spoken_from_english_mbert/  --punct --model naija_spoken_mbert.pt --batch_size 8 --ftrain ../data/naija_spoken_from_english_mbert/train/naija_sud_agregate_MG.conllu --bert_type mbert
+
+// mbert continue training
+python run.py train --folder ../data/naija_spoken_from_english_mbert/  --punct --model naija_spoken_mbert_next.pt --batch_size 8 --ftrain ../data/naija_spoken_from_english_mbert/train/pcm_nsc-ud-train.conllu --ftest ../data/naija_spoken_from_english_mbert/train/pcm_nsc-ud-dev.conllu --bert_type mbert
+
+
+// naija with english pretrain (mbert)
+python run.py train --folder ../data/naija_spoken_from_english_mbert/  --punct --model naija_from_en_mbert_manual_split.pt --batch_size 8 --ftrain ../data/naija_spoken_from_english_mbert/train/pcm_nsc-ud-train.conllu --ftest ../data/naija_spoken_from_english_mbert/train/pcm_nsc-ud-dev.conllu --bert_type mbert --fpretrain ../data/naija_spoken_from_english_mbert/models/english_pretrain_gpu3_.pt
+
+// naija from english (mbert), gold data, fullrel
+python run.py train --folder ../data/naija_spoken_from_english_mbert/  --punct --model naija_from_en_mbert_fullrel_gold.pt --batch_size 8 --ftrain ../data/naija_spoken_from_english_mbert/train/naija_sud_agregate_gold.conllu --bert_type mbert --fpretrain ../data/naija_spoken_from_english_mbert/models/english_pretrain_fullrel_mbert.pt
+
+ // english parsing pretraining (with                                                                                                                                       )
+ python run.py train --folder ../data/naija_spoken_from_english_mbert/  --punct --model english_pretrain.pt --batch_size 8 --ftrain ../data/naija_spoken_from_english_mbert/train/en_all-sud.conllu --compute_fields
+
+
+
+// naija with english pretrain (bert)
+python run.py train --folder ../data/naija_spoken_from_english/  --punct --model naija_from_en_manual_split.pt --batch_size 8 --ftrain ../data/naija_spoken_from_english/train/pcm_nsc-ud-train.conllu --ftrain ../data/naija_spoken_from_english/train/pcm_nsc-ud-dev.conllu --bert_type bert --fpretrain ../data/naija_spoken_from_english/models/english_pretrain.pt
+
+// naija english pretrain 4DG fullrel mbert
+python run.py train --folder ../data/naija_spoken_from_english_mbert/  --punct --model naija_from_english_mbert_fullrel_gold4DG_chuliu.pt --batch_size 8 --ftrain ../data/naija_spoken_from_english_mbert/train/naija_sud_agregate_gold.conllu --fpretrain ../data/naija_spoken_from_english_mbert/models/english_pretrain_fullrel_mbert_test.pt  --bert_type mbert
+
+
+
+// predict result multiple folder
+python run.py predict --folder ../data/naija_spoken_from_english_mbert/  --punct --model ../data/naija_spoken_from_english_mbert/models/naija_from_english_mbert_fullrel_gold_4DG_chuliu.pt --multiple --bert_type mbert --write_preds_in_misc
+
+ // commande pour Stanza
+bash scripts/run_depparse.sh UD_pcm_NSC gold --no_distance --save_name no_distance
+
+
+//scp
+scp -r BertForDeprel kgerdes@rioc.inria.fr:/scratch/kgerdes/kirian/
