@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 
 import os
-from datetime import datetime, timedelta
 from collections import OrderedDict
-from parser import BertForDeprel
-from parser.cmds.cmd import CMD
-from parser.utils.load_data_utils import ConlluDataset, create_deprel_lists, create_pos_list
-from parser.utils.train_utils import train_epoch, eval_epoch, update_history
-from parser.utils.save import save_meta_model
+from datetime import datetime
 from parser.utils.os_utils import path_or_name
-
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader, random_split
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ExponentialLR
+from torch.utils.data import DataLoader, random_split
+
+from ..cmds.cmd import CMD
+from ..utils.model_utils import BertForDeprel
+from ..utils.load_data_utils import (ConlluDataset, create_deprel_lists,
+                                     create_pos_list)
+from ..utils.save import save_meta_model
+from ..utils.train_utils import eval_epoch, train_epoch, update_history
 
 
 class Train(CMD):
@@ -127,6 +128,8 @@ class Train(CMD):
         args.pos2i = train_dataset.pos2i
         args.i2pos = train_dataset.i2pos
 
+
+        # prepare test dataset
         if args.ftest:
             test_dataset = ConlluDataset(args.ftest, self.tokenizer, args)
 

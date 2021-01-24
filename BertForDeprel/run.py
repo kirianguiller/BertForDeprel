@@ -1,9 +1,6 @@
 import argparse
 import os
-
 import pathlib
-from typing import Dict
-
 from parser.cmds import Evaluate, Predict, Train
 from parser.config import Config
 from parser.utils.os_utils import path_or_name
@@ -26,6 +23,9 @@ if __name__ == "__main__":
         subparser.add_argument(
             "--model", "-m", default="model.pt", help="name of saved model"
         )
+        subparser.add_argument(
+            "--path_annotation_schema", default="", help="path to annotation schema (default : in folder/annotation_schema.json"
+        )
 
         # subparser.add_argument('--preprocess', '-p', action='store_true',
         #                        help='whether to preprocess the data first')
@@ -47,13 +47,7 @@ if __name__ == "__main__":
             default="bert",
             help="bert type to use (bert/camembert/mbert)",
         )
-        # subparser.add_argument('--threads', '-t', default=16, type=int,
-        #                        help='max num of threads')
-        # subparser.add_argument('--tree', action='store_true',
-        #                        help='whether to ensure well-formedness')
-        # subparser.add_argument('--feat', default='tag',
-        #                        choices=['tag', 'char', 'bert'],
-        #                        help='choices of additional features')
+
     args = parser.parse_args()
 
     # if not os.path.isdir(args.folder):
@@ -66,9 +60,12 @@ if __name__ == "__main__":
     if path_or_name(args.model) == "name":
         args.model = os.path.join(args.folder, "models", args.model)
 
+    if not args.path_annotation_schema:
+        args.path_annotation_schema = os.path.join(args.folder, "annotation_schema.json")
+    print(args.path_annotation_schema)
     # else:
     #     args.model = os.path.join(args.models, args.model)
-
+    zd
     print("args.model", args.model)
     # print(f"Set the max num of threads to {args.threads}")
     print(f"Set the seed for generating random numbers to {args.seed}")
@@ -78,9 +75,14 @@ if __name__ == "__main__":
     # os.environ['CUDA_VISIBLE_DEVICES'] = args.device
 
     # Whether to train on a gpu
-    train_on_gpu = torch.cuda.is_available()
+    if args.train_on_gpu:
+        train_on_gpu = torch.cuda.is_available()
+
     print(f"Train on gpu: {train_on_gpu}")
-    args.train_on_gpu = train_on_gpu
+
+    args.device = torch.device("cuda:0" if args.train_on_gpu else "cpu")
+
+    # args.train_on_gpu = train_on_gpu
 
     # Number of gpus
     if train_on_gpu:
@@ -94,14 +96,12 @@ if __name__ == "__main__":
         multi_gpu = None
 
     args.multi_gpu = multi_gpu
-    args.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     print(f"Override the default configs with parsed arguments")
     path_file_directory = pathlib.Path(__file__).parent.absolute()
     args = Config(os.path.join(path_file_directory, args.conf)).update(vars(args))
     print(args)
-    # args = Config({"a test": [1,2,3,4], "other test": "avdz"}).update(vars(args))
-    # print(args)
+
     print(f"Run the subcommand in mode {args.mode}")
     cmd = subcommands[args.mode]
     cmd(args)
