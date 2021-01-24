@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
 import os
-from datetime import datetime
-from collections import OrderedDict
-from parser import BertForDeprel
-from parser.cmds.cmd import CMD
-from parser.utils.load_data_utils import ConlluDataset
-from parser.utils.train_utils import eval_epoch
-from parser.utils.os_utils import path_or_name
-
+from parser.model_utils import BertForDeprel
+from .cmd import CMD
+from ..utils.load_data_utils import ConlluDataset
+from ..utils.os_utils import path_or_name
+from ..utils.train_utils import eval_epoch
 
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
+from argparse import ArgumentParser
 
 
 
 class Evaluate(CMD):
 
-    def add_subparser(self, name, parser):
+    def add_subparser(self, name, parser: ArgumentParser):
         subparser = parser.add_parser(
             name, help='Evaluate the specified model and dataset.'
         )

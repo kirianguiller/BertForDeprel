@@ -2,6 +2,7 @@ import argparse
 import os
 
 import pathlib
+from typing import Dict
 
 from parser.cmds import Evaluate, Predict, Train
 from parser.config import Config
