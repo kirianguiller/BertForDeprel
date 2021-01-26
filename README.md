@@ -2,7 +2,8 @@
 # Tutorial End-to-End
 
 Google colab showing how to use this parser are available here : 
-- training from scratch : https://colab.research.google.com/drive/1J50pOlBnY-sCliBTinF-9soK6LZRZndn
+- training from scratch on naija spoken : https://colab.research.google.com/drive/1j9jrxBnsRsI0d93uN3r9Kx--KumYSh86?usp=sharing
+- mock colab for testing if everything is fine : https://colab.research.google.com/drive/1J50pOlBnY-sCliBTinF-9soK6LZRZndn?usp=sharing
 
 ## Prepare Dataset
 Create a folder with the following structure :
