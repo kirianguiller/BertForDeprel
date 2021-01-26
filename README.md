@@ -23,7 +23,7 @@ For computing this annotation schema, run the script `<root_repo>/BertForDeprel/
 After preprocessing the annotation schema, the structure of the project folder should be:
 ```
 |- [NAME_FOLDER]/
-|   |- train/
+|   |- conllus/
 |       | - <train.conllu>
 |       | - <test.conllu>
 |   |- <annotation_schema.json>
@@ -36,7 +36,7 @@ After preprocessing the annotation schema, the structure of the project folder s
 To train a model from scratch, you can, from the `BertForDeprel/` folder, run the following command :
 
 ```
-python run.py train --folder ../test/test_folder/ --model mode_name.pt --bert_type bert-base-multilingual-cased --ftrain ../test/test_folder/train/train.conll
+python run.py train --folder ../test/test_folder/ --model mode_name.pt --bert_type bert-base-multilingual-cased --ftrain ../test/test_folder/conllus/train.conll
 ```
 
 where `--folder` indicate the path to the project folder, `--model` the name of the model to be trained, `--ftrain` the path to the train conll. If the optionnal parameter `--ftest` is passed, the corresponding file will be used for test. Otherwise, the model will automatically split the train dataset in `--split_ratio` with a random seed of `--random_seed`.
