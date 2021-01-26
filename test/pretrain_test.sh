@@ -1,5 +1,5 @@
 folder="test_folder"
-ftrain="${folder}/train/train.conllu"
+ftrain="${folder}/conllus/train.conllu"
 
 path_run="../BertForDeprel/run.py"
 

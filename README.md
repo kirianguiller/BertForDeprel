@@ -8,7 +8,7 @@ Google colab showing how to use this parser are available here :
 Create a folder with the following structure :
 ```
 |- [NAME_FOLDER]/
-|   |- train/
+|   |- conllus/
 |       | - <train.conllu>
 |       | - <test.conllu>
 ```
