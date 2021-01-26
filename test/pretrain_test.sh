@@ -1,10 +1,10 @@
-folder="test_folder/"
+folder="test_folder"
 ftrain="${folder}/train/train.conllu"
 
 path_run="../BertForDeprel/run.py"
 
 seed=1
-bert_type="bert-base-chinese"
+bert_type="bert-base-cased"
 model_name="test_model.pt"
 cmd="python ${path_run} train --folder $folder --ftrain ${ftrain}  --punct --model $model_name --batch_size 8 \
 --bert_type ${bert_type} --compute_fields --seed $seed ";

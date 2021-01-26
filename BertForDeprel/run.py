@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
         # subparser.add_argument('--preprocess', '-p', action='store_true',
         #                        help='whether to preprocess the data first')
-        subparser.add_argument('--gpu_ids', default='-1',
+        subparser.add_argument('--gpu_ids', default='-2',
                                help='ID of GPU to use (-1 for cpu, -2 for all gpus, 0 for gpu 0; 0,1 for gpu 0 and 1)')
         subparser.add_argument(
             "--num_workers", default=8, type=int, help="Number of worker"
