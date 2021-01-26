@@ -1,4 +1,5 @@
 from transformers import BertModel, AutoModel
+from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAttentions
 from transformers import CamembertModel
 from torch import nn
 from parser.utils.modules_utils import MLP, BiAffine, BiAffine2, BiLSTM
@@ -12,14 +13,14 @@ class BertForDeprel(nn.Module):
         super(BertForDeprel, self).__init__()
         self.args = args
         #Instantiating BERT model object
-        if self.args.bert_type == "bert":
-            self.bert_layer = BertModel.from_pretrained('bert-base-uncased')
-        elif self.args.bert_type == "camembert":
-            self.bert_layer = CamembertModel.from_pretrained('camembert-base')
-        elif self.args.bert_type == "mbert":
-            self.bert_layer = BertModel.from_pretrained('bert-base-multilingual-uncased')
-        else:
-            self.bert_layer = AutoModel.from_pretrained(self.args.bert_type)
+        # if self.args.bert_type == "bert":
+        #     self.bert_layer = BertModel.from_pretrained('bert-base-uncased')
+        # elif self.args.bert_type == "camembert":
+        #     self.bert_layer = CamembertModel.from_pretrained('camembert-base')
+        # elif self.args.bert_type == "mbert":
+        #     self.bert_layer = BertModel.from_pretrained('bert-base-multilingual-uncased')
+        # else:
+        self.bert_layer = AutoModel.from_pretrained(self.args.bert_type)
             # assert Exception("You must choose `bert_language` as `french` or `english`")
 
         #Freeze bert layers
@@ -92,13 +93,15 @@ class BertForDeprel(nn.Module):
 
         #Feeding the input to BERT model to obtain contextualized representations
         
-        x = self.bert_layer(seq, attention_mask = attn_masks)
+        bert_output : BaseModelOutputWithPoolingAndCrossAttentions = self.bert_layer(seq, attention_mask = attn_masks)
+
+        x = bert_output.last_hidden_state 
+
+        # deprecated : if transformers library is 4.4.0 or above, the output is not a tuple but a 
+        # ... complex object `BaseModelOutputWithPoolingAndCrossAttentions`
+
         if type(x)==tuple:
             x = x[0]
-        # print("x before lstm", x.size())
-
-        # x, _ = self.lstm(x)
-        # print("x after lstm", x.size())
 
         arc_h = self.arc_mlp_h(x)
         arc_d = self.arc_mlp_d(x)

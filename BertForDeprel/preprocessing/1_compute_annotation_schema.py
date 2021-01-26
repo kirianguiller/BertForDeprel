@@ -49,27 +49,39 @@ def create_annotation_schema(*paths):
         if (":" not in deprel) and ("@" not in deprel):
             mains.append(deprel)
 
+    deprels = list(deprels)
+    deprels.append("none")
+    mains.append("none")
     auxs.append("none")
     deeps.append("none")
 
-    annotation_schema["deprel"] = list(set(deprels))
-    annotation_schema["main"] = list(set(mains))
-    annotation_schema["aux"] = list(set(auxs))
-    annotation_schema["deep"] = list(set(deeps))
+    splitted_deprel = {}
+    splitted_deprel["main"] = sorted(list(set(mains)))
+    splitted_deprel["aux"] = sorted(list(set(auxs)))
+    splitted_deprel["deep"] = sorted(list(set(deeps)))
 
     upos = create_pos_list(*paths)
-
-    annotation_schema["upos"] = upos
+    annotation_schema["deprel"] = sorted(list(set(deprels)))
+    annotation_schema["upos"] = sorted(upos)
+    annotation_schema["splitted_deprel"] = splitted_deprel
     print(annotation_schema)
     return annotation_schema
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "-i", "--input_folder", required=True, type=str, help="input folder containing the conlls"
+    "-i",
+    "--input_folder",
+    required=True,
+    type=str,
+    help="input folder containing the conlls",
 )
 parser.add_argument(
-    "-o", "--output_path", required=True, type=str, help="directory to save the annotation schema"
+    "-o",
+    "--output_path",
+    required=True,
+    type=str,
+    help="directory to save the annotation schema",
 )
 
 args = parser.parse_args()
@@ -79,7 +91,8 @@ output_path = args.output_path
 paths = glob.glob(os.path.join(input_folder, "*.conllu"))
 if paths == []:
     raise BaseException("No conllu was found")
-print('List of paths :', paths)
+
+print("List of paths :", paths)
 annotation_schema = create_annotation_schema(*paths)
 
 with open(output_path, "w") as output:

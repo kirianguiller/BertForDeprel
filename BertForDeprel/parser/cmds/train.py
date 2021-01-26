@@ -40,6 +40,9 @@ class Train(CMD):
         subparser.add_argument("--fdev", default="", help="path to dev file")
         subparser.add_argument("--ftest", default="", help="path to test file")
         subparser.add_argument(
+            "--split_ratio", default=0.8, type=float, help="split ratio to use (if no --ftest is provided)"
+        )
+        subparser.add_argument(
             "--freeze_bert", action="store_true", help="path to test file"
         )
         subparser.add_argument("--fpretrain", default="", help="path to pretrain model")
@@ -89,7 +92,6 @@ class Train(CMD):
         #     args.ftrain = os.path.join(args.folder, "train", args.ftrain)
 
         original_args = args
-
         if args.fpretrain:
             checkpoint = torch.load(args.fpretrain, map_location=torch.device("cpu"))
             loaded_args = checkpoint["args"]
@@ -118,21 +120,29 @@ class Train(CMD):
             with open(args.path_annotation_schema, "r") as infile:
                 annotation_schema_json = json.load(infile)
 
-            print(annotation_schema_json)
-
+            list_deprel_full = annotation_schema_json["deprel"]
             list_deprel_main = annotation_schema_json["splitted_deprel"]["main"]
             list_deprel_aux = annotation_schema_json["splitted_deprel"]["aux"]
             list_pos = annotation_schema_json["upos"]
 
+            if not args.split_deprel:
+                list_deprel_main = list_deprel_full
+                list_deprel_aux = list_deprel_full
+
+            else:
+                list_deprel_main = list_deprel_main
+                list_deprel_aux = list_deprel_aux
+
+
             args.list_deprel_main = list_deprel_main
             args.n_labels_main = len(list_deprel_main)
 
-            if args.split_deprel:
-                args.list_deprel_aux = list_deprel_aux
-                args.n_labels_aux = len(list_deprel_aux)
+            args.list_deprel_aux = list_deprel_aux
+            args.n_labels_aux = len(list_deprel_aux)
 
             args.list_pos = list_pos
             args.n_pos = len(list_pos)
+            
 
         self.load_tokenizer(args.bert_type)
         train_dataset = ConlluDataset(args.ftrain, self.tokenizer, args)
@@ -151,7 +161,7 @@ class Train(CMD):
             test_dataset = ConlluDataset(args.ftest, self.tokenizer, args)
 
         else:
-            train_size = int(len(train_dataset) * 0.9)
+            train_size = int(len(train_dataset) * args.split_ratio)
             test_size = len(train_dataset) - train_size
             train_dataset, test_dataset = random_split(
                 train_dataset, [train_size, test_size]
