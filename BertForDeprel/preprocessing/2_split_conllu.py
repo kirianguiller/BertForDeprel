@@ -1,7 +1,11 @@
+# script for splitting conllus across various k-fold train/dev/test
+
+
 import argparse
 import os
 import conllu
 from sklearn.model_selection import train_test_split 
+
 
 
 if __name__ == '__main__':

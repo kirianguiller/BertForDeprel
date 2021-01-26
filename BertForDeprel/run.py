@@ -42,12 +42,7 @@ if __name__ == "__main__":
             type=int,
             help="seed for generating random numbers",
         )
-        subparser.add_argument(
-            "--bert_type",
-            "-b",
-            default="bert-multilingual-cased",
-            help="bert type to use (see huggingface models list)",
-        )
+
 
     args = parser.parse_args()
 

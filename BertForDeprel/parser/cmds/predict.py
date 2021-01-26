@@ -58,16 +58,15 @@ class Predict(CMD):
 
     def __call__(self, args):
         super(Predict, self).__call__(args)
-        path_pred_folder = os.path.join(args.folder, "pred")
-        if path_or_name(args.fpred) == "name":
-            args.fpred = os.path.join(path_pred_folder, args.fpred)
-
+        if not args.fpred:
+            args.fpred = os.path.join(args.folder, "to_predict")
+        
         paths_pred = []
-        if args.multiple:
-            for file in os.listdir(path_pred_folder):
-                paths_pred.append(os.path.join(path_pred_folder, file))
-        else:
-            paths_pred.append(args.fpred)
+        if os.path.isdir(args.fpred):
+            for file in os.listdir(args.fpred):
+                paths_pred.append(os.path.join(args.fpred, file))
+            else:
+                paths_pred.append(args.fpred)
 
         print(paths_pred)
 
@@ -98,6 +97,8 @@ class Predict(CMD):
             print("MODEL TO MULTI GPU")
             model = nn.DataParallel(model)
 
+        
+        self.load_tokenizer(loaded_args.bert_type)
         # model.load_state_dict(checkpoint['state_dict'])
         model.eval()
         print("Starting Predictions ...")
@@ -107,7 +108,7 @@ class Predict(CMD):
             print(args.fpred)
 
             print("Load the dataset")
-            self.load_tokenizer(loaded_args)
+            
             pred_dataset = ConlluDataset(args.fpred, self.tokenizer, loaded_args)
 
             args.drm2i = pred_dataset.drm2i

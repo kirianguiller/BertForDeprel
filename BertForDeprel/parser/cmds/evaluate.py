@@ -43,7 +43,8 @@ class Evaluate(CMD):
         loaded_args = checkpoint["args"]
 
         print("Load the dataset")
-        self.load_tokenizer(loaded_args)
+        self.load_tokenizer(loaded_args.bert_type)
+
         eval_dataset = ConlluDataset(args.feval, self.tokenizer, loaded_args)
         params = {
             "batch_size": args.batch_size,

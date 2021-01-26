@@ -25,6 +25,12 @@ class Train(CMD):
         # subparser.add_argument('--buckets', default=32, type=int,
         #                        help='max num of buckets to use')
         subparser.add_argument(
+            "--bert_type",
+            "-b",
+            default="bert-multilingual-cased",
+            help="bert type to use (see huggingface models list)",
+        )
+        subparser.add_argument(
             "--batch_size", default=16, type=int, help="batch_size to use"
         )
         subparser.add_argument(
@@ -128,7 +134,7 @@ class Train(CMD):
             args.list_pos = list_pos
             args.n_pos = len(list_pos)
 
-        self.load_tokenizer(args)
+        self.load_tokenizer(args.bert_type)
         train_dataset = ConlluDataset(args.ftrain, self.tokenizer, args)
         args.drm2i = train_dataset.drm2i
         args.i2drm = train_dataset.i2drm
