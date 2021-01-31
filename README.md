@@ -66,6 +66,14 @@ For running the training on all available GPUs, add the parameter `--gpu_ids "-2
 #### Run on CPU
 For training on CPU only, add the parameter `--gpu_ids "-1"`
 
+## Pretrained Models
+You can find [on this Gdrive repo](https://drive.google.com/drive/folders/1lVhG00JWBxrisDRytLYH3M1uZG1ZHXol?usp=sharing) all the pretrained models, google colab script for training and publicly available treebanks (.conllu files).
+
+Among others, here are the most important pretrained models :
+- [English model trained from scratch on written english](https://drive.google.com/drive/folders/1-UB0WNG8Drt_oXC7wfHlK5goMH6CC4IM?usp=sharing)
+- [Naija model trained from scratch on spoken naija]("TODO")
+- [Naija model fine-tuned on spoken naija from model pretrained on written english]("TODO")
+
 ## Major TODOs
 - [x] Implement the model.
 - [x] Train a model from scratch on naija
