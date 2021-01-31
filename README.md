@@ -51,7 +51,7 @@ where `--folder` indicate the path to the project folder, `--model` the name of 
 - [x] Implement the model.
 - [x] Train a model from scratch on naija
 - [x] Fine-tune a model on naija pretrain from scratch on english
-- [] Enable process based distributed training. Similar to (https://github.com/fastai/imagenet-fast/).
-- [] Implementing mixed precision (fp16) for faster training
-- [] Model optimization (model export, model pruning etc.)
+- [ ] Enable process based distributed training. Similar to (https://github.com/fastai/imagenet-fast/).
+- [ ] Implementing mixed precision (fp16) for faster training
+- [ ] Model optimization (model export, model pruning etc.)
 
