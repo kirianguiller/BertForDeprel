@@ -53,5 +53,5 @@ where `--folder` indicate the path to the project folder, `--model` the name of 
 - [x] Fine-tune a model on naija pretrain from scratch on english
 - [ ] Enable process based distributed training. Similar to (https://github.com/fastai/imagenet-fast/).
 - [ ] Implementing mixed precision (fp16) for faster training (see this [link from pytorch doc](https://pytorch.org/docs/stable/amp.html))
-- [ ] Model optimization (model export, model pruning etc.)
+- [ ] Model optimization (<strike>model export</strike>, model pruning etc.)
 
