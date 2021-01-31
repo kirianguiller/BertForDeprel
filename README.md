@@ -44,8 +44,27 @@ python run.py train --folder ../test/test_folder/ --model mode_name.pt --bert_ty
 
 where `--folder` indicate the path to the project folder, `--model` the name of the model to be trained, `--ftrain` the path to the train conll. If the optionnal parameter `--ftest` is passed, the corresponding file will be used for test. Otherwise, the model will automatically split the train dataset in `--split_ratio` with a random seed of `--random_seed`.
 
+### From pretrained model
+WARNING : when training from a pretrained model, be sure to use the same annotation_schema.json for fine-tuning that the one that was used for pretraining. It would break the training otherwise.
+
+To fine-tune a pre-trained model, you can, from `BertForDeprel/` folder, run the following command :
+```
+python run.py train --folder ../test/test_folder/ --model mode_name.pt --fpretrain <path/to/pretrain/model.pt> --ftrain ../test/test_folder/conllus/train.conll
+```
 
 
+### GPU/CPU training
+#### Run on a single GPU
+For running the training on a single GPU of id 0, add the parameter `--gpu_ids 0`. Respectively, for running on one single gpu of id 3, add the parameter ``--gpu_ids 3`
+
+#### Run on multiples GPUs
+For running the training on multiple GPU of ids 0 and 1, add the parameter `--gpu_ids 0,1`
+
+#### Run on all available GPUs
+For running the training on all available GPUs, add the parameter `--gpu_ids "-2"`
+
+#### Run on CPU
+For training on CPU only, add the parameter `--gpu_ids "-1"`
 
 ## Major TODOs
 - [x] Implement the model.
@@ -54,4 +73,4 @@ where `--folder` indicate the path to the project folder, `--model` the name of 
 - [ ] Enable process based distributed training. Similar to (https://github.com/fastai/imagenet-fast/).
 - [ ] Implementing mixed precision (fp16) for faster training (see this [link from pytorch doc](https://pytorch.org/docs/stable/amp.html))
 - [ ] Model optimization (<strike>model export</strike>, model pruning etc.)
-
+- [ ] Add feats and glose prediction
