@@ -2,8 +2,10 @@
 # Tutorial End-to-End
 
 Google colab showing how to use this parser are available here : 
-- training from scratch on naija spoken : https://colab.research.google.com/drive/1j9jrxBnsRsI0d93uN3r9Kx--KumYSh86?usp=sharing
-- mock colab for testing if everything is fine : https://colab.research.google.com/drive/1J50pOlBnY-sCliBTinF-9soK6LZRZndn?usp=sharing
+- naija spoken training from pre-trained english model : [link](https://colab.research.google.com/drive/1QmM73BkeoUqi3LSeeEyh79zB2oVnf-qj?usp=sharing) 
+- training from scratch on naija spoken : [link](https://colab.research.google.com/drive/1j9jrxBnsRsI0d93uN3r9Kx--KumYSh86?usp=sharing)
+- training from scratch on written english : [link](https://colab.research.google.com/drive/1UngKLyqRZk7vXawWnYzJtrjrNisPnhgK?usp=sharing)
+- mock colab for testing if everything is fine : [link](https://colab.research.google.com/drive/1J50pOlBnY-sCliBTinF-9soK6LZRZndn?usp=sharing)
 
 ## Prepare Dataset
 Create a folder with the following structure :
@@ -43,4 +45,13 @@ python run.py train --folder ../test/test_folder/ --model mode_name.pt --bert_ty
 where `--folder` indicate the path to the project folder, `--model` the name of the model to be trained, `--ftrain` the path to the train conll. If the optionnal parameter `--ftest` is passed, the corresponding file will be used for test. Otherwise, the model will automatically split the train dataset in `--split_ratio` with a random seed of `--random_seed`.
 
 
+
+
+## Major TODOs
+- [x] Implement the model.
+- [x] Train a model from scratch on naija
+- [x] Fine-tune a model on naija pretrain from scratch on english
+- [] Enable process based distributed training. Similar to (https://github.com/fastai/imagenet-fast/).
+- [] Implementing mixed precision (fp16) for faster training
+- [] Model optimization (model export, model pruning etc.)
 
