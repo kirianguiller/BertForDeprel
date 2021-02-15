@@ -1,0 +1,1 @@
+python ../BertForDeprel/run.py predict --folder ./naija_pretrained_test/  --punct --model ./naija_pretrained_test/models/naija_from_scratch.pt --multiple --write_preds_in_misc --fpred naija_pretrained_test/to_predict

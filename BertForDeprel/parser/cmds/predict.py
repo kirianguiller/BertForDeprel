@@ -65,8 +65,10 @@ class Predict(CMD):
         if os.path.isdir(args.fpred):
             for file in os.listdir(args.fpred):
                 paths_pred.append(os.path.join(args.fpred, file))
-            else:
-                paths_pred.append(args.fpred)
+        elif os.path.isfile(args.fpred):
+            paths_pred.append(args.fpred)
+        else:
+            raise BaseException(f"args.fpred must be a folder or a file, not nothing (current fpred = {args.fpred})")
 
         print(paths_pred)
 
