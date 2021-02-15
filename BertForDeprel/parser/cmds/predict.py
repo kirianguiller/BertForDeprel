@@ -105,7 +105,7 @@ class Predict(CMD):
         model.eval()
         print("Starting Predictions ...")
         for path in paths_pred:
-            path_result_file = os.path.join(args.folder, "results", path.split("/")[-1])
+            path_result_file = os.path.join(args.folder, "predicted", path.split("/")[-1])
             args.fpred = path
             print(args.fpred)
 
