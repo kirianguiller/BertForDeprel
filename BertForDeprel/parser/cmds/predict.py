@@ -69,6 +69,10 @@ class Predict(CMD):
             paths_pred.append(args.fpred)
         else:
             raise BaseException(f"args.fpred must be a folder or a file, not nothing (current fpred = {args.fpred})")
+        
+        path_predicted_files = os.path.join(args.folder, "predicted")
+        if not os.path.isdir(path_predicted_files):
+            os.makedirs(path_predicted_files)
 
         print(paths_pred)
 
@@ -105,7 +109,8 @@ class Predict(CMD):
         model.eval()
         print("Starting Predictions ...")
         for path in paths_pred:
-            path_result_file = os.path.join(args.folder, "predicted", path.split("/")[-1])
+
+            path_result_file = os.path.join(path_predicted_files, path.split("/")[-1])
             args.fpred = path
             print(args.fpred)
 

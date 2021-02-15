@@ -7,9 +7,8 @@ mkdir naija_pretrained_test/
 cd naija_pretrained_test/ 
 mkdir ./conllus/ 
 # download train and test conllu
-gdown --id 1rRhnnqz1U2vrGS0dOzqjbNjHCehEez2l  -O naija_train.conllu # naija_train.conllu
-gdown --id 1gIqhBXO-phcH2pdThVFGR9eEkA2b37Dr  -O naija_test.conllu # naija_test.conllu
-gdown --id 108KbxMVv0XTnUXZpS9dWoTBUkCKWRn3F  -O all_treebanks_english.conllu # all_treebanks_english
+gdown --id 1rRhnnqz1U2vrGS0dOzqjbNjHCehEez2l  -O train.conllu # naija_train.conllu
+gdown --id 1gIqhBXO-phcH2pdThVFGR9eEkA2b37Dr  -O test.conllu # naija_test.conllu
 # move these conllu to the conllu folder
 mv *.conllu conllus/ 
 
