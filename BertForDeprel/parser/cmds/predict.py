@@ -305,9 +305,6 @@ class Predict(CMD):
                     ):
                         token = conllu_sequence[n_token]
 
-                        if args.upostag:
-                            token["upostag"] = args.i2pos[pos_index]
-
                         if args.write_preds_in_misc:
                             misc = token["misc"]
                             if not misc:
@@ -319,13 +316,15 @@ class Predict(CMD):
                                 misc["deprel_main_pred"] = args.i2drm[dmpmstn]
 
                             # misc['head_MST']= str(gov_dict.get(n_token+1, 'missing_gov'))
-                            misc["head_MST"] = str(head_chuliu)
+                            misc["head_MST_pred"] = str(head_chuliu)
+                            misc["upostag_pred"] = args.i2pos[pos_index]
                             token["misc"] = misc
+
 
                         else:
                             # token["head"] = gov_dict.get(n_token+1, 'missing_gov')
                             token["head"] = str(head_chuliu)
-
+                            token["upostag"] = args.i2pos[pos_index]
                             if loaded_args.split_deprel:
 
                                 if args.i2dra[dapmst] == "none":
