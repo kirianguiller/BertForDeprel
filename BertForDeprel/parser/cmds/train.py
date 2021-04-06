@@ -76,20 +76,12 @@ class Train(CMD):
             type=int,
             help="number of sequences to use for parsing (used in the experience 1/10/100/1000...",
         )
-        # subparser.add_argument('--increment_unicode', action='store_true',
-        #                         help='whether to increment the unicode')
 
-        # subparser.add_argument('--fembed', default='data/glove.6B.100d.txt',
-        #                        help='path to pretrained embeddings')
-        # subparser.add_argument('--unk', default='unk',
-        #                        help='unk token in pretrained embeddings')
 
         return subparser
 
     def __call__(self, args):
         super(Train, self).__call__(args)
-        # if path_or_name(args.ftrain) == "name":
-        #     args.ftrain = os.path.join(args.folder, "train", args.ftrain)
 
         original_args = args
         if args.fpretrain:
@@ -170,9 +162,6 @@ class Train(CMD):
         ### for experience with only part of the dataset
         if original_args.n_to_train:
             train_size = original_args.n_to_train
-            # if original_args.n_to_test :
-            #     test_size = original_args.n_to_test
-            # else :
             test_size = int(len(train_dataset)) - train_size
             train_dataset, _ = random_split(train_dataset, [train_size, test_size])
 

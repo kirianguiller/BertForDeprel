@@ -14,8 +14,6 @@ import time
 def deprel_aligner_with_head(deprels_pred, heads_true):
     heads_true = heads_true.unsqueeze(1).unsqueeze(2)
     heads_true = heads_true.expand(-1, deprels_pred.size(1), -1, -1)
-    # print("aligner deprels.size()", deprels_pred.size())
-    # print("aligner heads.size()", heads_true.size())
     deprels_pred = gather(deprels_pred, 2, heads_true).squeeze(2)
 
     return deprels_pred
@@ -39,14 +37,6 @@ def compute_acc_head(heads_pred, heads_true, eps=1e-10):
 
 def compute_acc_pos(poss_pred, poss_true, eps=1e-10):
     mask = (poss_true!=int(poss_true[0][0]))
-    # print("mask", mask)
-    # print("mask.size()", mask.size())
-    # print("poss_true[mask]", poss_true[mask])
-    # print("poss_true[mask].size()", poss_true[mask].size())
-    # print("poss_pred.max(dim=1)[1]", poss_pred.max(dim=1)[1])
-    # print("poss_pred.max(dim=1)[1].size()", poss_pred.max(dim=1)[1].size())
-    # print("poss_pred.max(dim=2)[1].size()", poss_pred.max(dim=2)[1].size())
-    # print("poss_pred.max(dim=1)[1][mask]", poss_pred.max(dim=2)[1][mask])
     good_pos = float(sum(poss_true[mask] == poss_pred.max(dim=2)[1][mask]))
     total_pos = float(sum(sum(mask))) + eps
     return good_pos, total_pos
@@ -63,9 +53,6 @@ def compute_acc_deprel(deprels_pred, deprels_true, heads_true, eps=1e-10):
 
 def compute_LAS(heads_pred, deprels_pred, heads_true, deprels_true):
     mask = (heads_true!=int(heads_true[0][0]))
-    # heads_true_2 = heads_true.unsqueeze(1).unsqueeze(2)
-    # heads_true_2 = heads_true_2.expand(-1, deprels_pred.size(1), -1, -1)
-    # deprels_pred_2 = torch.gather(deprels_pred, 2, heads_true_2).squeeze(2)
     deprels_pred = deprel_aligner_with_head(deprels_pred, heads_true)
     correct_head = heads_pred.max(dim=1)[1][mask] == heads_true[mask]
     correct_deprel = deprels_pred.max(dim=1)[1][mask] == deprels_true[mask]
@@ -77,14 +64,8 @@ def compute_LAS(heads_pred, deprels_pred, heads_true, deprels_true):
 
 def compute_LAS_main_aux(heads_pred, deprels_main_pred, deprels_aux_pred, heads_true, deprels_main_true, deprels_aux_true):
     mask = (heads_true!=int(heads_true[0][0]))
-    # heads_true_main = heads_true.unsqueeze(1).unsqueeze(2)
-    # heads_true_main = heads_true_main.expand(-1, deprels_main_pred.size(1), -1, -1)
-    # deprels_main_pred_2 = torch.gather(deprels_main_pred, 2, heads_true_main).squeeze(2)
     deprels_main_pred = deprel_aligner_with_head(deprels_main_pred, heads_true)
 
-    # heads_true_aux = heads_true.unsqueeze(1).unsqueeze(2)
-    # heads_true_aux = heads_true_aux.expand(-1, deprels_aux_pred.size(1), -1, -1)
-    # deprels_aux_pred_2 = torch.gather(deprels_aux_pred, 2, heads_true_aux).squeeze(2)
     deprels_aux_pred = deprel_aligner_with_head(deprels_aux_pred, heads_true)
 
     correct_head = heads_pred.max(dim=1)[1][mask] == heads_true[mask]
@@ -101,14 +82,7 @@ def compute_LAS_main_aux(heads_pred, deprels_main_pred, deprels_aux_pred, heads_
 
 def compute_LAS_chuliu_main_aux(heads_chuliu_pred, deprels_main_pred, deprels_aux_pred, heads_true, deprels_main_true, deprels_aux_true):
     mask = (heads_true!=int(heads_true[0][0]))
-    # heads_true_main = heads_true.unsqueeze(1).unsqueeze(2)
-    # heads_true_main = heads_true_main.expand(-1, deprels_main_pred.size(1), -1, -1)
-    # deprels_main_pred_2 = torch.gather(deprels_main_pred, 2, heads_true_main).squeeze(2)
     deprels_main_pred = deprel_aligner_with_head(deprels_main_pred, heads_true)
-
-    # heads_true_aux = heads_true.unsqueeze(1).unsqueeze(2)
-    # heads_true_aux = heads_true_aux.expand(-1, deprels_aux_pred.size(1), -1, -1)
-    # deprels_aux_pred_2 = torch.gather(deprels_aux_pred, 2, heads_true_aux).squeeze(2)
     deprels_aux_pred = deprel_aligner_with_head(deprels_aux_pred, heads_true)
 
     correct_head = heads_chuliu_pred[mask] == heads_true[mask]
@@ -122,18 +96,9 @@ def compute_LAS_chuliu_main_aux(heads_chuliu_pred, deprels_main_pred, deprels_au
 
     return LAS_epoch, n_correct_LAS_main, n_correct_LAS_aux, n_total
 
-# def confusion_matrix(preds, labels, conf_matrix):
-#     preds = torch.argmax(preds, 1)
-#     for p, t in zip(preds, labels):
-#         conf_matrix[p, t] += 1
-
-#     return conf_matrix
-
 
 def confusion_matrix(deprels_pred, deprels_true, heads_true, conf_matrix):
     mask = (heads_true!=int(heads_true[0][0]))
-    # heads_true = heads_true.unsqueeze(1).unsqueeze(2)
-    # heads_true = heads_true.expand(-1, deprels_pred.size(1), -1, -1)
     deprels_pred = deprel_aligner_with_head(deprels_pred, heads_true)
 
     trues = deprels_true[mask]
@@ -226,23 +191,13 @@ def eval_epoch(model, eval_loader, args, n_epoch = -1):
         n_correct_LAS_chuliu_epoch, n_correct_LAS_chuliu_main_epoch,n_correct_LAS_chuliu_aux_epoch, n_total_epoch = 0.0, 0.0, 0.0, 0.0
         
         conf_matrix = torch.zeros(args.n_labels_main, args.n_labels_main)
-        # for n_batch, (sequence_ids, subwords_start, attn_masks, idx_convertor, poss, heads, deprels_main, deprels_aux)
         for n_batch, (seq, subwords_start, attn_masks, idx_convertor, poss, heads, deprels_main, deprels_aux) in enumerate(eval_loader):
             print(f"evaluation on the dataset ... {n_batch}/{len(eval_loader)}batches", end="\r")
-            # if n_batch>1 : break
             seq, attn_masks, heads_true, deprels_main_true, deprels_aux_true, poss_true = seq.to(device), attn_masks.to(device), heads.to(device), deprels_main.to(device), deprels_aux.to(device), poss.to(device)
             
             heads_pred, deprels_main_pred, deprels_aux_pred, poss_pred = model.forward(seq, attn_masks)
             
             heads_pred, deprels_main_pred, deprels_aux_pred, poss_pred = heads_pred.detach(), deprels_main_pred.detach(), deprels_aux_pred.detach(), poss_pred.detach()
-
-            # input("input")
-            # print("idx_convertor", idx_convertor)
-            # print("subwords_start", subwords_start)
-
-            # np.savetxt("heads_pred.csv", heads_pred[0].cpu().numpy())
-            # np.savetxt("heads_true.csv", heads_true[0].cpu().numpy())
-            # np.savetxt("subwords_start.csv", subwords_start[0].cpu().numpy())
 
             chuliu_heads_pred = heads_true.clone()
             for i_vector, (heads_pred_vector, subwords_start_vector, idx_convertor_vector) in enumerate(zip(heads_pred, subwords_start, idx_convertor)):
@@ -251,43 +206,18 @@ def eval_epoch(model, eval_loader, args, n_epoch = -1):
 
                 heads_pred_np = heads_pred_vector[:,subwords_start_with_root == 1][subwords_start_with_root == 1]
                 heads_pred_np = heads_pred_np.cpu().numpy()
-                # print(heads_pred_np.shape)
                 
 
-                # chuliu_heads = chuliu_edmonds_one_root(heads_pred_np)[1:]
                 try:
                     chuliu_heads_vector = chuliu_edmonds_one_root(np.transpose(heads_pred_np, (1,0)))[1:]
                 except:
                     print(poss, heads, deprels_main)
                     print(heads_pred_np)
-                    # print(eval_loader.sequences[n_batch * batch_size + i_vector])
                 
                 argmax_heads = np.argmax(heads_pred_np, axis=0)[1:]
-                # print(heads_true.squeeze(0)[subwords_start_vector == 1])
-                # print(chuliu_heads_vector)
-                # print("idx_convertor", idx_convertor)
                 for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
-                    # print(i_vector, i_token, chuliu_head_pred, idx_convertor_vector[chuliu_head_pred])
                     chuliu_heads_pred[i_vector, idx_convertor_vector[i_token+1]] = idx_convertor_vector[chuliu_head_pred]
                 
-                # print("chuliu_heads_pred", chuliu_heads_pred)
-                # print(sum(chuliu_heads != argmax_heads))
-                # if (sum(chuliu_heads != argmax_heads)) > 0:
-                #     print(chuliu_heads)
-                #     print(argmax_heads)
-                #     print(heads_true.squeeze(0)[subwords_start_vector == 1])
-                # print("chuliu_heads", chuliu_heads)
-                # print("np.argmax(heads_pred_np, axis=1)", np.argmax(heads_pred_np, axis=0))
-                # print("heads_true", heads_true)
-
-            # subwords_start = subwords_start.unsqueeze(0)
-            # subwords_start_with_root = subwords_start.clone()
-            # subwords_start_with_root[0,0] = True
-
-            # heads_pred_np = heads_pred.squeeze(0)[subwords_start_with_root.squeeze(0)==1, :]
-            # heads_pred_np = heads_pred_np.squeeze(0)[:, subwords_start_with_root.squeeze(0)==1]
-            # heads_pred_np = heads_pred_np.cpu().numpy()
-            # print(deprels_pred.size(), deprels_main_true.size())
             conf_matrix = confusion_matrix(deprels_main_pred, deprels_main_true, heads_true, conf_matrix)
             
             n_correct_LAS_batch, n_correct_LAS_main_batch, n_correct_LAS_aux_batch, n_total_batch = compute_LAS_main_aux(heads_pred, deprels_main_pred, deprels_aux_pred, heads_true, deprels_main_true, deprels_aux_true)
@@ -316,15 +246,10 @@ def eval_epoch(model, eval_loader, args, n_epoch = -1):
             good_pos_batch, total_pos_batch = compute_acc_pos(poss_pred, poss_true, eps=0)
             good_pos_epoch += good_pos_batch
             total_pos_epoch += total_pos_batch
-            # n_correct_LAS_main_batch, n_total_batch = compute_LAS(heads_pred, deprels_main_pred, deprels_aux_pred, heads_true, deprels_main_true, deprels_aux_true)
             n_correct_LAS_epoch += n_correct_LAS_batch
             n_correct_LAS_chuliu_epoch += n_correct_LAS_chuliu_batch
             n_total_epoch += n_total_batch
 
-            # if n_correct_LAS_chuliu_batch != n_correct_LAS_batch:
-            #     print()
-            #     print(n_correct_LAS_chuliu_batch, n_correct_LAS_batch)
-            #     print()
         loss_head_epoch = loss_head_epoch/len(eval_loader)
         acc_head_epoch = good_head_epoch/total_head_epoch
         
@@ -357,9 +282,6 @@ def eval_epoch(model, eval_loader, args, n_epoch = -1):
       "loss_head_epoch": loss_head_epoch,
       "loss_deprel_main_epoch": loss_deprel_main_epoch,
       "loss_deprel_aux_epoch": loss_deprel_aux_epoch,
-
-
-      # "conf_matrix": conf_matrix,
     }
 
     return results

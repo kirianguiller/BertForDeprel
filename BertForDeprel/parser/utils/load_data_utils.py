@@ -5,7 +5,6 @@ from torch import tensor
 
 
 class ConlluDataset(Dataset):
-    # def __init__(self, path_file, tokenizer, bert_language="english", args.maxlen = 256, list_deprel_main=None, list_deprel_aux=None, separate_deprel=True, exclude_punc=False):
     def __init__(self, path_file, tokenizer, args):
         self.tokenizer = tokenizer
         self.args = args
@@ -20,19 +19,6 @@ class ConlluDataset(Dataset):
         # TODO : make a generator
         with open(path_file, "r") as infile:
             self.sequences = conllu.parse(infile.read())
-
-        #         infile = open(path_file, 'r')
-        #         self.sequences = conllu.parse_incr(infile)
-
-        # self.primary_relation_only = primary_relation_only
-
-        # if not self.args.list_deprel_main:
-        # self.list_deprel_main, self.list_deprel_aux = create_deprel_lists(path_file)
-
-        # print("list_deprel_main", self.list_deprel_main)
-        # print("list_deprel_aux", self.list_deprel_aux)
-
-        # Make the Dependency Relation to Index dictionary if not given in the init
 
         self.drm2i, self.i2drm = self._mount_dr2i(self.args.list_deprel_main)
 
@@ -64,10 +50,6 @@ class ConlluDataset(Dataset):
         return dr2i, i2dr
 
     def _mount_pos2i(self, list_pos):
-        # list_pos = []
-        # for sequence in self.sequences:
-        #     for token in sequence:
-        #         list_pos.append(token['upostag'])
         sorted_set_pos = sorted(set(list_pos))
 
         pos2i = {}
@@ -102,14 +84,9 @@ class ConlluDataset(Dataset):
 
         for token in sequence:
             if type(token["id"]) != int:
-                # print(token['id'])
                 continue
 
             form = ""
-            # if self.args.increment_unicode:
-            #     for character in token['form']:
-            #         form += chr(ord(character) + 3000)
-            # else:
             form = token["form"]
             token_ids = self.tokenizer.encode(form, add_special_tokens=False)
             idx_convertor.append(len(sequence_ids))
@@ -140,16 +117,11 @@ class ConlluDataset(Dataset):
         skipped_tokens = 0
         for n_token, token in enumerate(sequence):
             if type(token["id"]) != int:
-                # print(token['id'])
                 skipped_tokens += 1
                 continue
 
-            # if len(tokens_len) == n_token+1:
-            #     print("sequence", sequence)
-            #     print("tokens_len", tokens_len)
             token_len = tokens_len[n_token + 1 - skipped_tokens]
 
-            # pos = [self.pos2i.get(token['upostag'], self.pos2i['none'])]  + [-1]*(token_len-1)
             pos = [get_index(token["upostag"], self.pos2i)] + [-1] * (token_len - 1)
             head = [sum(tokens_len[: token["head"]])] + [-1] * (token_len - 1)
             deprel_main, deprel_aux = normalize_deprel(
@@ -168,10 +140,6 @@ class ConlluDataset(Dataset):
                     token_len - 1
                 )
                 deprels_aux += deprel_aux
-        # try:
-        # except:
-        #     print(sequence)
-        #     print(sequence.metadata)
         heads = self._trunc(heads)
         deprels_main = self._trunc(deprels_main)
         poss = self._trunc(poss)
@@ -230,8 +198,6 @@ class ConlluDataset(Dataset):
 
 
 def normalize_deprel(deprel, split_deprel):
-    # change for taking only before @
-    # deprel = deprel.replace("@", ":")
     if split_deprel:
         deprels = deprel.split(":")
         deprel_main = deprels[0]

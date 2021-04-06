@@ -1,27 +1,15 @@
-from transformers import BertModel, AutoModel
+from transformers import AutoModel
 from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAttentions
-from transformers import CamembertModel
 from torch import nn
-from parser.utils.modules_utils import MLP, BiAffine, BiAffine2, BiLSTM
-# from modules_utils import MLP, BiAffine, BiAffine2, BiLSTM
+from parser.utils.modules_utils import MLP, BiAffine
 
 
 class BertForDeprel(nn.Module):
 
-    # def __init__(self, n_labels_main=1, n_labels_aux=False,freeze_bert = False, reinit_bert=False, criterion = False, bert_language="english"):
     def __init__(self, args):
         super(BertForDeprel, self).__init__()
         self.args = args
-        #Instantiating BERT model object
-        # if self.args.bert_type == "bert":
-        #     self.bert_layer = BertModel.from_pretrained('bert-base-uncased')
-        # elif self.args.bert_type == "camembert":
-        #     self.bert_layer = CamembertModel.from_pretrained('camembert-base')
-        # elif self.args.bert_type == "mbert":
-        #     self.bert_layer = BertModel.from_pretrained('bert-base-multilingual-uncased')
-        # else:
         self.bert_layer = AutoModel.from_pretrained(self.args.bert_type)
-            # assert Exception("You must choose `bert_language` as `french` or `english`")
 
         #Freeze bert layers
         if self.args.freeze_bert:
@@ -31,19 +19,7 @@ class BertForDeprel(nn.Module):
         if self.args.reinit_bert:
             self.bert_layer.init_weights()
 
-        # n_embed_lstm = 200
-        # n_lstm_hidden = 100
-        # n_lstm_layers = 3
-        # lstm_dropout = 0.3
-        # # the word-lstm layer
-        # self.lstm = BiLSTM(input_size=n_embed_lstm,
-        #                    hidden_size=n_lstm_hidden,
-        #                    num_layers=n_lstm_layers,
-        #                    dropout=lstm_dropout)
-
         # MLP and Bi-Affine layers
-
-
         mlp_input = args.mlp_input
         mlp_input = self.bert_layer.config.hidden_size #expected to get embedding size of bert custom model
         mlp_arc_hidden = args.mlp_arc_hidden
@@ -73,16 +49,6 @@ class BertForDeprel(nn.Module):
             self.lab_aux_mlp_d = MLP(mlp_input, mlp_lab_hidden, mlp_layers, 'ReLU', mlp_dropout)
             self.lab_aux_biaffine = BiAffine(mlp_lab_hidden, n_labels_aux)
 
-
-
-        # # the Biaffine layers
-        # self.arc_attn = BiAffine2(n_in=mlp_arc_hidden,
-        #                          bias_x=True,
-        #                          bias_y=False)
-        # self.rel_attn = BiAffine2(n_in=mlp_lab_hidden,
-        #                          n_out=num_labels,
-        #                          bias_x=True,
-        #                          bias_y=True)
 
     def forward(self, seq, attn_masks):
         '''
