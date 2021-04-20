@@ -119,6 +119,7 @@ def train_epoch(model, n_epoch ,train_loader, args):
     loss_deprels_main_epoch = 0.
     loss_deprels_aux_epoch = 0.
     loss_poss_epoch = 0.
+    # TODO_LEMMA
     for n_batch, (seq, subwords_start, attn_masks, idx_convertor, poss, heads, deprels_main, deprels_aux) in enumerate(train_loader):
         args.optimizer.zero_grad()
         seq, attn_masks, heads_true, deprels_main_true, deprels_aux_true, poss_true = seq.to(device), attn_masks.to(device), heads.to(device), deprels_main.to(device), deprels_aux.to(device), poss.to(device)
@@ -138,6 +139,8 @@ def train_epoch(model, n_epoch ,train_loader, args):
         loss_poss_batch = compute_loss_poss(poss_pred, poss_true, args.criterions['pos'])
         loss_poss_epoch += loss_poss_batch.item()
         loss_batch += loss_poss_batch
+
+        # TODO_LEMMA
 
         if args.split_deprel:
             loss_deprels_aux_batch = compute_loss_deprel(deprels_aux_pred, deprels_aux_true, heads_true.clone(), args.criterions['deprel'])
@@ -175,7 +178,7 @@ def train_epoch(model, n_epoch ,train_loader, args):
 
     return losses
 
-
+# TODO_LEMMA : add the lemma
 def eval_epoch(model, eval_loader, args, n_epoch = -1):
     model.eval()
     device = args.device

@@ -29,6 +29,13 @@ class BertForDeprel(nn.Module):
         mlp_pos_layers = args.mlp_pos_layers
         n_labels_main = len(args.list_deprel_main)
         n_pos = len(args.list_pos) + 1
+
+        # TODO_LEMMA : here we need to add a classifier (MLP) that has an input shape of ...
+        # ... 'mlp_input' and an output size of 'len(set(all_lemma_scripts))'.
+        # !!! Important : we need to get the set of all lemma scripts in our dataset so we ... 
+        # ... can create a classifier with the good number of class
+
+
         # Arc MLPs
         self.arc_mlp_h = MLP(mlp_input, mlp_arc_hidden, mlp_layers, 'ReLU', mlp_dropout)
         self.arc_mlp_d = MLP(mlp_input, mlp_arc_hidden, mlp_layers, 'ReLU', mlp_dropout)
@@ -37,10 +44,14 @@ class BertForDeprel(nn.Module):
         self.lab_mlp_d = MLP(mlp_input, mlp_lab_hidden, mlp_layers, 'ReLU', mlp_dropout)
         # Label POS
         self.pos_mlp = MLP(mlp_input, n_pos, mlp_pos_layers, 'ReLU', mlp_dropout)
+        
+        # self.pos_mlp = MLP(mlp_input, n_lemma_rules, mlp_pos_layers, 'ReLU', mlp_dropout)
 
         # BiAffine layers
         self.arc_biaffine = BiAffine(mlp_arc_hidden, 1)
         self.lab_biaffine = BiAffine(mlp_lab_hidden, n_labels_main)
+
+
         
         # Label secondary MLPs
         if args.split_deprel:
@@ -74,6 +85,7 @@ class BertForDeprel(nn.Module):
         lab_h = self.lab_mlp_h(x)
         lab_d = self.lab_mlp_d(x)
 
+        # TODO_LEMMA : here, add the lemma prediction and return it :)
 
         pos = self.pos_mlp(x)
 
@@ -84,10 +96,11 @@ class BertForDeprel(nn.Module):
             lab_aux_h = self.lab_aux_mlp_h(x)
             lab_aux_d = self.lab_aux_mlp_d(x)
             S_lab_aux = self.lab_aux_biaffine(lab_h, lab_d)
-            return S_arc, S_lab, S_lab_aux, pos
+        else:
+            S_lab_aux = S_lab.clone()
 
         # return twice S_lab for replacing S_lab_aux and always having 4 elements in the output
-        return S_arc, S_lab, S_lab.clone(), pos
+        return S_arc, S_lab, S_lab_aux, pos
 
 
     def init_weights(self, module):

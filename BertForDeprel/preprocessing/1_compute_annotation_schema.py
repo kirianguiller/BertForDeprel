@@ -31,6 +31,8 @@ def create_pos_list(*paths):
     return list_pos
 
 
+# TODO_LEMMA : add the create_lemma_script_list
+
 def create_annotation_schema(*paths):
     annotation_schema = {}
 

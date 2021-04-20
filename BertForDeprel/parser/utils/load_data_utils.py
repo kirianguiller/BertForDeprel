@@ -114,13 +114,17 @@ class ConlluDataset(Dataset):
         heads = [-1]
         deprels_main = [-1]
         deprels_aux = [-1]
+        # TODO_LEMMA : add the lemma edit script list for each sequence
+        # lemma_scripts = [-1] # how to initialize ?
         skipped_tokens = 0
+        
         for n_token, token in enumerate(sequence):
             if type(token["id"]) != int:
                 skipped_tokens += 1
                 continue
 
             token_len = tokens_len[n_token + 1 - skipped_tokens]
+
 
             pos = [get_index(token["upostag"], self.pos2i)] + [-1] * (token_len - 1)
             head = [sum(tokens_len[: token["head"]])] + [-1] * (token_len - 1)
@@ -130,7 +134,17 @@ class ConlluDataset(Dataset):
             deprel_main = [get_index(deprel_main, self.drm2i)] + [-1] * (
                 token_len - 1
             )
+            # TODO_LEMMA : find the lemma_script for the token , and then append it to the ...
+            # ... lemma_scripts (list for the sequence)
+            # lemma_script = ?????
+            # lemma_scripts += lemma_script
 
+            # Example of what we have for a token of 2 subtokens
+            # form = ["eat", "ing"]
+            # pos = [4, -1]
+            # head = [2, -1]
+            # lemma_script = [3424, -1]
+            # token_len = 2
             poss += pos
             heads += head
             deprels_main += deprel_main
@@ -147,6 +161,7 @@ class ConlluDataset(Dataset):
         poss = tensor(self._pad_list(poss, -1))
         heads = tensor(self._pad_list(heads, -1))
         deprels_main = tensor(self._pad_list(deprels_main, -1))
+        # TODO_LEMMA : pad the lemma_scripts list (with which values ? empty strings ?)
 
         heads[heads == -1] = self.args.maxlen - 1
         heads[heads >= self.args.maxlen - 1] = self.args.maxlen - 1
@@ -166,6 +181,8 @@ class ConlluDataset(Dataset):
         if not self.args.split_deprel:
             deprels_aux = deprels_main.clone()
 
+
+        # TODO_LEMMA : don't forget to return the lemma_scripts 
         return poss, heads, deprels_main, deprels_aux
 
     def _get_processed(self, sequence):
@@ -181,6 +198,7 @@ class ConlluDataset(Dataset):
             return sequence_ids, subwords_start, attn_masks, idx_convertor
 
         else:
+            # TODO_LEMMA : don't forget to return the lemma_scripts 
             poss, heads, deprels_main, deprels_aux = self._get_output(
                 sequence, token_lens
             )
@@ -313,3 +331,12 @@ def get_index(label: str, mapping: Dict) -> int:
         )
 
     return index
+
+
+
+# TODO_LEMMA : create a function that take the form and the lemma of a token, and return the ...
+# ... lemma script
+# def name_this_function_properly(form, token):
+#    return lemma_script
+
+
