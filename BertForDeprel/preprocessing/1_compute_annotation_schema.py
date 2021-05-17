@@ -4,6 +4,7 @@ import argparse
 import glob
 import conllu
 
+# Return a dict containing "deprel", "upos" and "splitted_deprel"
 
 def create_deprel_lists(*paths):
     deprels = []
@@ -21,7 +22,7 @@ def create_pos_list(*paths):
     list_pos = []
     for path in paths:
         with open(path, "r", encoding="utf-8") as infile:
-            result = conllu.parse(infile.read())
+            result = conllu.parse(infile.read())   
 
         for sequence in result:
             for token in sequence:
@@ -32,10 +33,24 @@ def create_pos_list(*paths):
 
 
 # TODO_LEMMA : add the create_lemma_script_list
+def create_lemma_script_list(*paths):
+    list_lemma = []
+    for path in paths:
+        with open(path, "r", encoding="utf-8") as infile:
+            result = conllu.parse(infile.read())
 
-def create_annotation_schema(*paths):
-    annotation_schema = {}
+        for sequence in result:
+            for token in sequence:
+                list_lemma.append(token["lemma"])
+    list_lemma.append("none")
+    list_lemma = sorted(set(list_lemma))
+    return list_lemma
+                
 
+def create_annotation_schema(*paths):  
+    annotation_schema = {}  
+
+    # Summary all deprels
     deprels = create_deprel_lists(*paths)
 
     mains, auxs, deeps = [], [], []
@@ -57,16 +72,24 @@ def create_annotation_schema(*paths):
     auxs.append("none")
     deeps.append("none")
 
+    # Split deprels
     splitted_deprel = {}
     splitted_deprel["main"] = sorted(list(set(mains)))
     splitted_deprel["aux"] = sorted(list(set(auxs)))
     splitted_deprel["deep"] = sorted(list(set(deeps)))
 
+    # Summary all pos
     upos = create_pos_list(*paths)
+
+    # Summary all lemmas
+    lemmas = create_lemma_script_list(*paths)
+
     annotation_schema["deprel"] = sorted(list(set(deprels)))
     annotation_schema["upos"] = sorted(upos)
     annotation_schema["splitted_deprel"] = splitted_deprel
+    annotation_schema["lemmas"] = sorted(lemmas)
     print(annotation_schema)
+    print(annotation_schema["lemmas"])
     return annotation_schema
 
 
