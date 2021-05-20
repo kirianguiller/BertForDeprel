@@ -18,7 +18,7 @@ class ConlluDataset(Dataset):
         # Load all the sequences from the file
         # TODO : make a generator
         with open(path_file, "r") as infile:
-            self.sequences = conllu.parse(infile.read())
+            self.sequences = conllu.parse(infile.read())    # sequences is a Tokenlist object
 
         self.drm2i, self.i2drm = self._mount_dr2i(self.args.list_deprel_main)
 
@@ -34,7 +34,7 @@ class ConlluDataset(Dataset):
             self.n_labels_aux = len(self.dra2i)
 
     def __len__(self):
-        return len(self.sequences)
+        return len(self.sequences)  
 
     def __getitem__(self, index):
         return self._get_processed(self.sequences[index])
@@ -88,14 +88,15 @@ class ConlluDataset(Dataset):
 
             form = ""
             form = token["form"]
-            token_ids = self.tokenizer.encode(form, add_special_tokens=False)
+            token_ids = self.tokenizer.encode(form, add_special_tokens=False)   # Converts a string to a sequence of ids.
             idx_convertor.append(len(sequence_ids))
             tokens_len.append(len(token_ids))
-            subword_start = [1] + [0] * (len(token_ids) - 1)
+            subword_start = [1] + [0] * (len(token_ids) - 1)    # if (len(token_ids) - 1)=2, return [1,0,0]
 
             sequence_ids += token_ids
-            subwords_start += subword_start
+            subwords_start += subword_start # records all subwords starts in a list
 
+        # Cut, if beyond the max length
         sequence_ids = self._trunc(sequence_ids)
         subwords_start = self._trunc(subwords_start)
         idx_convertor = self._trunc(idx_convertor)
@@ -116,6 +117,8 @@ class ConlluDataset(Dataset):
         deprels_aux = [-1]
         # TODO_LEMMA : add the lemma edit script list for each sequence
         # lemma_scripts = [-1] # how to initialize ?
+        # SES is the shortest edit script, each SES of a token is a string
+        SESs = [""]
         skipped_tokens = 0
         
         for n_token, token in enumerate(sequence):
@@ -145,9 +148,12 @@ class ConlluDataset(Dataset):
             # head = [2, -1]
             # lemma_script = [3424, -1]
             # token_len = 2
+            SES = min_edit_script(token["form"], token["lemma"], allow_copy=False)
+
             poss += pos
             heads += head
             deprels_main += deprel_main
+            SESs += SES
 
             if self.args.split_deprel:
                 deprel_aux = [get_index(deprel_aux, self.dra2i)] + [-1] * (
@@ -183,7 +189,7 @@ class ConlluDataset(Dataset):
 
 
         # TODO_LEMMA : don't forget to return the lemma_scripts 
-        return poss, heads, deprels_main, deprels_aux
+        return poss, heads, deprels_main, deprels_aux, SESs
 
     def _get_processed(self, sequence):
         (
@@ -199,7 +205,7 @@ class ConlluDataset(Dataset):
 
         else:
             # TODO_LEMMA : don't forget to return the lemma_scripts 
-            poss, heads, deprels_main, deprels_aux = self._get_output(
+            poss, heads, deprels_main, deprels_aux, SES = self._get_output(
                 sequence, token_lens
             )
 
@@ -212,10 +218,11 @@ class ConlluDataset(Dataset):
                 heads,
                 deprels_main,
                 deprels_aux,
+                SES,
             )
 
 
-def normalize_deprel(deprel, split_deprel):
+def normalize_deprel(deprel, split_deprel): # Same thing in compute_annotation_schema, doesn't apply
     if split_deprel:
         deprels = deprel.split(":")
         deprel_main = deprels[0]
@@ -230,7 +237,7 @@ def normalize_deprel(deprel, split_deprel):
         return deprel, "none"
 
 
-def create_deprel_lists(*paths, split_deprel):
+def create_deprel_lists(*paths, split_deprel):  # Same thing in compute_annotation_schema, doesn't apply
     print(paths)
     for path in paths:
         with open(path, "r", encoding="utf-8") as infile:
@@ -253,7 +260,7 @@ def create_deprel_lists(*paths, split_deprel):
     return list_deprel_main, list_deprel_aux
 
 
-def create_deprel_lists2(*paths):
+def create_deprel_lists2(*paths):   # Same thing in compute_annotation_schema
     print(paths)
     for path in paths:
         with open(path, "r", encoding="utf-8") as infile:
@@ -266,7 +273,7 @@ def create_deprel_lists2(*paths):
     return set(deprels)
 
 
-def create_pos_list(*paths):
+def create_pos_list(*paths):    # Same thing in compute_annotation_schema, doesn't apply
     list_pos = []
     for path in paths:
         with open(path, "r", encoding="utf-8") as infile:
@@ -280,7 +287,7 @@ def create_pos_list(*paths):
     return list_pos
 
 
-def create_annotation_schema(*paths):
+def create_annotation_schema(*paths):   # Same thing in compute_annotation_schema, doesn't apply
     annotation_schema = {}
 
     deprels = create_deprel_lists2(*paths)
@@ -338,5 +345,62 @@ def get_index(label: str, mapping: Dict) -> int:
 # ... lemma script
 # def name_this_function_properly(form, token):
 #    return lemma_script
+def min_edit_script(source, target, allow_copy=False):
+    """
+    Finds the minimum edit script to transform the source to the target
+    source->form, target->lemma
+    """
+    a = [[(len(source) + len(target) + 1, None)] * (len(target) + 1) for _ in range(len(source) + 1)]
+    for i in range(0, len(source) + 1):
+        for j in range(0, len(target) + 1):
+            if i == 0 and j == 0:
+                a[i][j] = (0, "")
+            else:
+                if allow_copy and i and j and source[i - 1].lower() == target[j - 1] and a[i-1][j-1][0] < a[i][j][0]:
+                    if source[i - 1] == target[j - 1]:
+                        a[i][j] = (a[i-1][j-1][0], a[i-1][j-1][1] + "→")
+                    else:
+                        a[i][j] = (a[i-1][j-1][0], a[i-1][j-1][1] + "↓") 
+                if i and a[i-1][j][0] < a[i][j][0]:
+                    a[i][j] = (a[i-1][j][0] + 1, a[i-1][j][1] + "-")
+                if j and a[i][j-1][0] < a[i][j][0]:
+                    a[i][j] = (a[i][j-1][0] + 1, a[i][j-1][1] + "+" + target[j - 1])
+    return a[-1][-1][1]
+    return a[-1][-1][1] # Return the last one, the SES
 
+def gen_lemma_rule(form, lemma, allow_copy=False):
+    """
+    Generates a lemma rule to transform the form to the lemma
+    """
+    form = form.lower()
 
+    previous_case = -1
+    # lemma_casing is to divide lemma into upper case substring and lower case substring
+    lemma_casing = ""
+    for i, c in enumerate(lemma):
+        case = "↑" if c.lower() != c else "↓"   # 判断lemma中的每个字母是大写还是小写
+        if case != previous_case:
+            lemma_casing += "{}{}{}".format("¦" if lemma_casing else "", case, i if i <= len(lemma) // 2 else i - len(lemma))   # ‘//’向下取整商，
+        previous_case = case
+    lemma = lemma.lower()
+
+    best, best_form, best_lemma = 0, 0, 0
+    # Find the same substring between form and lemma
+    for l in range(len(lemma)):
+        for f in range(len(form)):
+            cpl = 0
+            while f + cpl < len(form) and l + cpl < len(lemma) and form[f + cpl] == lemma[l + cpl]: cpl += 1
+            if cpl > best:
+                best = cpl
+                best_form = f
+                best_lemma = l
+
+    rule = lemma_casing + ";"
+    if not best:
+        rule += "a" + lemma
+    else:
+        rule += "d{}¦{}".format(
+            min_edit_script(form[:best_form], lemma[:best_lemma], allow_copy),
+            min_edit_script(form[best_form + best:], lemma[best_lemma + best:], allow_copy),
+        )
+    return rule
