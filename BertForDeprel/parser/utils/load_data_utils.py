@@ -119,6 +119,8 @@ class ConlluDataset(Dataset):
         # lemma_scripts = [-1] # how to initialize ?
         # SES is the shortest edit script, each SES of a token is a string
         SESs = [""]
+        # Lemma_rules stores all rules of tokens that transform form to lemma 
+        lemma_rules = ["None"]
         skipped_tokens = 0
         
         for n_token, token in enumerate(sequence):
@@ -148,13 +150,15 @@ class ConlluDataset(Dataset):
             # head = [2, -1]
             # lemma_script = [3424, -1]
             # token_len = 2
-            SES = min_edit_script(token["form"], token["lemma"], allow_copy=False)
+            SES = short_edit_script(token["form"], token["lemma"], allow_copy=False)    # If need?
+            lemma_rule = gen_lemma_rule(token["form"], token["lemma"])
 
             poss += pos
             heads += head
             deprels_main += deprel_main
-            SESs += SES
-
+            SESs.append(SES)
+            lemma_rules.append(lemma_rule) 
+            
             if self.args.split_deprel:
                 deprel_aux = [get_index(deprel_aux, self.dra2i)] + [-1] * (
                     token_len - 1
@@ -345,7 +349,7 @@ def get_index(label: str, mapping: Dict) -> int:
 # ... lemma script
 # def name_this_function_properly(form, token):
 #    return lemma_script
-def min_edit_script(source, target, allow_copy=False):
+def short_edit_script(source, target, allow_copy=False):
     """
     Finds the minimum edit script to transform the source to the target
     source->form, target->lemma
@@ -368,39 +372,44 @@ def min_edit_script(source, target, allow_copy=False):
     return a[-1][-1][1]
     return a[-1][-1][1] # Return the last one, the SES
 
-def gen_lemma_rule(form, lemma, allow_copy=False):
+def gen_lemma_rule(form, lemma, allow_copy=True):
     """
-    Generates a lemma rule to transform the form to the lemma
+    Generates a lemma rule to transform the source to the target
     """
     form = form.lower()
 
     previous_case = -1
-    # lemma_casing is to divide lemma into upper case substring and lower case substring
     lemma_casing = ""
     for i, c in enumerate(lemma):
-        case = "↑" if c.lower() != c else "↓"   # 判断lemma中的每个字母是大写还是小写
+        case = "↑" if c.lower() != c else "↓"
         if case != previous_case:
-            lemma_casing += "{}{}{}".format("¦" if lemma_casing else "", case, i if i <= len(lemma) // 2 else i - len(lemma))   # ‘//’向下取整商，
+            lemma_casing += "{}{}{}".format("¦" if lemma_casing else "", case, i if i <= len(lemma) // 2 else i - len(lemma))
         previous_case = case
     lemma = lemma.lower()
 
     best, best_form, best_lemma = 0, 0, 0
-    # Find the same substring between form and lemma
     for l in range(len(lemma)):
         for f in range(len(form)):
             cpl = 0
             while f + cpl < len(form) and l + cpl < len(lemma) and form[f + cpl] == lemma[l + cpl]: cpl += 1
             if cpl > best:
                 best = cpl
-                best_form = f
+                best_form = f   # form从这开始，有best个字母的字符串和lemma一样
                 best_lemma = l
 
-    rule = lemma_casing + ";"
+    rule = ""
     if not best:
         rule += "a" + lemma
     else:
-        rule += "d{}¦{}".format(
-            min_edit_script(form[:best_form], lemma[:best_lemma], allow_copy),
-            min_edit_script(form[best_form + best:], lemma[best_lemma + best:], allow_copy),
+        rule += "{}->{}¦{}|".format(
+            form[:best_form],
+            lemma[:best_lemma],
+            short_edit_script(form[:best_form], lemma[:best_lemma], allow_copy=True),
+        )
+
+        rule += "{}->{}¦{}".format(
+            form[best_form + best:],
+            lemma[best_lemma + best:],
+            short_edit_script(form[best_form + best:], lemma[best_lemma + best:], allow_copy=True),
         )
     return rule
