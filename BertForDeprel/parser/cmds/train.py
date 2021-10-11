@@ -34,6 +34,9 @@ class Train(CMD):
             "--batch_size", default=16, type=int, help="batch_size to use"
         )
         subparser.add_argument(
+            "--epochs", default=10, type=int, help="batch_size to use"
+        )
+        subparser.add_argument(
             "--punct", action="store_true", help="wether to include punctuation"
         )
         subparser.add_argument("--ftrain", required=True, help="path to train file")
