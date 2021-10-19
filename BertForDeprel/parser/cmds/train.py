@@ -217,7 +217,7 @@ class Train(CMD):
         criterions["deprel"] = nn.CrossEntropyLoss(ignore_index=-1)
         criterions["pos"] = nn.CrossEntropyLoss(ignore_index=-1)
         # TODO_LEMMA
-        #criterions["lemma???"] = nn.CrossEntropyLoss(ignore_index=-1)
+        criterions["lemma_script"] = nn.CrossEntropyLoss(ignore_index=-1)
 
         args.criterions = criterions
 

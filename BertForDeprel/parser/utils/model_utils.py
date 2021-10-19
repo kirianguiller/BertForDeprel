@@ -27,8 +27,10 @@ class BertForDeprel(nn.Module):
         mlp_dropout = args.mlp_dropout
         mlp_layers = args.mlp_layers
         mlp_pos_layers = args.mlp_pos_layers
+        mpl_lemma_scripts_layers = args.mlp_pos_layers
         n_labels_main = len(args.list_deprel_main)
-        n_pos = len(args.list_pos) + 1
+        n_pos = len(args.list_pos)
+        n_lemma_scripts = len(args.list_lemma_script)
 
         # TODO_LEMMA : here we need to add a classifier (MLP) that has an input shape of ...
         # ... 'mlp_input' and an output size of 'len(set(all_lemma_scripts))'.
@@ -44,6 +46,9 @@ class BertForDeprel(nn.Module):
         self.lab_mlp_d = MLP(mlp_input, mlp_lab_hidden, mlp_layers, 'ReLU', mlp_dropout)
         # Label POS
         self.pos_mlp = MLP(mlp_input, n_pos, mlp_pos_layers, 'ReLU', mlp_dropout)
+
+        # Label lemma_script
+        self.lemma_script_mlp = MLP(mlp_input, n_lemma_scripts, mpl_lemma_scripts_layers, 'ReLU', mlp_dropout)
         
         # self.pos_mlp = MLP(mlp_input, n_lemma_rules, mlp_pos_layers, 'ReLU', mlp_dropout)
 
@@ -88,6 +93,7 @@ class BertForDeprel(nn.Module):
         # TODO_LEMMA : here, add the lemma prediction and return it :)
 
         pos = self.pos_mlp(x)
+        lemma_script = self.pos_mlp(x)
 
         S_arc = self.arc_biaffine(arc_h, arc_d)
         S_lab = self.lab_biaffine(lab_h, lab_d)
@@ -100,7 +106,7 @@ class BertForDeprel(nn.Module):
             S_lab_aux = S_lab.clone()
 
         # return twice S_lab for replacing S_lab_aux and always having 4 elements in the output
-        return S_arc, S_lab, S_lab_aux, pos
+        return S_arc, S_lab, S_lab_aux, pos, lemma_script
 
 
     def init_weights(self, module):

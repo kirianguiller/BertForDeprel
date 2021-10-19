@@ -129,11 +129,12 @@ def train_epoch(model, n_epoch ,train_loader, args):
     loss_deprels_main_epoch = 0.
     loss_deprels_aux_epoch = 0.
     loss_poss_epoch = 0.
-    for n_batch, (seq, subwords_start, attn_masks, idx_convertor, poss, heads, deprels_main, deprels_aux) in enumerate(train_loader):
+    loss_lemma_script_epoch = 0.
+    for n_batch, (seq, subwords_start, attn_masks, idx_convertor, poss, heads, deprels_main, deprels_aux, lemma_script) in enumerate(train_loader):
         args.optimizer.zero_grad()
-        seq, attn_masks, heads_true, deprels_main_true, deprels_aux_true, poss_true = seq.to(device), attn_masks.to(device), heads.to(device), deprels_main.to(device), deprels_aux.to(device), poss.to(device)
+        seq, attn_masks, heads_true, deprels_main_true, deprels_aux_true, poss_true, lemma_script_true = seq.to(device), attn_masks.to(device), heads.to(device), deprels_main.to(device), deprels_aux.to(device), poss.to(device), lemma_script.to(device)
 
-        heads_pred, deprels_main_pred, deprels_aux_pred, poss_pred = model.forward(seq, attn_masks)
+        heads_pred, deprels_main_pred, deprels_aux_pred, poss_pred, lemma_script_pred = model.forward(seq, attn_masks)
         
         loss_batch = 0.0
 
@@ -148,6 +149,10 @@ def train_epoch(model, n_epoch ,train_loader, args):
         loss_poss_batch = compute_loss_poss(poss_pred, poss_true, args.criterions['pos'])
         loss_poss_epoch += loss_poss_batch.item()
         loss_batch += loss_poss_batch
+
+        loss_lemma_script_batch = compute_loss_poss(lemma_script_pred, lemma_script_true, args.criterions['lemma_script'])
+        loss_lemma_script_epoch += loss_lemma_script_batch.item()
+        loss_batch += loss_lemma_script_batch
 
         if args.split_deprel:
             loss_deprels_aux_batch = compute_loss_deprel(deprels_aux_pred, deprels_aux_true, heads_true.clone(), args.criterions['deprel'])
@@ -167,6 +172,7 @@ def train_epoch(model, n_epoch ,train_loader, args):
 
     losses = {
           "loss_head_epoch": loss_head_epoch,
+          "loss_lemma_script_epoch": loss_lemma_script_epoch,
         }
 
     if args.split_deprel:
@@ -194,18 +200,19 @@ def eval_epoch(model, eval_loader, args, n_epoch = -1):
         loss_deprel_aux_epoch = 0.0
         good_head_epoch, total_head_epoch = 0.0, 0.0
         good_pos_epoch, total_pos_epoch = 0.0, 0.0
+        good_lemma_script_epoch, total_lemma_script_epoch = 0.0, 0.0
         good_deprel_main_epoch, total_deprel_main_epoch = 0.0, 0.0
         good_deprel_aux_epoch, total_deprel_aux_epoch = 0.0, 0.0
         n_correct_LAS_epoch, n_correct_LAS_main_epoch,n_correct_LAS_aux_epoch, n_total_epoch = 0.0, 0.0, 0.0, 0.0
         conf_matrix = torch.zeros(args.n_labels_main, args.n_labels_main)
         # for n_batch, (sequence_ids, subwords_start, attn_masks, idx_convertor, poss, heads, deprels_main, deprels_aux)
-        for n_batch, (seq, subwords_start, attn_masks, idx_convertor, poss, heads, deprels_main, deprels_aux) in enumerate(eval_loader):
+        for n_batch, (seq, subwords_start, attn_masks, idx_convertor, poss, heads, deprels_main, deprels_aux, lemma_script) in enumerate(eval_loader):
             print(f"evaluation on the dataset ... {n_batch}/{len(eval_loader)}batches", end="\r")
             # if n_batch>1 : break
-            seq, attn_masks, heads_true, deprels_main_true, deprels_aux_true, poss_true = seq.to(device), attn_masks.to(device), heads.to(device), deprels_main.to(device), deprels_aux.to(device), poss.to(device)
+            seq, attn_masks, heads_true, deprels_main_true, deprels_aux_true, poss_true, lemma_script_true = seq.to(device), attn_masks.to(device), heads.to(device), deprels_main.to(device), deprels_aux.to(device), poss.to(device), lemma_script.to(device)
             heads_pred, deprels_main_pred, deprels_aux_pred, poss_pred = model.forward(seq, attn_masks)
 
-            heads_pred, deprels_main_pred, deprels_aux_pred, poss_pred = heads_pred.detach(), deprels_main_pred.detach(), deprels_aux_pred.detach(), poss_pred.detach()
+            heads_pred, deprels_main_pred, deprels_aux_pred, poss_pred, lemma_script_pred = heads_pred.detach(), deprels_main_pred.detach(), deprels_aux_pred.detach(), poss_pred.detach(), lemma_script_pred.detach()
 
             # print(deprels_pred.size(), deprels_main_true.size())
             conf_matrix = confusion_matrix(deprels_main_pred, deprels_main_true, heads_true, conf_matrix)
@@ -235,7 +242,11 @@ def eval_epoch(model, eval_loader, args, n_epoch = -1):
             good_pos_batch, total_pos_batch = compute_acc_pos(poss_pred, poss_true, eps=0)
             good_pos_epoch += good_pos_batch
             total_pos_epoch += total_pos_batch
-            # n_correct_LAS_main_batch, n_total_batch = compute_LAS(heads_pred, deprels_main_pred, deprels_aux_pred, heads_true, deprels_main_true, deprels_aux_true)
+
+            good_lemma_script_batch, total_lemma_script_batch = compute_acc_pos(lemma_script_pred, lemma_script_true, eps=0)
+            good_lemma_script_epoch += good_lemma_script_batch
+            total_lemma_script_epoch += total_lemma_script_batch
+
             n_correct_LAS_epoch += n_correct_LAS_batch
             n_total_epoch += n_total_batch
 
@@ -250,6 +261,8 @@ def eval_epoch(model, eval_loader, args, n_epoch = -1):
         acc_deprel_aux_epoch = good_deprel_aux_epoch/total_deprel_aux_epoch
         
         acc_pos_epoch = good_pos_epoch/total_pos_epoch
+        
+        acc_lemma_script_epoch = good_lemma_script_epoch/total_lemma_script_epoch
 
         LAS_epoch = n_correct_LAS_epoch/n_total_epoch
         LAS_main_epoch = n_correct_LAS_main_epoch/n_total_epoch
@@ -260,13 +273,13 @@ def eval_epoch(model, eval_loader, args, n_epoch = -1):
     
 
     results = {
-      "LAS_epoch": LAS_epoch,
       "LAS_main_epoch": LAS_main_epoch,
       "LAS_aux_epoch": LAS_aux_epoch,
       "acc_head_epoch": acc_head_epoch,
       "acc_deprel_main_epoch" : acc_deprel_main_epoch,
       "acc_deprel_aux_epoch": acc_deprel_aux_epoch,
       "acc_pos_epoch": acc_pos_epoch,
+      "acc_lemma_script_epoch": acc_lemma_script_epoch,
       "loss_head_epoch": loss_head_epoch,
       "loss_deprel_main_epoch": loss_deprel_main_epoch,
       "loss_deprel_aux_epoch": loss_deprel_aux_epoch,
