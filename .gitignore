@@ -7,3 +7,7 @@ test/test_folder/models
 test/naija_pretrained_test/
 
 .vscode/
+
+**.pyc
+
+**/__pycache__
