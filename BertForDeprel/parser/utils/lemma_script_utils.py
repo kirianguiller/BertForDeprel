@@ -109,3 +109,14 @@ def apply_lemma_rule(form, lemma_rule):
         lemma = lemma[:offset] + (lemma[offset:].upper() if case == "↑" else lemma[offset:].lower())
 
     return lemma
+
+
+def gen_lemma_script_from_conll_token(token):
+    lemma_script = "none"
+
+    form = token["form"]
+    lemma = token.get("lemma", "")
+    if lemma != "":
+        lemma_script = gen_lemma_rule(form, lemma)
+    
+    return lemma_script

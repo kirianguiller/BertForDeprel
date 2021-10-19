@@ -3,6 +3,7 @@ import conllu
 from torch.utils.data import Dataset
 from torch import tensor
 
+from .lemma_script_utils import gen_lemma_script_from_conll_token
 
 class ConlluDataset(Dataset):
     def __init__(self, path_file, tokenizer, args):
@@ -22,10 +23,12 @@ class ConlluDataset(Dataset):
 
         self.drm2i, self.i2drm = self._mount_dr2i(self.args.list_deprel_main)
 
-        self.pos2i, self.i2pos = self._mount_pos2i(self.args.list_pos)
+        self.pos2i, self.i2pos = self._compute_labels2i(self.args.list_pos)
+        self.lemma_script2i, self.i2lemma_script = self._compute_labels2i(self.args.list_lemma_script)
 
         print("drm2i", self.drm2i)
         print("pos2i", self.pos2i)
+        print("lemma_script2i", self.lemma_script2i)
         self.n_labels_main = len(self.drm2i)
 
         if self.args.split_deprel:
@@ -49,19 +52,17 @@ class ConlluDataset(Dataset):
 
         return dr2i, i2dr
 
-    def _mount_pos2i(self, list_pos):
-        sorted_set_pos = sorted(set(list_pos))
+    def _compute_labels2i(self, list_labels):
+        sorted_set_labels = sorted(set(list_labels))
 
-        pos2i = {}
-        i2pos = {}
+        labels2i = {}
+        i2labels = {}
 
-        for i, pos in enumerate(sorted_set_pos):
-            pos2i[pos] = i
-            i2pos[i] = pos
+        for i, labels in enumerate(sorted_set_labels):
+            labels2i[labels] = i
+            i2labels[i] = labels
 
-        self.list_pos = sorted_set_pos
-
-        return pos2i, i2pos
+        return labels2i, i2labels
 
     def _pad_list(self, l, padding_value):
         if len(l) > self.args.maxlen:
@@ -111,11 +112,10 @@ class ConlluDataset(Dataset):
 
     def _get_output(self, sequence, tokens_len):
         poss = [-1]
+        lemma_scripts = [-1]
         heads = [-1]
         deprels_main = [-1]
         deprels_aux = [-1]
-        # TODO_LEMMA : add the lemma edit script list for each sequence
-        # lemma_scripts = [-1] # how to initialize ?
         skipped_tokens = 0
         
         for n_token, token in enumerate(sequence):
@@ -127,6 +127,9 @@ class ConlluDataset(Dataset):
 
 
             pos = [get_index(token["upostag"], self.pos2i)] + [-1] * (token_len - 1)
+            lemma_script_value = gen_lemma_script_from_conll_token(token)
+            lemma_script = [get_index(lemma_script_value, self.lemma_script2i)] + [-1] * (token_len - 1)
+            
             head = [sum(tokens_len[: token["head"]])] + [-1] * (token_len - 1)
             deprel_main, deprel_aux = normalize_deprel(
                 token["deprel"], split_deprel=self.args.split_deprel
@@ -134,11 +137,6 @@ class ConlluDataset(Dataset):
             deprel_main = [get_index(deprel_main, self.drm2i)] + [-1] * (
                 token_len - 1
             )
-            # TODO_LEMMA : find the lemma_script for the token , and then append it to the ...
-            # ... lemma_scripts (list for the sequence)
-            # lemma_script = ?????
-            # lemma_scripts += lemma_script
-
             # Example of what we have for a token of 2 subtokens
             # form = ["eat", "ing"]
             # pos = [4, -1]
@@ -148,6 +146,7 @@ class ConlluDataset(Dataset):
             poss += pos
             heads += head
             deprels_main += deprel_main
+            lemma_scripts += lemma_script
 
             if self.args.split_deprel:
                 deprel_aux = [get_index(deprel_aux, self.dra2i)] + [-1] * (
@@ -157,8 +156,12 @@ class ConlluDataset(Dataset):
         heads = self._trunc(heads)
         deprels_main = self._trunc(deprels_main)
         poss = self._trunc(poss)
+        lemma_scripts = self._trunc(lemma_scripts)
+
+
 
         poss = tensor(self._pad_list(poss, -1))
+        lemma_scripts = tensor(self._pad_list(lemma_scripts, -1))
         heads = tensor(self._pad_list(heads, -1))
         deprels_main = tensor(self._pad_list(deprels_main, -1))
         # TODO_LEMMA : pad the lemma_scripts list (with which values ? empty strings ?)
@@ -183,7 +186,7 @@ class ConlluDataset(Dataset):
 
 
         # TODO_LEMMA : don't forget to return the lemma_scripts 
-        return poss, heads, deprels_main, deprels_aux
+        return poss, heads, deprels_main, deprels_aux, lemma_scripts
 
     def _get_processed(self, sequence):
         (
@@ -199,7 +202,7 @@ class ConlluDataset(Dataset):
 
         else:
             # TODO_LEMMA : don't forget to return the lemma_scripts 
-            poss, heads, deprels_main, deprels_aux = self._get_output(
+            poss, heads, deprels_main, deprels_aux, lemma_scripts = self._get_output(
                 sequence, token_lens
             )
 
@@ -212,6 +215,7 @@ class ConlluDataset(Dataset):
                 heads,
                 deprels_main,
                 deprels_aux,
+                lemma_scripts
             )
 
 
@@ -228,89 +232,6 @@ def normalize_deprel(deprel, split_deprel):
 
     else:
         return deprel, "none"
-
-
-def create_deprel_lists(*paths, split_deprel):
-    print(paths)
-    for path in paths:
-        with open(path, "r", encoding="utf-8") as infile:
-            result = conllu.parse(infile.read())
-
-        list_deprel_main = []
-        list_deprel_aux = []
-        for sequence in result:
-            for token in sequence:
-                deprel_main, deprel_aux = normalize_deprel(
-                    token["deprel"], split_deprel=split_deprel
-                )
-                list_deprel_main.append(deprel_main)
-                list_deprel_aux.append(deprel_aux)
-
-    list_deprel_main.append("none")
-    list_deprel_aux.append("none")
-    list_deprel_main = sorted(set(list_deprel_main))
-    list_deprel_aux = sorted(set(list_deprel_aux))
-    return list_deprel_main, list_deprel_aux
-
-
-def create_deprel_lists2(*paths):
-    print(paths)
-    for path in paths:
-        with open(path, "r", encoding="utf-8") as infile:
-            result = conllu.parse(infile.read())
-
-        deprels = []
-        for sequence in result:
-            for token in sequence:
-                deprels.append(token["deprel"])
-    return set(deprels)
-
-
-def create_pos_list(*paths):
-    list_pos = []
-    for path in paths:
-        with open(path, "r", encoding="utf-8") as infile:
-            result = conllu.parse(infile.read())
-
-        for sequence in result:
-            for token in sequence:
-                list_pos.append(token["upostag"])
-    list_pos.append("none")
-    list_pos = sorted(set(list_pos))
-    return list_pos
-
-
-def create_annotation_schema(*paths):
-    annotation_schema = {}
-
-    deprels = create_deprel_lists2(*paths)
-
-    mains, auxs, deeps = [], [], []
-
-    for deprel in deprels:
-        if deprel.count("@") == 1:
-            deprel, deep = deprel.split("@")
-            deeps.append(deep)
-        if deprel.count(":") == 1:
-            deprel, aux = deprel.split(":")
-            auxs.append(aux)
-
-        if (":" not in deprel) and ("@" not in deprel):
-            mains.append(deprel)
-
-    auxs.append("none")
-    deeps.append("none")
-
-    annotation_schema["deprel"] = list(set(deprels))
-    annotation_schema["main"] = list(set(mains))
-    annotation_schema["aux"] = list(set(auxs))
-    annotation_schema["deep"] = list(set(deeps))
-
-    upos = create_pos_list(*paths)
-
-    annotation_schema["upos"] = upos
-    print(annotation_schema)
-    return annotation_schema
 
 
 def get_index(label: str, mapping: Dict) -> int:
