@@ -118,7 +118,7 @@ class Predict(CMD):
             path_result_file = os.path.join(path_predicted_files, path.split("/")[-1])
             
             if args.overwrite != True:
-                if os.path.isdir(path_result_file):
+                if os.path.isfile(path_result_file):
                     print(f"file '{path_result_file}' already exist and overwrite!=False, skipping ...\n")
             
             args.fpred = path
