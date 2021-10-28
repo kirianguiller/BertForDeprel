@@ -120,7 +120,8 @@ class Predict(CMD):
             if args.overwrite != True:
                 if os.path.isfile(path_result_file):
                     print(f"file '{path_result_file}' already exist and overwrite!=False, skipping ...\n")
-            
+                    continue
+                
             args.fpred = path
             print(args.fpred)
 
