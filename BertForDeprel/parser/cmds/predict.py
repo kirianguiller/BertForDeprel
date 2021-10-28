@@ -49,6 +49,9 @@ class Predict(CMD):
             "--multiple", action="store_true", help="whether to include punctuation"
         )
         subparser.add_argument(
+            "--overwrite", action="store_true", help="whether to overwrite predicted file if already existing"
+        )
+        subparser.add_argument(
             "--write_preds_in_misc",
             action="store_true",
             help="whether to include punctuation",
@@ -113,6 +116,11 @@ class Predict(CMD):
         for path in paths_pred:
 
             path_result_file = os.path.join(path_predicted_files, path.split("/")[-1])
+            
+            if args.overwrite != True:
+                if os.path.isdir(path_result_file):
+                    print(f"file '{path_result_file}' already exist and overwrite!=False, skipping ...\n")
+            
             args.fpred = path
             print(args.fpred)
 
