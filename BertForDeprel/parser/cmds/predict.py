@@ -288,7 +288,7 @@ class Predict(CMD):
                         else:
                             # token["head"] = gov_dict.get(n_token+1, 'missing_gov')
                             token["head"] = str(head_chuliu)
-                            token["upostag"] = args.i2pos[pos_index]
+                            token["upos"] = args.i2pos[pos_index]
                             lemma_script = args.i2lemma_script[lemma_script_index]
                             token["lemma"] = apply_lemma_rule(token["form"], lemma_script)
                             if loaded_args.split_deprel:
