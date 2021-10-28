@@ -65,6 +65,11 @@ def apply_lemma_rule(form, lemma_rule):
     """
     Applies the lemma rule to the form to generate the lemma
     """
+
+    if ";" not in lemma_rule:
+        print("apply_lemma_rule warning : lemma_rule does not have a ';'    lemma_rule = ", lemma_rule)
+        return form
+
     casing, rule = lemma_rule.split(";", 1)
     if rule.startswith("a"):
         lemma = rule[1:]

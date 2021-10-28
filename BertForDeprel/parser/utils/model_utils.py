@@ -91,8 +91,6 @@ class BertForDeprel(nn.Module):
         lab_h = self.lab_mlp_h(x)
         lab_d = self.lab_mlp_d(x)
 
-        # TODO_LEMMA : here, add the lemma prediction and return it :)
-
         pos = self.pos_mlp(x)
         lemma_script = self.lemma_script_mlp(x)
 
