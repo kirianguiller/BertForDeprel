@@ -38,6 +38,14 @@ def compute_acc_head(heads_pred, heads_true, eps=1e-10):
 
 def compute_acc_pos(poss_pred, poss_true, eps=1e-10):
     mask = (poss_true!=int(poss_true[0][0]))
+    # print("mask", mask)
+    # print("mask.size()", mask.size())
+    # print("poss_true[mask]", poss_true[mask])
+    # print("poss_true[mask].size()", poss_true[mask].size())
+    # print("poss_pred.max(dim=1)[1]", poss_pred.max(dim=1)[1])
+    # print("poss_pred.max(dim=1)[1].size()", poss_pred.max(dim=1)[1].size())
+    # print("poss_pred.max(dim=2)[1].size()", poss_pred.max(dim=2)[1].size())
+    # print("poss_pred.max(dim=1)[1][mask]", poss_pred.max(dim=2)[1][mask])
     good_pos = float(sum(poss_true[mask] == poss_pred.max(dim=2)[1][mask]))
     total_pos = float(sum(sum(mask))) + eps
     return good_pos, total_pos
@@ -260,8 +268,8 @@ def eval_epoch(model, eval_loader, args, n_epoch = -1):
         LAS_main_epoch = n_correct_LAS_main_epoch/n_total_epoch
         LAS_aux_epoch = n_correct_LAS_aux_epoch/n_total_epoch
 
-        print("\nevaluation result: LAS={:.4f}; LAS_m={:.4f}; LAS_a={:.4f}; eval_acc_head={:.4f}; eval_acc_dep_m = {:.4f}, eval_acc_dep_a = {:.4f}, eval_acc_pos = {:.4f}, eval_acc_lemma_script = {:.4f}\n".format(
-        LAS_epoch, LAS_main_epoch,LAS_aux_epoch, acc_head_epoch, acc_deprel_main_epoch, acc_deprel_aux_epoch, acc_pos_epoch, acc_lemma_script_epoch))
+        print("\nevaluation result: LAS={:.4f}; LAS_m={:.4f}; LAS_a={:.4f}; eval_acc_head={:.4f}; eval_acc_dep_m = {:.4f}, eval_acc_dep_a = {:.4f}, eval_acc_pos = {:.4f}\n".format(
+        LAS_epoch, LAS_main_epoch,LAS_aux_epoch, acc_head_epoch, acc_deprel_main_epoch, acc_deprel_aux_epoch, acc_pos_epoch))
     
 
     results = {

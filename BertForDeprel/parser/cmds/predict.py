@@ -11,9 +11,7 @@ from scipy.special import softmax
 from torch import nn
 from torch.utils.data import DataLoader, random_split
 
-
 from ..cmds.cmd import CMD
-from ..utils.lemma_script_utils import apply_lemma_rule
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
 from ..utils.load_data_utils import ConlluDataset
 from ..utils.model_utils import BertForDeprel
@@ -43,7 +41,7 @@ class Predict(CMD):
         )
         subparser.add_argument("--fpred", default="", help="path to dataset")
         subparser.add_argument(
-            "--upostag", action="store_true", help="whether to predict POS"
+            "--upos", action="store_true", help="whether to predict POS"
         )
         subparser.add_argument(
             "--multiple", action="store_true", help="whether to include punctuation"
@@ -135,7 +133,6 @@ class Predict(CMD):
                 args.dra2i = pred_dataset.dra2i
                 args.i2dra = pred_dataset.i2dra
             args.i2pos = pred_dataset.i2pos
-            args.i2lemma_script = pred_dataset.i2lemma_script
             params = {
                 # "batch_size": args.batch_size,
                 "batch_size": 1,
@@ -168,14 +165,12 @@ class Predict(CMD):
                         deprels_main_pred,
                         deprels_aux_pred,
                         poss_pred,
-                        lemma_scripts_pred,
                     ) = model.forward(seq, attn_masks)
-                    heads_pred, deprels_main_pred, deprels_aux_pred, poss_pred, lemma_scripts_pred = (
+                    heads_pred, deprels_main_pred, deprels_aux_pred, poss_pred = (
                         heads_pred.detach(),
                         deprels_main_pred.detach(),
                         deprels_aux_pred.detach(),
                         poss_pred.detach(),
-                        lemma_scripts_pred.detach(),
                     )
 
                     subwords_start_with_root = subwords_start.clone()
@@ -237,18 +232,71 @@ class Predict(CMD):
                         subwords_start == 1
                     ].tolist()
 
-                    lemma_scripts_pred_list = lemma_scripts_pred.max(dim=2)[1][
-                        subwords_start == 1
-                    ].tolist()
+                    ###
+                    # gov_dict = {}
 
+                    # root_idx = heads_pred_np[:,1:].argmax(axis=1)[0] + 1
+                    # gov_dict[root_idx] = 0
+                    # r = minimum_spanning_tree(-1*heads_pred_np[1:,1:])
+
+                    # list_done = []
+                    # list_todo = [root_idx-1]
+                    # gov_dict = {}
+                    # gov_dict[root_idx] = 0
+                    # while list_todo:
+                    #     todo_idx = list_todo.pop(0)
+                    #     for idx in np.where(r.toarray()[todo_idx,:] != 0)[0]:
+                    #         if idx not in list_done:
+                    #             list_todo.append(idx)
+                    #             gov_dict[idx+1] = todo_idx+1
+                    #     for idx in np.where(r.toarray()[:,todo_idx] != 0)[0]:
+                    #         if idx not in list_done:
+                    #             list_todo.append(idx)
+                    #             gov_dict[idx+1] = todo_idx+1
+
+                    #     list_done.append(todo_idx)
+
+                    # heads_pred_mst = heads_pred.clone()
+
+                    # poss_pred_list = poss_pred.max(dim=2)[1][subwords_start==1].tolist()
+
+                    # heads_pred_mst_list = []
+                    # for i in range(1, len(gov_dict)+1):
+                    #     if gov_dict.get(i) == None:
+                    #         print("gov_dict", gov_dict)
+                    #         # print("heads_true", heads_true)
+                    #         print(root_idx)
+                    #         print(r)
+                    #         print(heads_pred_np.argmax(axis=1))
+                    #         break
+                    #     heads_pred_mst_list.append(gov_dict[i])
+                    # head_true_like = heads_pred.max(dim=1)[1]
+                    # heads_pred_mst = head_true_like.clone().cpu().numpy()
+                    # for n, sub in enumerate(subwords_start.squeeze(0).tolist()):
+                    #     if (sub == 1) & (heads_pred_mst_list != []):
+                    #         heads_pred_mst[:,n] = idx_convertor.squeeze(0).tolist()[heads_pred_mst_list.pop(0)]
+                    #     else:
+                    #         heads_pred_mst[:,n] = args.maxlen - 1
+                    # heads_pred_mst = torch.tensor(heads_pred_mst).to(args.device)
+
+                    # deprels_main_pred_mst = deprel_aligner_with_head(deprels_main_pred, heads_pred_mst)
+                    # deprels_main_pred_mst_list = deprels_main_pred_mst.max(dim=1)[1][subwords_start==1].tolist()
+
+                    # deprels_aux_pred_mst = deprel_aligner_with_head(deprels_aux_pred, heads_pred_mst)
+                    # deprels_aux_pred_mst_list = deprels_aux_pred_mst.max(dim=1)[1][subwords_start==1].tolist()
+                    ###
 
                     idx2head = []
                     sum_idx = 0
                     for idx, sub in enumerate(subwords_start.squeeze(0).tolist()):
                         sum_idx += max(0, sub)
                         idx2head.append(sum_idx)
+                    # print("idx2head", idx2head)
+                    ### To delete first one
+                    # conllu_sequence = pred_dataset.dataset.sequences[pred_dataset.indices[n_sentence]]
                     conllu_sequence = pred_dataset.sequences[n_sentence]
 
+                    # conllu_sequence = pred_dataset.sequences[n_sentence]
                     poped_item = 0
                     for n_token in range(len(conllu_sequence)):
 
@@ -256,13 +304,12 @@ class Predict(CMD):
                             print("POP :", token)
                             conllu_sequence.pop(n_token - poped_item)
                             poped_item += 1
-                    for n_token, (pos_index, head_chuliu, dmpmstn, dapmst, lemma_script_index) in enumerate(
+                    for n_token, (pos_index, head_chuliu, dmpmstn, dapmst) in enumerate(
                         zip(
                             poss_pred_list,
                             chuliu_heads_list,
                             deprels_main_pred_chuliu_list,
                             deprels_aux_pred_chuliu_list,
-                            lemma_scripts_pred_list,
                         )
                     ):
                         token = conllu_sequence[n_token]
@@ -279,9 +326,7 @@ class Predict(CMD):
 
                             # misc['head_MST']= str(gov_dict.get(n_token+1, 'missing_gov'))
                             misc["head_MST_pred"] = str(head_chuliu)
-                            misc["upostag_pred"] = args.i2pos[pos_index]
-                            lemma_script = args.i2lemma_script[lemma_script_index]
-                            misc["lemma_pred"] = apply_lemma_rule(token["form"], lemma_script)
+                            misc["upos_pred"] = args.i2pos[pos_index]
                             token["misc"] = misc
 
 
@@ -289,8 +334,6 @@ class Predict(CMD):
                             # token["head"] = gov_dict.get(n_token+1, 'missing_gov')
                             token["head"] = str(head_chuliu)
                             token["upos"] = args.i2pos[pos_index]
-                            lemma_script = args.i2lemma_script[lemma_script_index]
-                            token["lemma"] = apply_lemma_rule(token["form"], lemma_script)
                             if loaded_args.split_deprel:
 
                                 if args.i2dra[dapmst] == "none":
@@ -302,8 +345,24 @@ class Predict(CMD):
                             else:
                                 token["deprel"] = args.i2drm[dmpmstn]
 
+                        ### MISC PART
+                        # misc = token["misc"]
+                        # if not misc:
+                        #     misc = OrderedDict()
+                        # # misc["head_pred"] = str(idx2head[head_pred])
+                        # # misc["head_MST"] = str(gov_dict.get(n_token+1, 'NA'))
+                        # # print(n_token + 1, misc["head_MST"])
+                        # misc["upos_pred"] = args.i2pos[pos_index]
+                        # misc["heads_mst"] = str(gov_dict.get(n_token+1, 'missing_gov'))
+                        # # misc["deprel_main_pred"] = args.i2drm[dmp]
+                        # # misc["deprel_aux_pred"] = args.i2dra[dap]
+                        # token["misc"] = misc
+                        # # ### END MISC PART
 
+                        # print(n_token, conllu_sequence[n_token]["form"], head_pred, head_true, args.i2drm[dmt], args.i2drm[dmp], args.i2dra[dap], args.i2dra[dat])
+                    # print(conllu_sequence.serialize())
                     list_conllu_sequences.append(conllu_sequence)
+                    # print("")
                     print(
                         f"Predicting: {100 * (n_sentence + 1) / len(pred_dataset):.2f}% complete. {timer() - start:.2f} seconds in epoch.",
                         end="\r",

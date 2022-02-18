@@ -13,8 +13,8 @@ from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader, random_split
 
 from ..cmds.cmd import CMD
-from ..utils.load_data_utils import ConlluDataset
 from ..utils.model_utils import BertForDeprel
+from ..utils.load_data_utils import ConlluDataset, create_deprel_lists, create_pos_list
 from ..utils.save import save_meta_model
 from ..utils.train_utils import eval_epoch, train_epoch, update_history
 
@@ -53,9 +53,14 @@ class Train(CMD):
             "--reinit_bert", action="store_true", help="path to test file"
         )
         subparser.add_argument(
+            "--compute_fields",
+            action="store_true",
+            help="compute new fields from conllu or not",
+        )
+        subparser.add_argument(
             "--keep_epoch",
             action="store_true",
-            help="keep previous numpr of epochs if pretrained",
+            help="compute new fields from conllu or not",
         )
         subparser.add_argument(
             "--split_deprel",
@@ -74,6 +79,8 @@ class Train(CMD):
             type=int,
             help="number of sequences to use for parsing (used in the experience 1/10/100/1000...",
         )
+
+
         return subparser
 
     def __call__(self, args):
@@ -112,8 +119,7 @@ class Train(CMD):
             list_deprel_main = annotation_schema_json["splitted_deprel"]["main"]
             list_deprel_aux = annotation_schema_json["splitted_deprel"]["aux"]
             list_pos = annotation_schema_json["upos"]
-            list_lemma_script = annotation_schema_json["lemma_script"]
-            print("\nKK len list_lemma_script", len(list_lemma_script))
+
             if not args.split_deprel:
                 list_deprel_main = list_deprel_full
                 list_deprel_aux = list_deprel_full
@@ -131,9 +137,7 @@ class Train(CMD):
 
             args.list_pos = list_pos
             args.n_pos = len(list_pos)
-
-            args.list_lemma_script = list_lemma_script
-            args.n_lemma_script = len(list_lemma_script)
+            
 
         self.load_tokenizer(args.bert_type)
         train_dataset = ConlluDataset(args.ftrain, self.tokenizer, args)
@@ -146,9 +150,6 @@ class Train(CMD):
 
         args.pos2i = train_dataset.pos2i
         args.i2pos = train_dataset.i2pos
-
-        args.lemma_script2i = train_dataset.lemma_script2i
-        args.i2lemma_script = train_dataset.i2lemma_script
 
         # prepare test dataset
         if args.ftest:
@@ -215,6 +216,7 @@ class Train(CMD):
         criterions["head"] = nn.CrossEntropyLoss(ignore_index=args.maxlen - 1)
         criterions["deprel"] = nn.CrossEntropyLoss(ignore_index=-1)
         criterions["pos"] = nn.CrossEntropyLoss(ignore_index=-1)
+        # TODO_LEMMA
         criterions["lemma_script"] = nn.CrossEntropyLoss(ignore_index=-1)
 
         args.criterions = criterions
