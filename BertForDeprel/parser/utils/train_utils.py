@@ -110,11 +110,25 @@ def confusion_matrix(deprels_pred, deprels_true, heads_true, conf_matrix):
     return conf_matrix
 
 
-def train_epoch(model, n_epoch ,train_loader, args):
+from time import time
+ts = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
+    7: 0,
+    8: 0,
+    9: 0,
+    10: 0,
+}
+
+def train_epoch(model, n_epoch ,train_loader, args, scheduler):
     # Set to training
     device = args.device
-    model.train()
     start = timer()
+    model.train()
     loss_head_epoch = 0.
     loss_deprels_main_epoch = 0.
     loss_deprels_aux_epoch = 0.
@@ -122,66 +136,63 @@ def train_epoch(model, n_epoch ,train_loader, args):
     loss_lemma_script_epoch = 0.
     # TODO_LEMMA
     for n_batch, (seq, subwords_start, attn_masks, idx_convertor, poss, heads, deprels_main, deprels_aux, lemma_script) in enumerate(train_loader):
+        t = time()
         args.optimizer.zero_grad()
-        seq, attn_masks, heads_true, deprels_main_true, deprels_aux_true, poss_true, lemma_script_true = seq.to(device), attn_masks.to(device), heads.to(device), deprels_main.to(device), deprels_aux.to(device), poss.to(device), lemma_script.to(device)
+        ts[1] += time() - t
 
+        t = time()
+        seq, attn_masks, heads_true, deprels_main_true, deprels_aux_true, poss_true, lemma_script_true = seq.to(device), attn_masks.to(device), heads.to(device), deprels_main.to(device), deprels_aux.to(device), poss.to(device), lemma_script.to(device)
+        ts[2] += time() - t
+
+        t = time()
         heads_pred, deprels_main_pred, deprels_aux_pred, poss_pred, lemma_script_pred = model.forward(seq, attn_masks)
+        ts[3] += time() - t
         
         loss_batch = 0.0
 
+        t = time()
         loss_head_batch = compute_loss_head(heads_pred, heads_true, args.criterions['head'])
-        loss_head_epoch += loss_head_batch.item()
         loss_batch += loss_head_batch
+        ts[4] += time() - t
         
+        t = time()
         loss_deprels_main_batch = compute_loss_deprel(deprels_main_pred, deprels_main_true, heads_true.clone(), args.criterions['deprel'])
-        loss_deprels_main_epoch += loss_deprels_main_batch.item()
         loss_batch += loss_deprels_main_batch
+        ts[5] += time() - t
         
+        t = time()
         loss_poss_batch = compute_loss_poss(poss_pred, poss_true, args.criterions['pos'])
-        loss_poss_epoch += loss_poss_batch.item()
         loss_batch += loss_poss_batch
+        ts[6] += time() - t
 
+        t = time()
         loss_lemma_script_batch = compute_loss_poss(lemma_script_pred, lemma_script_true, args.criterions['lemma_script'])
-        loss_lemma_script_epoch += loss_lemma_script_batch.item()
         loss_batch += loss_lemma_script_batch
-
-        # TODO_LEMMA
+        ts[7] += time() - t
 
         if args.split_deprel:
             loss_deprels_aux_batch = compute_loss_deprel(deprels_aux_pred, deprels_aux_true, heads_true.clone(), args.criterions['deprel'])
-            loss_deprels_aux_epoch += loss_deprels_aux_batch.item()
             loss_batch += loss_deprels_aux_batch
-
+        
+        t = time()
         loss_batch.backward()
+        ts[8] += time() - t
+        t = time()
+        scheduler.step()
+        ts[9] += time() - t
+        t = time()
         args.optimizer.step()
+        ts[10] += time() - t
 
         print(
         f'Training: {100 * (n_batch + 1) / len(train_loader):.2f}% complete. {timer() - start:.2f} seconds in epoch; loss : {loss_poss_batch:.2f} {loss_head_batch:.2f}',
         end='\r')
     print(f"\ntraining completed in {timer() - start:.2f} seconds")
     n_batch += 1 #add one for having real number of epoch
-    loss_head_epoch = loss_head_epoch/n_batch
-    loss_deprels_main_epoch = loss_deprels_main_epoch/n_batch
     
+    print("KK ts", ts)
 
-    losses = {
-          "loss_head_epoch": loss_head_epoch,
-        }
-
-    if args.split_deprel:
-        loss_deprels_aux_epoch = loss_deprels_aux_epoch/n_batch
-        
-        losses.update({
-          "loss_deprels_main_epoch": loss_deprels_main_epoch,
-          "loss_deprels_full_epoch": loss_deprels_aux_epoch,
-        })
     
-    else:
-        losses.update({
-          "loss_deprels_full_epoch": loss_deprels_main_epoch,
-        })
-
-    return losses
 
 # TODO_LEMMA : add the lemma
 def eval_epoch(model, eval_loader, args, n_epoch = -1):

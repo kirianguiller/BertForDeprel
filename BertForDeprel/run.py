@@ -74,7 +74,12 @@ if __name__ == "__main__":
 
     print(f"Override the default configs with parsed arguments")
     path_file_directory = pathlib.Path(__file__).parent.absolute()
-    args = Config(os.path.join(path_file_directory, args.conf)).update(vars(args))
+    path_config = os.path.join(path_file_directory, args.conf)
+    print(path_config)
+    print("KK ", Config)
+    args = Config(path_config).update(vars(args))
+    args.patience = 30
+    args.epochs = 300
     print(args)
 
     print(f"Run the subcommand in mode {args.mode}")

@@ -5,12 +5,14 @@ import json
 from collections import OrderedDict
 from datetime import datetime
 from parser.utils.os_utils import path_or_name
+from time import time
 
 import torch
 from torch import nn
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader, random_split
+from transformers import AdamW, get_linear_schedule_with_warmup
 
 from ..cmds.cmd import CMD
 from ..utils.load_data_utils import ConlluDataset
@@ -218,8 +220,27 @@ class Train(CMD):
         criterions["lemma_script"] = nn.CrossEntropyLoss(ignore_index=-1)
 
         args.criterions = criterions
+        # print("KK model.parameters()", model.parameters())
 
-        args.optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+        model_parameters = [(n, p) for (n, p) in model.llm_layer.named_parameters()] + \
+                           [(n, p) for (n, p) in model.tagger_layer.named_parameters()]
+        param_groups = [
+                {
+                    'params': [p for n, p in model_parameters if 'adapters' in n if
+                               p.requires_grad],
+                    'lr': 0.0001, 'weight_decay': 0.0001
+                },
+                {
+                    'params': [p for n, p in model_parameters if 'adapters' not in n if
+                               p.requires_grad],
+                    'lr': 0.001, 'weight_decay': 0.001
+                }
+            ]
+
+        # args.optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+        args.optimizer = AdamW(param_groups)
+        args.batch_per_epoch = len(train_loader)
+        scheduler = get_linear_schedule_with_warmup(args.optimizer, args.batch_per_epoch * 5, args.batch_per_epoch*args.epochs)
 
         total_timer_start = datetime.now()
         epochs_no_improve = 0
@@ -230,22 +251,28 @@ class Train(CMD):
 
         history = []
         history = update_history(history, results, n_epoch_start, args)
-
+        t_total_train = 0
+        t_total_eval = 0
         for n_epoch in range(n_epoch_start + 1, args.epochs + 1):
             print("\n-----   Epoch {}   -----".format(n_epoch))
+            t_before_train = time()
+            train_epoch(model, n_epoch, train_loader, args, scheduler)
+            t_after_train = time()
+            t_total_train += t_after_train - t_before_train
 
-            train_epoch(model, n_epoch, train_loader, args)
+            t_before_eval = time()
 
             results = eval_epoch(model, test_loader, args, n_epoch)
-
+            t_after_eval = time()
+            t_total_eval += t_after_eval - t_before_eval
+            print("KK timers : ", t_total_train, t_total_eval)
             history = update_history(history, results, n_epoch, args)
 
             if results["LAS_epoch"] > LAS_best:
-                LAS_best = results["LAS_epoch"]
-                save_meta_model(model, n_epoch, LAS_best, args)
                 epochs_no_improve = 0
-                best_epoch = n_epoch
-                print("best epoch so far")
+                LAS_best = results["LAS_epoch"]
+                print("best epoch so far, saving model...")
+                save_meta_model(model, n_epoch, LAS_best, args)
 
             else:
                 epochs_no_improve += 1
@@ -256,6 +283,7 @@ class Train(CMD):
                             args.patience
                         )
                     )
+                    print("best result : ", results)
                     break
 
         total_timer_end = datetime.now()
