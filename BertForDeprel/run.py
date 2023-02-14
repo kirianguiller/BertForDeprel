@@ -1,28 +1,26 @@
 import argparse
 import os
-import pathlib
+import json
 from parser.cmds import Evaluate, Predict, Train
-from parser.config import Config
-from parser.utils.os_utils import path_or_name
 from parser.utils.gpu_utils import get_gpus_configuration
-
+from parser.utils.types import get_default_model_params
 import torch
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create the Biaffine Parser model.")
     subparsers = parser.add_subparsers(title="Commands", dest="mode")
     subcommands = {"evaluate": Evaluate(), "predict": Predict(), "train": Train()}
     for name, subcommand in subcommands.items():
-        print(name, subcommand)
         subparser = subcommand.add_subparser(name, subparsers)
         subparser.add_argument(
-            "--conf", "-c", default="config.ini", help="path to config file"
+            "--conf", "-c", help="path to config file (.json)"
         )
         subparser.add_argument(
-            "--folder", "-f", required=True, help="path to project folder"
+            "--root_folder_path", "-f", help="path to models folder"
         )
         subparser.add_argument(
-            "--name_model", "-m", default="model.pt", help="name of saved model"
+            "--model_name", "-m", default="my_bert_for_deprel_model", help="name of current saved model"
         )
         subparser.add_argument(
             "--path_annotation_schema", default="", help="path to annotation schema (default : in folder/annotation_schema.json"
@@ -41,38 +39,44 @@ if __name__ == "__main__":
             help="seed for generating random numbers",
         )
 
-
     args = parser.parse_args()
 
-    # if not os.path.isdir(args.folder):
-    #     os.makedirs(args.folder)
+    model_params = get_default_model_params()
+    
+    # if a conf
+    if args.conf:
+        if os.path.isfile(args.conf):
+            with open(args.conf, "r") as infile:
+                model_params = json.loads(infile.read())
+        else:
+            raise Exception(f"You provided a --conf parameter but no config was found in `{args.conf}`")
+    
 
-    path_models = os.path.join(args.folder, "models")
-    if not os.path.isdir(path_models):
-        os.makedirs(path_models)
+    if args.root_folder_path:
+        model_params["root_folder_path"] = args.root_folder_path
+    if args.model_name:
+        model_params["model_name"] = args.model_name
 
-    if path_or_name(args.name_model) == "name":
-        args.name_model = os.path.join(args.folder, "models", args.name_model)
+    if "/" in model_params["model_name"]:
+        raise Exception(f"`model_name` parameter has to be a filename, and not a relative or absolute path : `{model_params['model_name']}`")
 
-    if not args.path_annotation_schema:
-        args.path_annotation_schema = os.path.join(args.folder, "annotation_schema.json")
+    if not os.path.isdir(model_params["root_folder_path"]):
+        os.makedirs(model_params["root_folder_path"])
+
+    if args.path_annotation_schema:
+        print("You provided a path to a custom annotation schema, we will use this one for your model")
+        with open(args.path_annotation_schema, "r") as infile:
+            model_params["annotation_schema"] = json.loads(infile.read())
+
+
     print(args.path_annotation_schema)
-    print("args.name_model", args.name_model)
     print(f"Set the seed for generating random numbers to {args.seed}")
     torch.manual_seed(args.seed)
     
     args.device, args.train_on_gpu, args.multi_gpu = get_gpus_configuration(args.gpu_ids)
 
     print(f"Override the default configs with parsed arguments")
-    path_file_directory = pathlib.Path(__file__).parent.absolute()
-    path_config = os.path.join(path_file_directory, args.conf)
-    print(path_config)
-    print("KK ", Config)
-    args = Config(path_config).update(vars(args))
-    args.patience = 30
-    args.epochs = 300
-    print(args)
 
     print(f"Run the subcommand in mode {args.mode}")
     cmd = subcommands[args.mode]
-    cmd(args)
+    cmd(args, model_params)

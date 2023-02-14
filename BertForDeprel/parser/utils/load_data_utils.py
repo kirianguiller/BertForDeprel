@@ -3,12 +3,13 @@ import conllu
 from torch.utils.data import Dataset
 from torch import tensor
 from transformers import RobertaTokenizer
-
+from .types import ModelParams_T
 
 class ConlluDataset(Dataset):
-    def __init__(self, path_file: str, tokenizer: RobertaTokenizer, args):
+    def __init__(self, path_file: str, tokenizer: RobertaTokenizer, model_params: ModelParams_T, run_mode: str):
         self.tokenizer = tokenizer
-        self.args = args
+        self.run_mode = run_mode
+        self.model_params = model_params
 
         self.CLS_token_id = tokenizer.cls_token_id
         self.SEP_token_id = tokenizer.sep_token_id
@@ -18,15 +19,10 @@ class ConlluDataset(Dataset):
         with open(path_file, "r") as infile:
             self.sequences = conllu.parse(infile.read())
 
-        self.drm2i, self.i2drm = self._mount_dr2i(self.args.list_deprel_main)
+        self.dep2i, self.i2dep = self._compute_labels2i(self.model_params["annotation_schema"]["deprels"])
+        self.pos2i, self.i2pos = self._compute_labels2i(self.model_params["annotation_schema"]["uposs"])
+        # self.lemma_script2i, self.i2lemma_script = self._compute_labels2i(self.args.list_lemma_script)
 
-        self.pos2i, self.i2pos = self._compute_labels2i(self.args.list_pos)
-        self.lemma_script2i, self.i2lemma_script = self._compute_labels2i(self.args.list_lemma_script)
-
-        # print("drm2i", self.drm2i)
-        # print("pos2i", self.pos2i)
-        # print("lemma_script2i", self.lemma_script2i)
-        self.n_labels_main = len(self.drm2i)
 
     def __len__(self):
         return len(self.sequences)
@@ -34,7 +30,7 @@ class ConlluDataset(Dataset):
     def __getitem__(self, index):
         return self._get_processed(self.sequences[index])
 
-    def _mount_dr2i(self, list_deprel):
+    def _mount_dep2i(self, list_deprel):
         i2dr = {}
         dr2i = {}
 
@@ -62,11 +58,10 @@ class ConlluDataset(Dataset):
             raise Exception("The sequence is bigger than the size of the tensor")
 
         return l + [padding_value] * (maxlen - len(l))
-
+    
     def _trunc(self, tensor):
-        if len(tensor) >= self.args.maxlen:
-            tensor = tensor[: self.args.maxlen - 1]
-
+        if len(tensor) >= self.model_params["maxlen"]:
+            tensor = tensor[: self.model_params["maxlen"] - 1]
         return tensor
 
     def _get_input(self, sequence):
@@ -118,7 +113,7 @@ class ConlluDataset(Dataset):
             head = [sum(tokens_len[: token["head"]])] + [-1] * (token_len - 1)
             deprel_main = token["deprel"]
 
-            deprel_main = [get_index(deprel_main, self.drm2i)] + [-1] * (
+            deprel_main = [get_index(deprel_main, self.dep2i)] + [-1] * (
                 token_len - 1
             )
             # Example of what we have for a token of 2 subtokens
@@ -149,11 +144,10 @@ class ConlluDataset(Dataset):
             token_lens,
         ) = self._get_input(sequence)
 
-        if self.args.mode == "predict":
+        if self.run_mode == "predict":
             return sequence_ids, subwords_start, attn_masks, idx_convertor
 
         else:
-            # TODO_LEMMA : don't forget to return the lemma_scripts 
             poss, heads, deprels_main = self._get_output(
                 sequence, token_lens
             )

@@ -1,6 +1,7 @@
+import os
 from timeit import default_timer as timer
-
 import numpy as np
+import json
 
 import torch
 from torch.optim import AdamW
@@ -13,27 +14,22 @@ from transformers import AdapterConfig # this one is specific to adapter-transfo
 from .modules_utils import BiAffineTrankit
 from .scores_and_losses_utils import compute_loss_head, compute_loss_deprel, compute_loss_poss, confusion_matrix, compute_acc_deprel, compute_acc_head, compute_acc_pos, compute_LAS, compute_LAS_chuliu_main_aux, compute_LAS_main_aux
 from .chuliu_edmonds_utils import chuliu_edmonds_one_root
-
+from .types import ModelParams_T
 
 class PosAndDeprelParserHead(Module):
-    def __init__(self, args, input_size: int):
+    def __init__(self, n_upos: int, n_deprels: int, llm_output_size: int):
         super(PosAndDeprelParserHead, self).__init__()
-        args = args
-        self.args = args
-        mlp_input = input_size 
-        n_labels_main = len(args.list_deprel_main)
-        n_pos = len(args.list_pos)
 
         # Arc and label
-        self.down_dim = mlp_input // 4
-        self.down_projection = Linear(mlp_input, self.down_dim)
+        self.down_dim = llm_output_size // 4
+        self.down_projection = Linear(llm_output_size, self.down_dim)
         self.arc = BiAffineTrankit(self.down_dim, self.down_dim,
                                        self.down_dim, 1)
         self.deprel = BiAffineTrankit(self.down_dim, self.down_dim,
-                                    self.down_dim, n_labels_main)
+                                    self.down_dim, n_deprels)
         
         # Label POS
-        self.upos_ffn = Linear(mlp_input, n_pos)
+        self.upos_ffn = Linear(llm_output_size, n_upos)
         # self.xpos_ffn = Linear(self.xlmr_dim + 50, len(self.vocabs[XPOS]))
         # self.feats_ffn = Linear(self.xlmr_dim, len(self.vocabs[FEATS]))
         
@@ -49,18 +45,22 @@ class PosAndDeprelParserHead(Module):
 
 
 class BertForDeprel(Module):
-    def __init__(self, args):
+    def __init__(self, model_params: ModelParams_T):
         super(BertForDeprel, self).__init__()
-        self.args = args
-        self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(self.args.bert_type)
+        self.model_params = model_params
+        self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(model_params["embedding_type"])
         llm_hidden_size = self.llm_layer.config.hidden_size #expected to get embedding size of bert custom model
         adapter_config = AdapterConfig.load("pfeiffer", reduction_factor=4)
         # TODO : find better name (tagger)
-        adapter_name = "tagger"
+        adapter_name = model_params["model_name"]
         self.llm_layer.add_adapter(adapter_name, config=adapter_config)
         self.llm_layer.train_adapter([adapter_name])
         self.llm_layer.set_active_adapters([adapter_name]) 
-        self.tagger_layer = PosAndDeprelParserHead(args, llm_hidden_size)
+
+        n_uposs = len(model_params["annotation_schema"]["uposs"])
+        n_deprels = len(model_params["annotation_schema"]["deprels"])
+        self.tagger_layer = PosAndDeprelParserHead(n_uposs, n_deprels, llm_hidden_size)
+
         self.total_trainable_parameters = self.get_total_trainable_parameters()
         print("TOTAL TRAINABLE PARAMETERS : ", self.total_trainable_parameters)
 
@@ -89,8 +89,7 @@ class BertForDeprel(Module):
         return self.tagger_layer(x)
 
 
-    def train_epoch(self, train_loader, args):
-        device = args.device
+    def train_epoch(self, train_loader, device):
         start = timer()
         self.train()
         for n_batch, (seq, _, attn_masks, _, poss, heads, deprels_main) in enumerate(train_loader):
@@ -110,9 +109,8 @@ class BertForDeprel(Module):
             f'Training: {100 * (n_batch + 1) / len(train_loader):.2f}% complete. {timer() - start:.2f} seconds in epoch',
             end='\r')
 
-    def eval_epoch(self, eval_loader, args):
+    def eval_epoch(self, eval_loader, device):
         self.eval()
-        device = args.device
         with torch.no_grad():
             loss_head_epoch = 0.0
             loss_deprel_main_epoch = 0.0
@@ -123,7 +121,6 @@ class BertForDeprel(Module):
             n_correct_LAS_epoch, n_correct_LAS_main_epoch,n_correct_LAS_aux_epoch, n_total_epoch = 0.0, 0.0, 0.0, 0.0
             n_correct_LAS_chuliu_epoch, n_correct_LAS_chuliu_main_epoch,n_correct_LAS_chuliu_aux_epoch, n_total_epoch = 0.0, 0.0, 0.0, 0.0
             
-            conf_matrix = torch.zeros(args.n_labels_main, args.n_labels_main)
             for n_batch, (seq, subwords_start, attn_masks, idx_convertor, poss, heads, deprels_main) in enumerate(eval_loader):
                 print(f"evaluation on the dataset ... {n_batch}/{len(eval_loader)}batches", end="\r")
                 seq, attn_masks, heads_true, deprels_main_true, poss_true = seq.to(device), attn_masks.to(device), heads.to(device), deprels_main.to(device), poss.to(device)
@@ -144,8 +141,6 @@ class BertForDeprel(Module):
                     for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
                         chuliu_heads_pred[i_vector, idx_convertor_vector[i_token+1]] = idx_convertor_vector[chuliu_head_pred]
                     
-                conf_matrix = confusion_matrix(deprels_main_pred, deprels_main_true, heads_true, conf_matrix)
-                
                 n_correct_LAS_batch, n_correct_LAS_main_batch, n_total_batch = \
                     compute_LAS_main_aux(heads_pred, deprels_main_pred, heads_true, deprels_main_true)
                 n_correct_LAS_chuliu_batch, n_correct_LAS_chuliu_main_batch, n_total_batch = \
@@ -154,13 +149,13 @@ class BertForDeprel(Module):
                 n_correct_LAS_chuliu_epoch += n_correct_LAS_chuliu_batch
                 n_total_epoch += n_total_batch
 
-                loss_head_batch = compute_loss_head(heads_pred, heads_true, args.criterions['head'])
+                loss_head_batch = compute_loss_head(heads_pred, heads_true, self.criterion)
                 good_head_batch, total_head_batch = compute_acc_head(heads_pred, heads_true, eps=0)
                 loss_head_epoch += loss_head_batch.item()
                 good_head_epoch += good_head_batch
                 total_head_epoch += total_head_batch
                 
-                loss_deprel_main_batch = compute_loss_deprel(deprels_main_pred, deprels_main_true, heads_true, args.criterions['deprel'])
+                loss_deprel_main_batch = compute_loss_deprel(deprels_main_pred, deprels_main_true, heads_true, self.criterion)
                 good_deprel_main_batch, total_deprel_main_batch = compute_acc_deprel(deprels_main_pred, deprels_main_true, heads_true, eps=0)
                 loss_deprel_main_epoch += loss_deprel_main_batch.item()
                 good_deprel_main_epoch += good_deprel_main_batch
@@ -171,7 +166,7 @@ class BertForDeprel(Module):
                 good_pos_epoch += good_pos_batch
                 total_pos_epoch += total_pos_batch
 
-                loss_poss_batch = compute_loss_poss(poss_pred, poss_true, args.criterions['pos'])
+                loss_poss_batch = compute_loss_poss(poss_pred, poss_true, self.criterion)
                 loss_poss_epoch += loss_poss_batch
 
 
@@ -207,3 +202,24 @@ class BertForDeprel(Module):
         return results
         
         
+    def save_model(self, epoch):
+        trainable_weight_names = [n for n, p in self.llm_layer.named_parameters() if p.requires_grad] + \
+                                 [n for n, p in self.tagger_layer.named_parameters() if p.requires_grad]
+        state = {"adapters": {}, "epoch": epoch}
+        for k, v in self.llm_layer.state_dict().items():
+            if k in trainable_weight_names:
+                state["adapters"][k] = v
+        for k, v in self.tagger_layer.state_dict().items():
+            if k in trainable_weight_names:
+                state["adapters"][k] = v
+
+        ckpt_fpath = os.path.join(self.model_params["root_folder_path"], self.model_params["model_name"] + ".pt")
+        torch.save(state, ckpt_fpath)
+        print(
+            "Saving adapter weights to ... {} ({:.2f} MB)".format(
+                ckpt_fpath, os.path.getsize(ckpt_fpath) * 1.0 / (1024 * 1024)
+            )
+        )
+        config_path = os.path.join(self.model_params["root_folder_path"], self.model_params["model_name"] + ".config.json")
+        with open(config_path, "w") as outfile:
+            outfile.write(json.dumps(self.model_params))

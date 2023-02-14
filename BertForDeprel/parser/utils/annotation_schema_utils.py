@@ -72,9 +72,8 @@ def create_annotation_schema(*paths):
 
     upos = create_pos_list(*paths)
     lemma_scripts = create_lemma_script_list(*paths)
-    annotation_schema["deprel"] = sorted(list(set(deprels)))
-    annotation_schema["upos"] = sorted(upos)
-    annotation_schema["splitted_deprel"] = splitted_deprel
+    annotation_schema["deprels"] = sorted(list(set(deprels)))
+    annotation_schema["uposs"] = sorted(upos)
     annotation_schema["lemma_script"] = lemma_scripts
     print(annotation_schema)
     return annotation_schema

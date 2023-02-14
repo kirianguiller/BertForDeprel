@@ -129,8 +129,8 @@ class Predict(CMD):
             
             pred_dataset = ConlluDataset(args.fpred, self.tokenizer, loaded_args)
 
-            args.drm2i = pred_dataset.drm2i
-            args.i2drm = pred_dataset.i2drm
+            args.dep2i = pred_dataset.dep2i
+            args.i2dep = pred_dataset.i2dep
             if loaded_args.split_deprel:
                 args.dra2i = pred_dataset.dra2i
                 args.i2dra = pred_dataset.i2dra
@@ -272,10 +272,10 @@ class Predict(CMD):
                             if not misc:
                                 misc = OrderedDict()
                             if loaded_args.split_deprel:
-                                misc["deprel_main_pred"] = args.i2drm[dmpmstn]
+                                misc["deprel_main_pred"] = args.i2dep[dmpmstn]
                                 misc["deprel_aux_pred"] = args.i2dra[dapmst]
                             else:
-                                misc["deprel_main_pred"] = args.i2drm[dmpmstn]
+                                misc["deprel_main_pred"] = args.i2dep[dmpmstn]
 
                             # misc['head_MST']= str(gov_dict.get(n_token+1, 'missing_gov'))
                             misc["head_MST_pred"] = str(head_chuliu)
@@ -294,13 +294,13 @@ class Predict(CMD):
                             if loaded_args.split_deprel:
 
                                 if args.i2dra[dapmst] == "none":
-                                    token["deprel"] = args.i2drm[dmpmstn]
+                                    token["deprel"] = args.i2dep[dmpmstn]
                                 else:
                                     token["deprel"] = "{}:{}".format(
-                                        args.i2drm[dmpmstn], args.i2dra[dapmst]
+                                        args.i2dep[dmpmstn], args.i2dra[dapmst]
                                     )
                             else:
-                                token["deprel"] = args.i2drm[dmpmstn]
+                                token["deprel"] = args.i2dep[dmpmstn]
 
 
                     list_conllu_sequences.append(conllu_sequence)
