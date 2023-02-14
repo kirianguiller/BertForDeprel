@@ -102,7 +102,7 @@ def update_history(history, results, n_epoch, args):
     pd.DataFrame(
         history,
         columns=['n_epoch', *results.keys()]
-          ).to_csv(args.model.replace(".pt", "_history.csv"), sep='\t', index=False)
+          ).to_csv(args.name_model.replace(".pt", "_history.csv"), sep='\t', index=False)
 
     return history
 

@@ -36,16 +36,44 @@ def save_meta_model(model: BertForDeprel, n_epoch, eval_LAS_best, args):
         # 'dra2i':dra2i,
               }
     t = time()
-    torch.save(state, args.model)
+    torch.save(state, args.name_model)
     ts[2] += round(time() - t, 3)
     print("\n ts", ts)
+
+
+
+def save_model_weights(self, ckpt_fpath, epoch):
+    trainable_weight_names = [n for n, p in self.model_parameters if p.requires_grad]
+    state = {
+        'adapters': {},
+        'epoch': epoch
+    }
+    for k, v in self._embedding_layers.state_dict().items():
+        if k in trainable_weight_names:
+            state['adapters'][k] = v
+    if self._task == 'tokenize':
+        for k, v in self._tokenizer.state_dict().items():
+            if k in trainable_weight_names:
+                state['adapters'][k] = v
+    elif self._task == 'posdep':
+        for k, v in self._tagger.state_dict().items():
+            if k in trainable_weight_names:
+                state['adapters'][k] = v
+    elif self._task == 'ner':
+        for k, v in self._ner_model.state_dict().items():
+            if k in trainable_weight_names:
+                state['adapters'][k] = v
+
+    torch.save(state, ckpt_fpath)
+    print('Saving adapter weights to ... {} ({:.2f} MB)'.format(ckpt_fpath,
+                                                                os.path.getsize(ckpt_fpath) * 1. / (1024 * 1024)))
 
     # print("**vars(args)", type(vars(args)))
     # for key, value in vars(args).items():
     #   print(key, str(value))
 
 # def load_meta_model():
-#     checkpoint = torch.load(args.model, map_location=torch.device('cpu'))
+#     checkpoint = torch.load(args.name_model, map_location=torch.device('cpu'))
 
 #     # because we saved the model with nn.Dataparralel, we need to change the state_dict keys
 #     new_state_dict = OrderedDict()

@@ -18,7 +18,7 @@ from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
 from ..utils.load_data_utils import ConlluDataset
 from ..utils.model_utils import BertForDeprel
 from ..utils.os_utils import path_or_name
-from ..utils.train_utils import deprel_aligner_with_head
+from ..utils.scores_and_losses_utils import deprel_aligner_with_head
 
 
 def min_span_matrix(matrix):
@@ -85,7 +85,7 @@ class Predict(CMD):
             os.makedirs(os.path.join(args.folder, "results"))
 
         print("Load the saved config")
-        checkpoint = torch.load(args.model, map_location=torch.device("cpu"))
+        checkpoint = torch.load(args.name_model, map_location=torch.device("cpu"))
         loaded_args = checkpoint["args"]
         loaded_args.mode = "predict"
         args.bert_type = loaded_args.bert_type

@@ -1,15 +1,19 @@
 from timeit import default_timer as timer
 
+import numpy as np
+
+import torch
+from torch.optim import AdamW
+from torch.nn import Module, CrossEntropyLoss, Linear
+
 from transformers import AutoModel, XLMRobertaModel
 from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAttentions
 from transformers import AdapterConfig # this one is specific to adapter-transformers (https://github.com/adapter-hub/adapter-transformers)
 
-from torch import Tensor
-from torch.optim import AdamW
-from torch.nn import Module, CrossEntropyLoss, Linear
-
 from .modules_utils import BiAffineTrankit
-from .scores_and_losses_utils import compute_loss_head, compute_loss_deprel, compute_loss_poss
+from .scores_and_losses_utils import compute_loss_head, compute_loss_deprel, compute_loss_poss, confusion_matrix, compute_acc_deprel, compute_acc_head, compute_acc_pos, compute_LAS, compute_LAS_chuliu_main_aux, compute_LAS_main_aux
+from .chuliu_edmonds_utils import chuliu_edmonds_one_root
+
 
 class PosAndDeprelParserHead(Module):
     def __init__(self, args, input_size: int):
@@ -105,5 +109,101 @@ class BertForDeprel(Module):
             print(
             f'Training: {100 * (n_batch + 1) / len(train_loader):.2f}% complete. {timer() - start:.2f} seconds in epoch',
             end='\r')
+
+    def eval_epoch(self, eval_loader, args):
+        self.eval()
+        device = args.device
+        with torch.no_grad():
+            loss_head_epoch = 0.0
+            loss_deprel_main_epoch = 0.0
+            loss_poss_epoch = 0
+            good_head_epoch, total_head_epoch = 0.0, 0.0
+            good_pos_epoch, total_pos_epoch = 0.0, 0.0
+            good_deprel_main_epoch, total_deprel_main_epoch = 0.0, 0.0
+            n_correct_LAS_epoch, n_correct_LAS_main_epoch,n_correct_LAS_aux_epoch, n_total_epoch = 0.0, 0.0, 0.0, 0.0
+            n_correct_LAS_chuliu_epoch, n_correct_LAS_chuliu_main_epoch,n_correct_LAS_chuliu_aux_epoch, n_total_epoch = 0.0, 0.0, 0.0, 0.0
+            
+            conf_matrix = torch.zeros(args.n_labels_main, args.n_labels_main)
+            for n_batch, (seq, subwords_start, attn_masks, idx_convertor, poss, heads, deprels_main) in enumerate(eval_loader):
+                print(f"evaluation on the dataset ... {n_batch}/{len(eval_loader)}batches", end="\r")
+                seq, attn_masks, heads_true, deprels_main_true, poss_true = seq.to(device), attn_masks.to(device), heads.to(device), deprels_main.to(device), poss.to(device)
+                heads_pred, deprels_main_pred, poss_pred = self.forward(seq, attn_masks)
+                
+                heads_pred, deprels_main_pred, poss_pred = heads_pred.detach(), deprels_main_pred.detach(), poss_pred.detach()
+
+                chuliu_heads_pred = heads_true.clone()
+                for i_vector, (heads_pred_vector, subwords_start_vector, idx_convertor_vector) in enumerate(zip(heads_pred, subwords_start, idx_convertor)):
+                    subwords_start_with_root = subwords_start_vector.clone()
+                    subwords_start_with_root[0] = True
+
+                    heads_pred_np = heads_pred_vector[:,subwords_start_with_root == 1][subwords_start_with_root == 1]
+                    heads_pred_np = heads_pred_np.cpu().numpy()
+                    
+                    chuliu_heads_vector = chuliu_edmonds_one_root(np.transpose(heads_pred_np, (1,0)))[1:]
+                    
+                    for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
+                        chuliu_heads_pred[i_vector, idx_convertor_vector[i_token+1]] = idx_convertor_vector[chuliu_head_pred]
+                    
+                conf_matrix = confusion_matrix(deprels_main_pred, deprels_main_true, heads_true, conf_matrix)
+                
+                n_correct_LAS_batch, n_correct_LAS_main_batch, n_total_batch = \
+                    compute_LAS_main_aux(heads_pred, deprels_main_pred, heads_true, deprels_main_true)
+                n_correct_LAS_chuliu_batch, n_correct_LAS_chuliu_main_batch, n_total_batch = \
+                    compute_LAS_chuliu_main_aux(chuliu_heads_pred, deprels_main_pred, heads_true, deprels_main_true)
+                n_correct_LAS_epoch += n_correct_LAS_batch
+                n_correct_LAS_chuliu_epoch += n_correct_LAS_chuliu_batch
+                n_total_epoch += n_total_batch
+
+                loss_head_batch = compute_loss_head(heads_pred, heads_true, args.criterions['head'])
+                good_head_batch, total_head_batch = compute_acc_head(heads_pred, heads_true, eps=0)
+                loss_head_epoch += loss_head_batch.item()
+                good_head_epoch += good_head_batch
+                total_head_epoch += total_head_batch
+                
+                loss_deprel_main_batch = compute_loss_deprel(deprels_main_pred, deprels_main_true, heads_true, args.criterions['deprel'])
+                good_deprel_main_batch, total_deprel_main_batch = compute_acc_deprel(deprels_main_pred, deprels_main_true, heads_true, eps=0)
+                loss_deprel_main_epoch += loss_deprel_main_batch.item()
+                good_deprel_main_epoch += good_deprel_main_batch
+                total_deprel_main_epoch += total_deprel_main_batch
+                n_correct_LAS_main_epoch += n_correct_LAS_main_batch
+                
+                good_pos_batch, total_pos_batch = compute_acc_pos(poss_pred, poss_true, eps=0)
+                good_pos_epoch += good_pos_batch
+                total_pos_epoch += total_pos_batch
+
+                loss_poss_batch = compute_loss_poss(poss_pred, poss_true, args.criterions['pos'])
+                loss_poss_epoch += loss_poss_batch
+
+
+            loss_head_epoch = loss_head_epoch/len(eval_loader)
+            acc_head_epoch = good_head_epoch/total_head_epoch
+            
+            loss_deprel_main_epoch = loss_deprel_main_epoch/len(eval_loader)
+            acc_deprel_main_epoch = good_deprel_main_epoch/total_deprel_main_epoch
+            
+            acc_pos_epoch = good_pos_epoch/total_pos_epoch
+
+            LAS_epoch = n_correct_LAS_epoch/n_total_epoch
+            LAS_chuliu_epoch = n_correct_LAS_chuliu_epoch/n_total_epoch
+            LAS_main_epoch = n_correct_LAS_main_epoch/n_total_epoch
+
+
+            loss_epoch = loss_head_epoch + loss_deprel_main_epoch + loss_poss_epoch 
+            print("\nevaluation result: LAS={:.3f}; LAS_chuliu={:.3f}; loss_epoch={:.3f}; eval_acc_head={:.3f}; eval_acc_deprel = {:.3f}, eval_acc_pos = {:.3f}\n".format(
+            LAS_epoch, LAS_chuliu_epoch, loss_epoch, LAS_main_epoch, acc_head_epoch, acc_pos_epoch))
+
+        results = {
+            "LAS_epoch": LAS_epoch,
+            "LAS_chuliu_epoch": LAS_chuliu_epoch,
+            "LAS_main_epoch": LAS_main_epoch,
+            "acc_head_epoch": acc_head_epoch,
+            "acc_deprel_main_epoch" : acc_deprel_main_epoch,
+            "acc_pos_epoch": acc_pos_epoch,
+            "loss_head_epoch": loss_head_epoch,
+            "loss_deprel_main_epoch": loss_deprel_main_epoch,
+            "loss_epoch": loss_epoch,
+        }
+
+        return results
         
         

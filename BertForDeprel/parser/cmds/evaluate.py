@@ -9,7 +9,6 @@ from torch.utils.data import DataLoader
 from ..utils.load_data_utils import ConlluDataset
 from ..utils.model_utils import BertForDeprel
 from ..utils.os_utils import path_or_name
-from ..utils.train_utils import eval_epoch
 from .cmd import CMD
 
 
@@ -39,7 +38,7 @@ class Evaluate(CMD):
         #     print("path to feval (default behavior) :", args.feval)
 
         print("Load the saved config")
-        checkpoint = torch.load(args.model, map_location=torch.device("cpu"))
+        checkpoint = torch.load(args.name_model, map_location=torch.device("cpu"))
         loaded_args = checkpoint["args"]
 
         print("Load the dataset")
@@ -77,6 +76,6 @@ class Evaluate(CMD):
 
         model.load_state_dict(checkpoint["state_dict"])
 
-        results = eval_epoch(model, eval_loader, loaded_args)
+        results = model.eval_epoch(eval_loader, loaded_args)
 
         print(results)

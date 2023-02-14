@@ -1,25 +1,19 @@
 # -*- coding: utf-8 -*-
 
-import os
 import json
 from collections import OrderedDict
 from datetime import datetime
-from parser.utils.os_utils import path_or_name
 from time import time
 
 import torch
 from torch import nn
-from torch.optim import Adam
-from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader, random_split
-from transformers import AdamW, get_linear_schedule_with_warmup
-from torch.optim import AdamW
 
 from ..cmds.cmd import CMD
 from ..utils.load_data_utils import ConlluDataset
 from ..utils.model_utils import BertForDeprel
 from ..utils.save import save_meta_model
-from ..utils.train_utils import eval_epoch, train_epoch, update_history
+from ..utils.scores_and_losses_utils import update_history
 
 
 class Train(CMD):
@@ -97,7 +91,7 @@ class Train(CMD):
             loaded_args.device = args.device
             loaded_args.multi_gpu = args.multi_gpu
             loaded_args.epochs = args.epochs
-            loaded_args.model = args.model
+            loaded_args.name_model = args.name_model
             loaded_args.keep_epoch = args.keep_epoch
             loaded_args.punct = args.punct
             loaded_args.split_deprel = args.split_deprel
@@ -248,7 +242,7 @@ class Train(CMD):
         epochs_no_improve = 0
         n_epoch = 0
 
-        results = eval_epoch(model, test_loader, args)
+        results = model.eval_epoch(test_loader, args)
         best_loss = results["loss_epoch"]
         best_LAS = results["LAS_epoch"]
         best_epoch_results = results
@@ -268,7 +262,7 @@ class Train(CMD):
             t_before_eval = time()
             t_before_evalsaving = time()
 
-            results = eval_epoch(model, test_loader, args, n_epoch)
+            results = model.eval_epoch(test_loader, args)
             t_after_eval = time()
             t_total_eval += t_after_eval - t_before_eval
             history = update_history(history, results, n_epoch, args)
