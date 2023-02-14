@@ -18,7 +18,7 @@ from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
 from ..utils.load_data_utils import ConlluDataset
 from ..utils.model_utils import BertForDeprel
 from ..utils.os_utils import path_or_name
-from ..utils.train_utils import deprel_aligner_with_head, eisner, eval_epoch
+from ..utils.train_utils import deprel_aligner_with_head
 
 
 def min_span_matrix(matrix):

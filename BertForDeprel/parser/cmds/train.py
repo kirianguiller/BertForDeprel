@@ -13,6 +13,7 @@ from torch.optim import Adam
 from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader, random_split
 from transformers import AdamW, get_linear_schedule_with_warmup
+from torch.optim import AdamW
 
 from ..cmds.cmd import CMD
 from ..utils.load_data_utils import ConlluDataset
@@ -137,30 +138,32 @@ class Train(CMD):
             args.list_lemma_script = list_lemma_script
             args.n_lemma_script = len(list_lemma_script)
 
+        args.batch_size = 16
         self.load_tokenizer(args.bert_type)
-        train_dataset = ConlluDataset(args.ftrain, self.tokenizer, args)
-        args.drm2i = train_dataset.drm2i
-        args.i2drm = train_dataset.i2drm
+        dataset = ConlluDataset(args.ftrain, self.tokenizer, args)
+        args.drm2i = dataset.drm2i
+        args.i2drm = dataset.i2drm
 
         if args.split_deprel:
-            args.dra2i = train_dataset.dra2i
-            args.i2dra = train_dataset.i2dra
+            args.dra2i = dataset.dra2i
+            args.i2dra = dataset.i2dra
 
-        args.pos2i = train_dataset.pos2i
-        args.i2pos = train_dataset.i2pos
+        args.pos2i = dataset.pos2i
+        args.i2pos = dataset.i2pos
 
-        args.lemma_script2i = train_dataset.lemma_script2i
-        args.i2lemma_script = train_dataset.i2lemma_script
+        args.lemma_script2i = dataset.lemma_script2i
+        args.i2lemma_script = dataset.i2lemma_script
 
         # prepare test dataset
         if args.ftest:
+            train_dataset = dataset
             test_dataset = ConlluDataset(args.ftest, self.tokenizer, args)
 
         else:
-            train_size = int(len(train_dataset) * args.split_ratio)
-            test_size = len(train_dataset) - train_size
+            train_size = int(len(dataset) * args.split_ratio)
+            test_size = len(dataset) - train_size
             train_dataset, test_dataset = random_split(
-                train_dataset, [train_size, test_size]
+                dataset, [train_size, test_size]
             )
 
         ### for experience with only part of the dataset
@@ -174,11 +177,11 @@ class Train(CMD):
             "num_workers": args.num_workers,
         }
 
-        train_loader = DataLoader(train_dataset, **params_train)
+        train_loader = DataLoader(train_dataset, collate_fn=dataset.collate_fn, **params_train)
 
         params_test = params_train
         params_test["batch_size"] = args.batch_size
-        test_loader = DataLoader(test_dataset, **params_test)
+        test_loader = DataLoader(test_dataset, collate_fn=dataset.collate_fn, **params_test)
 
         print(
             f"{'train:':6} {len(train_dataset):5} sentences, "
@@ -214,7 +217,7 @@ class Train(CMD):
             model = nn.DataParallel(model)
 
         criterions = {}
-        criterions["head"] = nn.CrossEntropyLoss(ignore_index=args.maxlen - 1)
+        criterions["head"] = nn.CrossEntropyLoss(ignore_index=-1)
         criterions["deprel"] = nn.CrossEntropyLoss(ignore_index=-1)
         criterions["pos"] = nn.CrossEntropyLoss(ignore_index=-1)
         criterions["lemma_script"] = nn.CrossEntropyLoss(ignore_index=-1)
@@ -222,57 +225,67 @@ class Train(CMD):
         args.criterions = criterions
         # print("KK model.parameters()", model.parameters())
 
-        model_parameters = [(n, p) for (n, p) in model.llm_layer.named_parameters()] + \
-                           [(n, p) for (n, p) in model.tagger_layer.named_parameters()]
-        param_groups = [
-                {
-                    'params': [p for n, p in model_parameters if 'adapters' in n if
-                               p.requires_grad],
-                    'lr': 0.0001, 'weight_decay': 0.0001
-                },
-                {
-                    'params': [p for n, p in model_parameters if 'adapters' not in n if
-                               p.requires_grad],
-                    'lr': 0.001, 'weight_decay': 0.001
-                }
-            ]
+        # model_parameters = [(n, p) for (n, p) in model.llm_layer.named_parameters()] + \
+        #                    [(n, p) for (n, p) in model.tagger_layer.named_parameters()]
+        # param_groups = [
+        #         {
+        #             'params': [p for n, p in model_parameters if 'adapters' in n if
+        #                        p.requires_grad],
+        #             'lr': 0.0001, 'weight_decay': 0.0001
+        #         },
+        #         {
+        #             'params': [p for n, p in model_parameters if 'adapters' not in n if
+        #                        p.requires_grad],
+        #             'lr': 0.001, 'weight_decay': 0.001
+        #         }
+        #     ]
 
         # args.optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
-        args.optimizer = AdamW(param_groups)
         args.batch_per_epoch = len(train_loader)
-        scheduler = get_linear_schedule_with_warmup(args.optimizer, args.batch_per_epoch * 5, args.batch_per_epoch*args.epochs)
+        # scheduler = get_linear_schedule_with_warmup(args.optimizer, args.batch_per_epoch * 5, args.batch_per_epoch*args.epochs)
 
         total_timer_start = datetime.now()
         epochs_no_improve = 0
-        LAS_best = 0
         n_epoch = 0
 
         results = eval_epoch(model, test_loader, args)
+        best_loss = results["loss_epoch"]
+        best_LAS = results["LAS_epoch"]
+        best_epoch_results = results
 
         history = []
         history = update_history(history, results, n_epoch_start, args)
         t_total_train = 0
         t_total_eval = 0
+        t_total_evalsaving = 0
         for n_epoch in range(n_epoch_start + 1, args.epochs + 1):
             print("\n-----   Epoch {}   -----".format(n_epoch))
             t_before_train = time()
-            train_epoch(model, n_epoch, train_loader, args, scheduler)
+            model.train_epoch(train_loader, args)
             t_after_train = time()
             t_total_train += t_after_train - t_before_train
 
             t_before_eval = time()
+            t_before_evalsaving = time()
 
             results = eval_epoch(model, test_loader, args, n_epoch)
             t_after_eval = time()
             t_total_eval += t_after_eval - t_before_eval
-            print("KK timers : ", t_total_train, t_total_eval)
             history = update_history(history, results, n_epoch, args)
-
-            if results["LAS_epoch"] > LAS_best:
+            loss_epoch = results["loss_epoch"]
+            LAS_epoch = results["LAS_epoch"]
+            if loss_epoch < best_loss or LAS_epoch > best_LAS:
                 epochs_no_improve = 0
-                LAS_best = results["LAS_epoch"]
-                print("best epoch so far, saving model...")
-                save_meta_model(model, n_epoch, LAS_best, args)
+                if loss_epoch < best_loss:
+                    best_loss = loss_epoch
+                    print("best epoch (on cumul loss) so far, saving model...")
+
+                if LAS_epoch > best_LAS:
+                    best_LAS = LAS_epoch
+                    print("best epoch (on LAS) so far, saving model...")
+
+                save_meta_model(model, n_epoch, best_loss, args)
+                best_epoch_results = results
 
             else:
                 epochs_no_improve += 1
@@ -283,8 +296,12 @@ class Train(CMD):
                             args.patience
                         )
                     )
-                    print("best result : ", results)
+                    print("\nbest result : ", best_epoch_results)
                     break
+            t_after_evalsaving = time()
+            t_total_evalsaving += t_after_evalsaving - t_before_evalsaving
+            print("KK timers : ", round(t_total_train, 4), round(t_total_eval, 4), round(t_total_evalsaving, 4))
+            
 
         total_timer_end = datetime.now()
         total_time_elapsed = total_timer_end - total_timer_start

@@ -1,9 +1,18 @@
 import torch
 import json
+from .model_utils import BertForDeprel
 
+from time import time
 
+ts = {
+    1: 0,
+    2: 0,
+}
 
-def save_meta_model(model, n_epoch, eval_LAS_best, args):
+def save_meta_model(model: BertForDeprel, n_epoch, eval_LAS_best, args):
+    t = time()
+    model.llm_layer.save_adapter("/home/kirian/adapter_saved_test.pt", "tagger")
+    ts[1] += round(time() - t, 3)
     state = {
         "n_epoch" : n_epoch,
         # "maxlen": maxlen,
@@ -14,17 +23,22 @@ def save_meta_model(model, n_epoch, eval_LAS_best, args):
         # "list_deprel_aux": list_deprel_aux,
         # 'exclude_punc': exclude_punc,
         # "bert_language": bert_language,
-        'state_dict': model.state_dict(),
+        # 'state_dict': model.state_dict(),
+        # 'llm_layer_state': model.llm_layer.state_dict(),
+        'tagger_layer_state': model.tagger_layer.state_dict(),
         'eval_LAS_best': eval_LAS_best,
-        'optimizer' : args.optimizer.state_dict(),
+        # 'optimizer' : args.optimizer.state_dict(),
         # **vars(args),
-        "args": args
+        # "args": args
         # 'i2drm':i2drm,
         # 'drm2i':drm2i,
         # 'i2dra':i2dra,
         # 'dra2i':dra2i,
               }
+    t = time()
     torch.save(state, args.model)
+    ts[2] += round(time() - t, 3)
+    print("\n ts", ts)
 
     # print("**vars(args)", type(vars(args)))
     # for key, value in vars(args).items():
