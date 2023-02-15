@@ -1,37 +1,28 @@
 import argparse
 import os
-import pathlib
-from parser.cmds import Evaluate, Predict, Train
-from parser.config import Config
-from parser.utils.os_utils import path_or_name
+import json
+from parser.cmds import Predict, Train
 from parser.utils.gpu_utils import get_gpus_configuration
-
+from parser.utils.types import get_default_model_params
 import torch
+from pathlib import Path
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create the Biaffine Parser model.")
     subparsers = parser.add_subparsers(title="Commands", dest="mode")
-    subcommands = {"evaluate": Evaluate(), "predict": Predict(), "train": Train()}
+    subcommands = {"predict": Predict(), "train": Train()}
     for name, subcommand in subcommands.items():
-        print(name, subcommand)
         subparser = subcommand.add_subparser(name, subparsers)
         subparser.add_argument(
-            "--conf", "-c", default="config.ini", help="path to config file"
-        )
-        subparser.add_argument(
-            "--folder", "-f", required=True, help="path to project folder"
-        )
-        subparser.add_argument(
-            "--model", "-m", default="model.pt", help="name of saved model"
-        )
-        subparser.add_argument(
-            "--path_annotation_schema", default="", help="path to annotation schema (default : in folder/annotation_schema.json"
+            "--conf", "-c", help="path to config file (.json)"
         )
 
-        # subparser.add_argument('--preprocess', '-p', action='store_true',
-        #                        help='whether to preprocess the data first')
         subparser.add_argument('--gpu_ids', default='-2',
                                help='ID of GPU to use (-1 for cpu, -2 for all gpus, 0 for gpu 0; 0,1 for gpu 0 and 1)')
+        subparser.add_argument(
+            "--batch_size", default=4, type=int, help="batch_size to use"
+        )
         subparser.add_argument(
             "--num_workers", default=8, type=int, help="Number of worker"
         )
@@ -43,40 +34,36 @@ if __name__ == "__main__":
             help="seed for generating random numbers",
         )
 
-
     args = parser.parse_args()
 
-    # if not os.path.isdir(args.folder):
-    #     os.makedirs(args.folder)
+    model_params = get_default_model_params()
+    
+    # if a conf
+    if args.conf:
+        if os.path.isfile(args.conf):
+            with open(args.conf, "r") as infile:
+                custom_model_params = json.loads(infile.read())
+                model_params.update(custom_model_params)
+        else:
+            raise Exception(f"You provided a --conf parameter but no config was found in `{args.conf}`")
+    
 
-    path_models = os.path.join(args.folder, "models")
-    if not os.path.isdir(path_models):
-        os.makedirs(path_models)
+    if model_params.get("embedding_cached_path", "") == "":
+        model_params["embedding_cached_path"] = str(Path.home() / ".cache" / "huggingface")
+        print(f"No `embedding_cached_path` provided, saving huggingface pretrained embedding in default cache location : `{model_params['embedding_cached_path']}` ")
 
-    if path_or_name(args.model) == "name":
-        args.model = os.path.join(args.folder, "models", args.model)
 
-    if not args.path_annotation_schema:
-        args.path_annotation_schema = os.path.join(args.folder, "annotation_schema.json")
-    print(args.path_annotation_schema)
-    # else:
-    #     args.model = os.path.join(args.models, args.model)
-    print("args.model", args.model)
-    # print(f"Set the max num of threads to {args.threads}")
+    if args.batch_size:
+        model_params["batch_size"] = args.batch_size
+
+
     print(f"Set the seed for generating random numbers to {args.seed}")
-    # print(f"Set the device with ID {args.device} visible")
-    # torch.set_num_threads(args.threads)
     torch.manual_seed(args.seed)
-    # os.environ['CUDA_VISIBLE_DEVICES'] = args.device
-
     
     args.device, args.train_on_gpu, args.multi_gpu = get_gpus_configuration(args.gpu_ids)
 
     print(f"Override the default configs with parsed arguments")
-    path_file_directory = pathlib.Path(__file__).parent.absolute()
-    args = Config(os.path.join(path_file_directory, args.conf)).update(vars(args))
-    print(args)
 
     print(f"Run the subcommand in mode {args.mode}")
     cmd = subcommands[args.mode]
-    cmd(args)
+    cmd(args, model_params)

@@ -11,3 +11,5 @@ test/naija_pretrained_test/
 **.pyc
 
 **/__pycache__
+**/__pycache__/
+

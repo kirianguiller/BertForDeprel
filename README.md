@@ -7,49 +7,117 @@ Google colab showing how to use this parser are available here :
 - training from scratch on written english : [link](https://colab.research.google.com/drive/1UngKLyqRZk7vXawWnYzJtrjrNisPnhgK?usp=sharing)
 - mock colab for testing if everything is fine : [link](https://colab.research.google.com/drive/1J50pOlBnY-sCliBTinF-9soK6LZRZndn?usp=sharing)
 
+## Installation
+On linux
+```bash
+git clone https://github.com/kirianguiller/BertForDeprel
+cd BertForDeprel
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+## How to run
+### Train a model
+Either provide the path to a model json config :
+```bash
+python /home/BertForDeprel/BertForDeprel/run.py train --conf /home/models/template.config.json   --ftrain /home/parsing_project/conllus/train.conllu
+```
+
+or just give a `--root_folder_path` and a `--model_name` parameter (default params will be loaded if no config or no CLI parameters are provided)
+```bash
+python /home/BertForDeprel/BertForDeprel/run.py train --root_folder_path /home/models/ --model_name my_parser   --ftrain /home/parsing_project/conllus/train.conllu
+```
+
+PS : here an example of a valid config.json
+```json
+{
+    "root_folder_path": "/home/user1/models/",
+    "model_name": "my_parser",
+    "max_epoch": 150,
+    "patience": 30,
+    "batch_size": 16,
+    "maxlen": 512,
+    "embedding_type": "xlm-roberta-large",
+    "embedding_cached_path": "",
+    "adapter_config_type": ""
+}
+```
+## All Command line parameters :
+### shared
+`--conf` `-c` : path to config json file (for training, it's optional if both `--root_folder_path` and `model_name` are provided)
+`--batch_size`: numbers of sample per batches (high incidence on total speed)
+`--num_workers`: numbers of workers for preparing dataset (low incidence on total speed)
+`--seed` `-s` : random seed (default = 42)
+
+### train
+`--root_folder_path` `-f` path to parent folder of the model : optional if `--conf` is already provided
+`--model_name` `-m` name of the model (WITHOUT the extension)
+`--embedding_type`  `e` : type of embedding (default : `xlm-roberta-large`)
+`--max_epoch` : maximum number of epochs (early stopping can shorten this number)
+`--patience` : number of epochs without improve required to stop the training (early stopping)
+`--ftrain` : path to train file (required)
+`--ftest` : path to train file (not required. If not provided, see `--split_ratio` )
+`--split_ratio` : Ratio for splitting ftrain dataset in train and test dataset (default : 0.8)
+`--conf_pretrain` : path to pretrain model config, used for finetuning a pretrained BertForDeprel model
+`--path_annotation_schema`: path to an annotation schema (json format)
+`--path_folder_compute_annotation_schema` provide a path to a folder containing various conllu, so the annotation schema is computed on these conllus before starting the training on --ftrain
+`
+
+### predict
+`--inpath` `-i` : path to the file or the folder containing the files to predict
+`--outpath` `-o` : path to the folder that will contain the predicted files
+`--suffix` : optional (default = "") , suffix that will be added to the name of the predicted files (before the file extension)
+`--overwrite` : whether or not to overwrite outputted predicted conllu if already existing
+`--write_preds_in_misc` : whether or not to write prediction in the conllu MISC column instead than in the corresponding column for upos deprel and head
+
+### Predicting on raw conllus
+For predicting, you need to provide the `--conf` parameter, which is the path to the xxx.config.json file. You also need to provide the `--inpath` parameter, which is the path to a single conllu file or a folder containing multiple conllu. The output folder parameter `--outpath` (or `-o`) is optional. 
+```bash
+python /home/BertForDeprel/BertForDeprel/run.py train --conf /home/models/my_parser.config.json   --inpath /home/parsing_project/to_predict/ --outpath /home/parsing_project/predicted/
+```
+
 ## Prepare Dataset
-Create a folder with the following structure :
+You will need some conllus for training the model and doing inferences.
+
+### data for training
+For training, you have the choice between :
+- providing a single conllu file (`--ftrain` cli parameter) with all your training and testing sentences (train_test split ratio is 0.8 by default, but you can set it with `--split_ratio` parameter)
+- providing a train conllu file (`--ftrain`) and a test conllu file (`--ftest`)
+
+### data for inferences
+For inference, you have to provide an input file or folder (`--inpath` or `-i`). The model will infere parse trees for all sentences of all conllus, and these outputted conllus will be written in the output folder (`--outpath` or `-o`)
+
+### annotation schema
+For people who want to use the parser for language transfer (training on lang A, then fine tuning on lang B), it is important to provide a `--path_folder_compute_annotation_schema` with a folder that contains both gold conllu from lang A and B so you can precompute the annotation schema (set of deprels, uposs, feats, lemma scripts, etc) before the pretraining. It is **required** to use the same annotation schema for training, inference and fine-tuning.
+
+```
+
+```
+### Folder hierarchy example
+Here is a folder structure example of how I am storing the different train/test/to_predicts/results conllus
 ```
 |- [NAME_FOLDER]/
 |   |- conllus/
-|       | - <train.conllu>
-|       | - <test.conllu>
+|       | - <train.langA.conllu>
+|       | - <test.langA.conllu>
+|       | - <train.langB.conllu>
+|       | - <test.langB.conllu>
+|   |- to_predict/
+|       | - <raw1.langB.conllu>
+|       | - <raw2.langB.conllu>
+|       | - <raw3.langB.conllu>
+|   |- predicted/
 ```
 where `<train.conllu>` and `<test.conllu>` are respectively the train and test datasets. They can have the name you want as you will have to indicate the path to this file in the running script.
 
 
-## Compute the annotation schema
-The annotation schema is the set of dependency relation (deprel) and part-of-speeches (upos/pos) that will be required for the model to know the size of the classifiers layers. Once a model is trained on a given annotation schema, it is **required** to use the same annotation schema for inference and fine-tuning.
 
-For computing this annotation schema, run the script `<root_repo>/BertForDeprel/preprocessing/1_compute_annotation_schema.py` with the parameter `-i --input_folder` linking to the train folder and the `-o --output_path` parameter linking to the location of the annotation schema to be writter.
-
-After preprocessing the annotation schema, the structure of the project folder should be:
-```
-|- [NAME_FOLDER]/
-|   |- conllus/
-|       | - <train.conllu>
-|       | - <test.conllu>
-|   |- <annotation_schema.json>
-```
-
-## Training models
-
-### From scratch
-
-To train a model from scratch, you can, from the `BertForDeprel/` folder, run the following command :
-
-```
-python run.py train --folder ../test/test_folder/ --model mode_name.pt --bert_type bert-base-multilingual-cased --ftrain ../test/test_folder/conllus/train.conll
-```
-
-where `--folder` indicate the path to the project folder, `--model` the name of the model to be trained, `--ftrain` the path to the train conll. If the optionnal parameter `--ftest` is passed, the corresponding file will be used for test. Otherwise, the model will automatically split the train dataset in `--split_ratio` with a random seed of `--random_seed`.
-
-### From pretrained model
+## Finetuning a previously trained BertForDeprel model
 WARNING : when training from a pretrained model, be sure to use the same annotation_schema.json for fine-tuning that the one that was used for pretraining. It would break the training otherwise.
 
-To fine-tune a pre-trained model, you can, from `BertForDeprel/` folder, run the following command :
-```
-python run.py train --folder ../test/test_folder/ --model mode_name.pt --fpretrain <path/to/pretrain/model.pt> --ftrain ../test/test_folder/conllus/train.conll
+To fine-tune a pre-trained model, need to follow the same step as for training a new model, but need to also provide the path to the config file of the previously trained model with `--conf_pretrained` 
+```bash
+python /home/BertForDeprel/BertForDeprel/run.py train --root_folder_path /home/models/ --model_name my_parser  --ftrain /home/parsing_project/conllus/train.conllu  --conf_pretrained /home/models/pretrained_model.config.json
 ```
 
 
@@ -75,10 +143,5 @@ Among others, here are the most important pretrained models :
 - [Naija model fine-tuned on spoken naija from model pretrained on written english]("TODO")
 
 ## Major TODOs
-- [x] Implement the model.
-- [x] Train a model from scratch on naija
-- [x] Fine-tune a model on naija pretrain from scratch on english
-- [ ] Enable process based distributed training. Similar to (https://github.com/fastai/imagenet-fast/).
-- [ ] Implementing mixed precision (fp16) for faster training (see this [link from pytorch doc](https://pytorch.org/docs/stable/amp.html))
-- [ ] Model optimization (<strike>model export</strike>, model pruning etc.)
 - [ ] Add feats and glose prediction
+- [ ] Add lemma

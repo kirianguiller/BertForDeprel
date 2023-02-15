@@ -1,0 +1,11 @@
+{
+    "root_folder_path": "/home/kirian/models/",
+    "model_name": "test_4",
+    "max_epoch": 150,
+    "patience": 30,
+    "batch_size": 16,
+    "maxlen": 512,
+    "embedding_type": "xlm-roberta-large",
+    "embedding_cached_path": "",
+    "adapter_config_type": ""
+}
