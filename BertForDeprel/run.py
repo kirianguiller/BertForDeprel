@@ -17,12 +17,6 @@ if __name__ == "__main__":
         subparser.add_argument(
             "--conf", "-c", help="path to config file (.json)"
         )
-        subparser.add_argument(
-            "--root_folder_path", "-f", help="path to models folder"
-        )
-        subparser.add_argument(
-            "--model_name", "-m", help="name of current saved model"
-        )
 
         subparser.add_argument('--gpu_ids', default='-2',
                                help='ID of GPU to use (-1 for cpu, -2 for all gpus, 0 for gpu 0; 0,1 for gpu 0 and 1)')
@@ -50,17 +44,6 @@ if __name__ == "__main__":
         else:
             raise Exception(f"You provided a --conf parameter but no config was found in `{args.conf}`")
     
-
-    if args.root_folder_path:
-        model_params["root_folder_path"] = args.root_folder_path
-    if args.model_name:
-        model_params["model_name"] = args.model_name
-
-    if "/" in model_params["model_name"]:
-        raise Exception(f"`model_name` parameter has to be a filename, and not a relative or absolute path : `{model_params['model_name']}`")
-
-    if not os.path.isdir(model_params["root_folder_path"]):
-        os.makedirs(model_params["root_folder_path"])
 
     if model_params.get("embedding_cached_path", "") == "":
         model_params["embedding_cached_path"] = str(Path.home() / ".cache" / "huggingface")

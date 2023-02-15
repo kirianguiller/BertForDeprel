@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from time import time
 import json
@@ -17,8 +18,12 @@ from ..utils.annotation_schema_utils import get_annotation_schema_from_input_fol
 class Train(CMD):
     def add_subparser(self, name, parser):
         subparser = parser.add_parser(name, help="Train a model.")
-        # subparser.add_argument('--buckets', default=32, type=int,
-        #                        help='max num of buckets to use')
+        subparser.add_argument(
+            "--root_folder_path", "-f", help="path to models folder"
+        )
+        subparser.add_argument(
+            "--model_name", "-m", help="name of current saved model"
+        ) 
         subparser.add_argument(
             "--embedding_type",
             "-t",
@@ -56,6 +61,16 @@ class Train(CMD):
 
     def __call__(self, args, model_params: ModelParams_T):
         super(Train, self).__call__(args, model_params)
+        if args.root_folder_path:
+            model_params["root_folder_path"] = args.root_folder_path
+        if args.model_name:
+            model_params["model_name"] = args.model_name
+
+        if "/" in model_params["model_name"]:
+            raise Exception(f"`model_name` parameter has to be a filename, and not a relative or absolute path : `{model_params['model_name']}`")
+
+        if not os.path.isdir(model_params["root_folder_path"]):
+            os.makedirs(model_params["root_folder_path"])
 
         if args.embedding_type:
             model_params["embedding_type"] = args.embedding_type
@@ -157,22 +172,10 @@ class Train(CMD):
 
         # history = []
         # history = update_history(history, results, n_epoch_start, args)
-        t_total_train = 0.
-        t_total_eval = 0.
-        t_total_evalsaving = 0.
         for n_epoch in range(n_epoch_start + 1, model_params["max_epoch"] + 1):
             print("\n-----   Epoch {}   -----".format(n_epoch))
-            t_before_train = time()
             model.train_epoch(train_loader, args.device)
-            t_after_train = time()
-            t_total_train += t_after_train - t_before_train
-
-            t_before_eval = time()
-            t_before_evalsaving = time()
-
             results = model.eval_epoch(test_loader, args.device)
-            t_after_eval = time()
-            t_total_eval += t_after_eval - t_before_eval
             # history = update_history(history, results, n_epoch, args)
             loss_epoch = results["loss_epoch"]
             LAS_epoch = results["LAS_epoch"]
@@ -200,15 +203,6 @@ class Train(CMD):
                     )
                     print("\nbest result : ", best_epoch_results)
                     break
-            t_after_evalsaving = time()
-            t_total_evalsaving += t_after_evalsaving - t_before_evalsaving
-            print(
-                "KK timers : ",
-                round(t_total_train, 4),
-                round(t_total_eval, 4),
-                round(t_total_evalsaving, 4),
-            )
-
         total_timer_end = datetime.now()
         total_time_elapsed = total_timer_end - total_timer_start
 
