@@ -28,7 +28,7 @@ class ConlluDataset(Dataset):
         return len(self.sequences)
 
     def __getitem__(self, index):
-        return self._get_processed(self.sequences[index])
+        return self._get_processed(self.sequences[index]), index
 
     def _mount_dep2i(self, list_deprel):
         i2dr = {}
@@ -162,21 +162,23 @@ class ConlluDataset(Dataset):
                 deprels_main,
             )
     def collate_fn(self, sentences):
-        max_sentence_length = max([len(sentence[0]) for sentence in sentences])
-        sequence_ids   = tensor([self._pad_list(sentence[0].tolist(),  0, max_sentence_length) for sentence in sentences])
-        subwords_start = tensor([self._pad_list(sentence[1].tolist(), -1, max_sentence_length) for sentence in sentences])
-        attn_masks     = tensor([self._pad_list(sentence[2].tolist(),  0, max_sentence_length) for sentence in sentences])
-        idx_convertor  = tensor([self._pad_list(sentence[3].tolist(), -1, max_sentence_length) for sentence in sentences])
+        max_sentence_length = max([len(sentence[0][0]) for sentence in sentences])
+        sequence_ids   = tensor([self._pad_list(sentence[0][0].tolist(),  0, max_sentence_length) for sentence in sentences])
+        subwords_start = tensor([self._pad_list(sentence[0][1].tolist(), -1, max_sentence_length) for sentence in sentences])
+        attn_masks     = tensor([self._pad_list(sentence[0][2].tolist(),  0, max_sentence_length) for sentence in sentences])
+        idx_convertor  = tensor([self._pad_list(sentence[0][3].tolist(), -1, max_sentence_length) for sentence in sentences])
+        sentence_idxs  = tensor([sentence[1] for sentence in sentences])
         
         if self.run_mode == "train":
-            poss           = tensor([self._pad_list(sentence[4].tolist(), -1, max_sentence_length) for sentence in sentences])
-            heads          = tensor([self._pad_list(sentence[5].tolist(), -1, max_sentence_length) for sentence in sentences])
-            deprels_main   = tensor([self._pad_list(sentence[6].tolist(), -1, max_sentence_length) for sentence in sentences])
+            poss           = tensor([self._pad_list(sentence[0][4].tolist(), -1, max_sentence_length) for sentence in sentences])
+            heads          = tensor([self._pad_list(sentence[0][5].tolist(), -1, max_sentence_length) for sentence in sentences])
+            deprels_main   = tensor([self._pad_list(sentence[0][6].tolist(), -1, max_sentence_length) for sentence in sentences])
             return (
                     sequence_ids,
                     subwords_start,
                     attn_masks,
                     idx_convertor,
+                    sentence_idxs,
                     poss,
                     heads,
                     deprels_main,
@@ -187,6 +189,7 @@ class ConlluDataset(Dataset):
                     subwords_start,
                     attn_masks,
                     idx_convertor,
+                    sentence_idxs
                 )
 
 

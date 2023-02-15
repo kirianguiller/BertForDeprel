@@ -68,8 +68,8 @@ def get_empty_annotation_schema() -> AnnotationSchema_T:
 
 def get_default_model_params() -> ModelParams_T:
     params: ModelParams_T = {
-        "root_folder_path": "",
-        "model_name": "",
+        "root_folder_path": "./",
+        "model_name": "my_bert_for_deprel_model",
         "max_epoch": 30,
         "patience": 5,
         "batch_size": 8,

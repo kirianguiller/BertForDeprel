@@ -92,7 +92,7 @@ class BertForDeprel(Module):
     def train_epoch(self, train_loader, device):
         start = timer()
         self.train()
-        for n_batch, (seq, _, attn_masks, _, poss, heads, deprels_main) in enumerate(train_loader):
+        for n_batch, (seq, _, attn_masks, _, _, poss, heads, deprels_main) in enumerate(train_loader):
             self.optimizer.zero_grad()
             seq, attn_masks, heads_true, deprels_main_true, poss_true = seq.to(device), attn_masks.to(device), heads.to(device), deprels_main.to(device), poss.to(device)
 
@@ -121,7 +121,7 @@ class BertForDeprel(Module):
             n_correct_LAS_epoch, n_correct_LAS_main_epoch,n_correct_LAS_aux_epoch, n_total_epoch = 0.0, 0.0, 0.0, 0.0
             n_correct_LAS_chuliu_epoch, n_correct_LAS_chuliu_main_epoch,n_correct_LAS_chuliu_aux_epoch, n_total_epoch = 0.0, 0.0, 0.0, 0.0
             
-            for n_batch, (seq, subwords_start, attn_masks, idx_convertor, poss, heads, deprels_main) in enumerate(eval_loader):
+            for n_batch, (seq, subwords_start, attn_masks, idx_convertor, _, poss, heads, deprels_main) in enumerate(eval_loader):
                 print(f"evaluation on the dataset ... {n_batch}/{len(eval_loader)}batches", end="\r")
                 seq, attn_masks, heads_true, deprels_main_true, poss_true = seq.to(device), attn_masks.to(device), heads.to(device), deprels_main.to(device), poss.to(device)
                 heads_pred, deprels_main_pred, poss_pred = self.forward(seq, attn_masks)

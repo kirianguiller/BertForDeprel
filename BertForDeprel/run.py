@@ -20,7 +20,7 @@ if __name__ == "__main__":
             "--root_folder_path", "-f", help="path to models folder"
         )
         subparser.add_argument(
-            "--model_name", "-m", default="my_bert_for_deprel_model", help="name of current saved model"
+            "--model_name", "-m", help="name of current saved model"
         )
         subparser.add_argument(
             "--path_annotation_schema", default="", help="path to annotation schema (default : in folder/annotation_schema.json"
