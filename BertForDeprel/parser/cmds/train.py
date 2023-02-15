@@ -27,17 +27,13 @@ class Train(CMD):
         ) 
         subparser.add_argument(
             "--embedding_type",
-            "-t",
+            "-e",
             help="bert type to use (see huggingface models list)",
-        )
-        subparser.add_argument(
-            "--batch_size", type=int, help="batch_size to use"
         )
         subparser.add_argument(
             "--max_epoch", type=int, help="number of epoch to do maximum"
         )
         subparser.add_argument("--ftrain", required=True, help="path to train file")
-        subparser.add_argument("--fdev", default="", help="path to dev file")
         subparser.add_argument("--ftest", default="", help="path to test file")
         subparser.add_argument(
             "--split_ratio",
@@ -46,11 +42,6 @@ class Train(CMD):
             help="split ratio to use (if no --ftest is provided)",
         )
         subparser.add_argument("--conf_pretrain", default="", help="path to pretrain model config")
-        subparser.add_argument(
-            "--keep_epoch",
-            action="store_true",
-            help="keep previous numpr of epochs if pretrained",
-        )
         subparser.add_argument(
             "--path_annotation_schema", help="path to annotation schema (default : in folder/annotation_schema.json"
         )
@@ -78,9 +69,6 @@ class Train(CMD):
 
         if args.max_epoch:
             model_params["max_epoch"] = args.max_epoch
-
-        if args.batch_size:
-            model_params["batch_size"] = args.batch_size
 
         # if user provided a path to an annotation schema, use this one (or overwrite current one if it exits)
         if args.path_annotation_schema:

@@ -21,6 +21,9 @@ if __name__ == "__main__":
         subparser.add_argument('--gpu_ids', default='-2',
                                help='ID of GPU to use (-1 for cpu, -2 for all gpus, 0 for gpu 0; 0,1 for gpu 0 and 1)')
         subparser.add_argument(
+            "--batch_size", default=4, type=int, help="batch_size to use"
+        )
+        subparser.add_argument(
             "--num_workers", default=8, type=int, help="Number of worker"
         )
         subparser.add_argument(
@@ -48,6 +51,10 @@ if __name__ == "__main__":
     if model_params.get("embedding_cached_path", "") == "":
         model_params["embedding_cached_path"] = str(Path.home() / ".cache" / "huggingface")
         print(f"No `embedding_cached_path` provided, saving huggingface pretrained embedding in default cache location : `{model_params['embedding_cached_path']}` ")
+
+
+    if args.batch_size:
+        model_params["batch_size"] = args.batch_size
 
 
     print(f"Set the seed for generating random numbers to {args.seed}")

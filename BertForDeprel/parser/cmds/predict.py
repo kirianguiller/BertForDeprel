@@ -33,9 +33,9 @@ class Predict(CMD):
         subparser = parser.add_parser(
             name, help="Use a trained model to make predictions."
         )
-        subparser.add_argument("--batch_size", default=4, type=int, help="batch size")
-        subparser.add_argument("--infile", '-i', required=True, help="path to infile (can be a folder)")
-        subparser.add_argument("--outfile", '-o',help="path to predicted outfile(s)")
+        subparser.add_argument("--inpath", '-i', required=True, help="path to infile (can be a folder)")
+        subparser.add_argument("--outpath", '-o',help="path to predicted outfile(s)")
+        subparser.add_argument("--suffix", default="", help="suffix that will be added to the name of the predicted files (before the file extension)")
         subparser.add_argument(
             "--overwrite", action="store_true", help="whether to overwrite predicted file if already existing"
         )
@@ -84,7 +84,7 @@ class Predict(CMD):
         print("Starting Predictions ...")
         for path in paths_pred:
 
-            path_result_file = os.path.join(path_predicted_files, path.split("/")[-1])
+            path_result_file = os.path.join(path_predicted_files, path.split("/")[-1].replace(".conll", args.suffix + ".conll"))
             
             if args.overwrite != True:
                 if os.path.isfile(path_result_file):
