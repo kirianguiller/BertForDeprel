@@ -45,30 +45,49 @@ PS : here an example of a valid config.json
 ## All Command line parameters :
 ### shared
 `--conf` `-c` : path to config json file (for training, it's optional if both `--root_folder_path` and `model_name` are provided)
+
 `--batch_size`: numbers of sample per batches (high incidence on total speed)
+
 `--num_workers`: numbers of workers for preparing dataset (low incidence on total speed)
+
 `--seed` `-s` : random seed (default = 42)
+
 
 ### train
 `--root_folder_path` `-f` path to parent folder of the model : optional if `--conf` is already provided
+
 `--model_name` `-m` name of the model (WITHOUT the extension)
+
 `--embedding_type`  `e` : type of embedding (default : `xlm-roberta-large`)
+
 `--max_epoch` : maximum number of epochs (early stopping can shorten this number)
+
 `--patience` : number of epochs without improve required to stop the training (early stopping)
+
 `--ftrain` : path to train file (required)
+
 `--ftest` : path to train file (not required. If not provided, see `--split_ratio` )
+
 `--split_ratio` : Ratio for splitting ftrain dataset in train and test dataset (default : 0.8)
+
 `--conf_pretrain` : path to pretrain model config, used for finetuning a pretrained BertForDeprel model
+
 `--path_annotation_schema`: path to an annotation schema (json format)
+
 `--path_folder_compute_annotation_schema` provide a path to a folder containing various conllu, so the annotation schema is computed on these conllus before starting the training on --ftrain
 `
 
 ### predict
 `--inpath` `-i` : path to the file or the folder containing the files to predict
+
 `--outpath` `-o` : path to the folder that will contain the predicted files
+
 `--suffix` : optional (default = "") , suffix that will be added to the name of the predicted files (before the file extension)
+
 `--overwrite` : whether or not to overwrite outputted predicted conllu if already existing
+
 `--write_preds_in_misc` : whether or not to write prediction in the conllu MISC column instead than in the corresponding column for upos deprel and head
+
 
 ### Predicting on raw conllus
 For predicting, you need to provide the `--conf` parameter, which is the path to the xxx.config.json file. You also need to provide the `--inpath` parameter, which is the path to a single conllu file or a folder containing multiple conllu. The output folder parameter `--outpath` (or `-o`) is optional. 
