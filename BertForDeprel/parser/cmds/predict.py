@@ -5,7 +5,7 @@ from timeit import default_timer as timer
 import numpy as np
 import torch
 from scipy.sparse.csgraph import minimum_spanning_tree
-from torch import nn
+from torch import nn, Tensor
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
@@ -115,74 +115,60 @@ class Predict(CMD):
             list_conllu_sequences = []
             with torch.no_grad():
                 for n_sentence, (
-                    seq,
-                    subwords_start,
-                    attn_masks,
-                    idx_convertor,
+                    seq_batch,
+                    subwords_start_batch,
+                    attn_masks_batch,
+                    idx_convertor_batch,
                 ) in enumerate(pred_loader):
 
-                    seq, attn_masks = seq.to(args.device), attn_masks.to(args.device)
+                    seq_batch, attn_masks_batch = seq_batch.to(args.device), attn_masks_batch.to(args.device)
                     (
-                        heads_pred,
-                        deprels_main_pred,
-                        poss_pred,
-                    ) = model.forward(seq, attn_masks)
-                    heads_pred, deprels_main_pred, poss_pred = (
-                        heads_pred.detach(),
-                        deprels_main_pred.detach(),
-                        poss_pred.detach(),
+                        heads_pred_batch,
+                        deprels_main_pred_batch,
+                        poss_pred_batch,
+                    ) = model.forward(seq_batch, attn_masks_batch)
+                    heads_pred_batch, deprels_main_pred_batch, poss_pred_batch = (
+                        heads_pred_batch.detach(),
+                        deprels_main_pred_batch.detach(),
+                        poss_pred_batch.detach(),
                     )
+                    subwords_start = subwords_start_batch[0]
+                    idx_convertor = idx_convertor_batch[0]
+                    heads_pred = heads_pred_batch[0].clone()
+                    deprels_main_pred = deprels_main_pred_batch[0].clone()
+                    poss_pred = poss_pred_batch[0].clone()
+                    
+                    head_true_like = heads_pred.max(dim=0).indices
+                    chuliu_heads_pred = head_true_like.clone().cpu().numpy()
+                    chuliu_heads_list = []
 
                     subwords_start_with_root = subwords_start.clone()
-                    subwords_start_with_root[0, 0] = True
+                    subwords_start_with_root[0] = True
 
-                    heads_pred_np = heads_pred.squeeze(0)[
-                        subwords_start_with_root.squeeze(0) == 1, :
-                    ]
-                    heads_pred_np = heads_pred_np.squeeze(0)[
-                        :, subwords_start_with_root.squeeze(0) == 1
-                    ]
+                    heads_pred_np = heads_pred[
+                        :, subwords_start_with_root == 1
+                    ][subwords_start_with_root == 1]
+
                     heads_pred_np = heads_pred_np.cpu().numpy()
 
-                    head_true_like = heads_pred.max(dim=1)[1]
-                    chuliu_heads_pred = head_true_like.clone().cpu().numpy()
-                    # chuliu_heads_pred = subwords_start.clone()
-                    chuliu_heads_list = []
-                    for i_vector, (
-                        heads_pred_vector,
-                        subwords_start_vector,
-                        idx_convertor_vector,
-                    ) in enumerate(zip(heads_pred, subwords_start, idx_convertor)):
-                        subwords_start_with_root = subwords_start_vector.clone()
-                        subwords_start_with_root[0] = True
-
-                        heads_pred_np = heads_pred_vector[
-                            :, subwords_start_with_root == 1
-                        ][subwords_start_with_root == 1]
-
-                        heads_pred_np = heads_pred_np.cpu().numpy()
-
-                        chuliu_heads_vector = chuliu_edmonds_one_root(
-                            np.transpose(heads_pred_np, (1, 0))
-                        )[1:]
-                        for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
-                            chuliu_heads_pred[
-                                i_vector, idx_convertor_vector[i_token + 1]
-                            ] = idx_convertor_vector[chuliu_head_pred]
-                            chuliu_heads_list.append(chuliu_head_pred)
+                    chuliu_heads_vector = chuliu_edmonds_one_root(
+                        np.transpose(heads_pred_np, (1, 0))
+                    )[1:]
+                    for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
+                        chuliu_heads_pred[
+                            idx_convertor[i_token + 1]
+                        ] = idx_convertor[chuliu_head_pred]
+                        chuliu_heads_list.append(chuliu_head_pred)
 
                     chuliu_heads_pred = torch.tensor(chuliu_heads_pred).to(args.device)
 
                     deprels_main_pred_chuliu = deprel_aligner_with_head(
-                        deprels_main_pred, chuliu_heads_pred
-                    )
-                    deprels_main_pred_chuliu_list = deprels_main_pred_chuliu.max(dim=1)[
-                        1
-                    ][subwords_start == 1].tolist()
+                        deprels_main_pred.unsqueeze(0), chuliu_heads_pred.unsqueeze(0)
+                    ).squeeze(0)
+                    
+                    deprels_main_pred_chuliu_list = deprels_main_pred_chuliu.max(dim=0).indices[subwords_start == 1].tolist()
 
-                    # print(deprels_main_pred_chuliu_list)
-
-                    poss_pred_list = poss_pred.max(dim=2)[1][
+                    poss_pred_list = poss_pred.max(dim=1).indices[
                         subwords_start == 1
                     ].tolist()
 
@@ -190,10 +176,9 @@ class Predict(CMD):
                     #     subwords_start == 1
                     # ].tolist()
 
-
                     idx2head = []
                     sum_idx = 0
-                    for idx, sub in enumerate(subwords_start.squeeze(0).tolist()):
+                    for sub in subwords_start.tolist():
                         sum_idx += max(0, sub)
                         idx2head.append(sum_idx)
                     conllu_sequence = pred_dataset.sequences[n_sentence]
