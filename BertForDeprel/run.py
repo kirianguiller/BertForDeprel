@@ -1,7 +1,7 @@
 import argparse
 import os
 import json
-from parser.cmds import Evaluate, Predict, Train
+from parser.cmds import Predict, Train
 from parser.utils.gpu_utils import get_gpus_configuration
 from parser.utils.types import get_default_model_params
 import torch
@@ -10,7 +10,7 @@ import torch
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create the Biaffine Parser model.")
     subparsers = parser.add_subparsers(title="Commands", dest="mode")
-    subcommands = {"evaluate": Evaluate(), "predict": Predict(), "train": Train()}
+    subcommands = {"predict": Predict(), "train": Train()}
     for name, subcommand in subcommands.items():
         subparser = subcommand.add_subparser(name, subparsers)
         subparser.add_argument(
@@ -67,7 +67,6 @@ if __name__ == "__main__":
         print("You provided a path to a custom annotation schema, we will use this one for your model")
         with open(args.path_annotation_schema, "r") as infile:
             model_params["annotation_schema"] = json.loads(infile.read())
-
 
     print(args.path_annotation_schema)
     print(f"Set the seed for generating random numbers to {args.seed}")

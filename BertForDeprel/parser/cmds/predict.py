@@ -1,25 +1,21 @@
-# -*- coding: utf-8 -*-
 import os
 from collections import OrderedDict
-from datetime import datetime
 from timeit import default_timer as timer
 
 import numpy as np
 import torch
 from scipy.sparse.csgraph import minimum_spanning_tree
-from scipy.special import softmax
 from torch import nn
-from torch.utils.data import DataLoader, random_split
-
+from torch.utils.data import DataLoader
+from transformers import AutoTokenizer
 
 from ..cmds.cmd import CMD
 from ..utils.lemma_script_utils import apply_lemma_rule
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
 from ..utils.load_data_utils import ConlluDataset
 from ..utils.model_utils import BertForDeprel
-from ..utils.os_utils import path_or_name
 from ..utils.scores_and_losses_utils import deprel_aligner_with_head
-
+from ..utils.types import ModelParams_T
 
 def min_span_matrix(matrix):
     matrix = -1 * matrix
@@ -38,15 +34,10 @@ class Predict(CMD):
             name, help="Use a trained model to make predictions."
         )
         subparser.add_argument("--batch_size", default=1, type=int, help="batch size")
-        subparser.add_argument(
-            "--punct", action="store_true", help="whether to include punctuation"
-        )
-        subparser.add_argument("--fpred", default="", help="path to dataset")
+        subparser.add_argument("--infile", '-i', required=True, help="path to infile (can be a folder)")
+        subparser.add_argument("--outfile", '-o',help="path to predicted outfile(s)")
         subparser.add_argument(
             "--upostag", action="store_true", help="whether to predict POS"
-        )
-        subparser.add_argument(
-            "--multiple", action="store_true", help="whether to include punctuation"
         )
         subparser.add_argument(
             "--overwrite", action="store_true", help="whether to overwrite predicted file if already existing"
@@ -56,52 +47,33 @@ class Predict(CMD):
             action="store_true",
             help="whether to include punctuation",
         )
-        # subparser.add_argument('--fresults', default='',
-        #                        help='path to predicted result')
 
         return subparser
 
-    def __call__(self, args):
-        super(Predict, self).__call__(args)
-        if not args.fpred:
-            args.fpred = os.path.join(args.folder, "to_predict")
+    def __call__(self, args, model_params: ModelParams_T):
+        super(Predict, self).__call__(args, model_params)
         
         paths_pred = []
-        if os.path.isdir(args.fpred):
-            for file in os.listdir(args.fpred):
-                paths_pred.append(os.path.join(args.fpred, file))
-        elif os.path.isfile(args.fpred):
-            paths_pred.append(args.fpred)
+        if os.path.isdir(args.infile):
+            for file in os.listdir(args.infile):
+                paths_pred.append(os.path.join(args.infile, file))
+        elif os.path.isfile(args.infile):
+            paths_pred.append(args.infile)
         else:
-            raise BaseException(f"args.fpred must be a folder or a file, not nothing (current fpred = {args.fpred})")
+            raise BaseException(f"args.infile must be a folder or a file, not nothing (current infile = {args.infile})")
         
-        path_predicted_files = os.path.join(args.folder, "predicted")
+        path_predicted_files = args.outfile
+
         if not os.path.isdir(path_predicted_files):
             os.makedirs(path_predicted_files)
 
         print(paths_pred)
 
-        if not os.path.isdir(os.path.join(args.folder, "results")):
-            os.makedirs(os.path.join(args.folder, "results"))
-
-        print("Load the saved config")
-        checkpoint = torch.load(args.name_model, map_location=torch.device("cpu"))
-        loaded_args = checkpoint["args"]
-        loaded_args.mode = "predict"
-        args.bert_type = loaded_args.bert_type
-        print(args.num_workers)
-        print(type(args.num_workers))
-
         print("Load the model")
-        model = BertForDeprel(loaded_args)
+        model = BertForDeprel(model_params)
+        model.load_pretrained()
 
-        ### To reactivate if probleme in the loading of the model states
-        loaded_state_dict = OrderedDict()
-        for k, v in checkpoint["state_dict"].items():
-            name = k.replace("module.", "")
-            loaded_state_dict[name] = v
 
-        model.load_state_dict(loaded_state_dict)
         model.to(args.device)
 
         if args.multi_gpu:
@@ -109,8 +81,8 @@ class Predict(CMD):
             model = nn.DataParallel(model)
 
         
-        self.load_tokenizer(loaded_args.bert_type)
-        # model.load_state_dict(checkpoint['state_dict'])
+        tokenizer = AutoTokenizer.from_pretrained(model_params["embedding_type"])
+
         model.eval()
         print("Starting Predictions ...")
         for path in paths_pred:
@@ -122,27 +94,19 @@ class Predict(CMD):
                     print(f"file '{path_result_file}' already exist and overwrite!=False, skipping ...\n")
                     continue
                 
-            args.fpred = path
-            print(args.fpred)
+            print(args.infile)
 
             print("Load the dataset")
             
-            pred_dataset = ConlluDataset(args.fpred, self.tokenizer, loaded_args)
+            pred_dataset = ConlluDataset(path, tokenizer, model_params, args.mode)
 
-            args.dep2i = pred_dataset.dep2i
-            args.i2dep = pred_dataset.i2dep
-            if loaded_args.split_deprel:
-                args.dra2i = pred_dataset.dra2i
-                args.i2dra = pred_dataset.i2dra
-            args.i2pos = pred_dataset.i2pos
-            args.i2lemma_script = pred_dataset.i2lemma_script
             params = {
                 # "batch_size": args.batch_size,
                 "batch_size": 1,
                 "num_workers": args.num_workers,
             }
-
-            pred_loader = DataLoader(pred_dataset, **params)
+            annotation_schema = model_params["annotation_schema"]
+            pred_loader = DataLoader(pred_dataset, collate_fn=pred_dataset.collate_fn, shuffle=False, **params)
             print(
                 f"{'eval:':6} {len(pred_dataset):5} sentences, "
                 f"{len(pred_loader):3} batches, "
@@ -155,27 +119,18 @@ class Predict(CMD):
                     subwords_start,
                     attn_masks,
                     idx_convertor,
-                ) in enumerate(pred_dataset):
+                ) in enumerate(pred_loader):
 
                     seq, attn_masks = seq.to(args.device), attn_masks.to(args.device)
-                    seq = seq.unsqueeze(0)
-                    attn_masks = attn_masks.unsqueeze(0)
-                    subwords_start = subwords_start.unsqueeze(0)
-                    idx_convertor = idx_convertor.unsqueeze(0)
-
                     (
                         heads_pred,
                         deprels_main_pred,
-                        deprels_aux_pred,
                         poss_pred,
-                        lemma_scripts_pred,
                     ) = model.forward(seq, attn_masks)
-                    heads_pred, deprels_main_pred, deprels_aux_pred, poss_pred, lemma_scripts_pred = (
+                    heads_pred, deprels_main_pred, poss_pred = (
                         heads_pred.detach(),
                         deprels_main_pred.detach(),
-                        deprels_aux_pred.detach(),
                         poss_pred.detach(),
-                        lemma_scripts_pred.detach(),
                     )
 
                     subwords_start_with_root = subwords_start.clone()
@@ -204,6 +159,7 @@ class Predict(CMD):
                         heads_pred_np = heads_pred_vector[
                             :, subwords_start_with_root == 1
                         ][subwords_start_with_root == 1]
+
                         heads_pred_np = heads_pred_np.cpu().numpy()
 
                         chuliu_heads_vector = chuliu_edmonds_one_root(
@@ -224,22 +180,15 @@ class Predict(CMD):
                         1
                     ][subwords_start == 1].tolist()
 
-                    deprels_aux_pred_chuliu = deprel_aligner_with_head(
-                        deprels_aux_pred, chuliu_heads_pred
-                    )
-                    deprels_aux_pred_chuliu_list = deprels_aux_pred_chuliu.max(dim=1)[
-                        1
-                    ][subwords_start == 1].tolist()
-
                     # print(deprels_main_pred_chuliu_list)
 
                     poss_pred_list = poss_pred.max(dim=2)[1][
                         subwords_start == 1
                     ].tolist()
 
-                    lemma_scripts_pred_list = lemma_scripts_pred.max(dim=2)[1][
-                        subwords_start == 1
-                    ].tolist()
+                    # lemma_scripts_pred_list = lemma_scripts_pred.max(dim=2)[1][
+                    #     subwords_start == 1
+                    # ].tolist()
 
 
                     idx2head = []
@@ -256,13 +205,12 @@ class Predict(CMD):
                             print("POP :", token)
                             conllu_sequence.pop(n_token - poped_item)
                             poped_item += 1
-                    for n_token, (pos_index, head_chuliu, dmpmstn, dapmst, lemma_script_index) in enumerate(
+                    for n_token, (pos_index, head_chuliu, dmpmstn) in enumerate(
                         zip(
                             poss_pred_list,
                             chuliu_heads_list,
                             deprels_main_pred_chuliu_list,
-                            deprels_aux_pred_chuliu_list,
-                            lemma_scripts_pred_list,
+                            # lemma_scripts_pred_list,
                         )
                     ):
                         token = conllu_sequence[n_token]
@@ -271,36 +219,23 @@ class Predict(CMD):
                             misc = token["misc"]
                             if not misc:
                                 misc = OrderedDict()
-                            if loaded_args.split_deprel:
-                                misc["deprel_main_pred"] = args.i2dep[dmpmstn]
-                                misc["deprel_aux_pred"] = args.i2dra[dapmst]
-                            else:
-                                misc["deprel_main_pred"] = args.i2dep[dmpmstn]
+                            misc["deprel_main_pred"] = annotation_schema["i2dep"][dmpmstn]
 
                             # misc['head_MST']= str(gov_dict.get(n_token+1, 'missing_gov'))
                             misc["head_MST_pred"] = str(head_chuliu)
-                            misc["upostag_pred"] = args.i2pos[pos_index]
-                            lemma_script = args.i2lemma_script[lemma_script_index]
-                            misc["lemma_pred"] = apply_lemma_rule(token["form"], lemma_script)
+                            misc["upostag_pred"] = annotation_schema["i2pos"][pos_index]
+                            # lemma_script = annotation_schema["i2lemma_script"][lemma_script_index]
+                            # misc["lemma_pred"] = apply_lemma_rule(token["form"], lemma_script)
                             token["misc"] = misc
 
 
                         else:
                             # token["head"] = gov_dict.get(n_token+1, 'missing_gov')
                             token["head"] = str(head_chuliu)
-                            token["upos"] = args.i2pos[pos_index]
-                            lemma_script = args.i2lemma_script[lemma_script_index]
-                            token["lemma"] = apply_lemma_rule(token["form"], lemma_script)
-                            if loaded_args.split_deprel:
-
-                                if args.i2dra[dapmst] == "none":
-                                    token["deprel"] = args.i2dep[dmpmstn]
-                                else:
-                                    token["deprel"] = "{}:{}".format(
-                                        args.i2dep[dmpmstn], args.i2dra[dapmst]
-                                    )
-                            else:
-                                token["deprel"] = args.i2dep[dmpmstn]
+                            token["upos"] = annotation_schema["i2pos"][str(pos_index)]
+                            # lemma_script = annotation_schema["i2lemma_script"][lemma_script_index]
+                            # token["lemma"] = apply_lemma_rule(token["form"], lemma_script)
+                            token["deprel"] = annotation_schema["i2dep"][str(dmpmstn)]
 
 
                     list_conllu_sequences.append(conllu_sequence)
@@ -313,3 +248,7 @@ class Predict(CMD):
                 f.writelines(
                     [sequence.serialize() for sequence in list_conllu_sequences]
                 )
+            
+            print(f"Finished predicting (and writting) `{path_result_file}`")
+        
+        

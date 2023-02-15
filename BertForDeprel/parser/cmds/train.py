@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from datetime import datetime
 from time import time
 
@@ -20,8 +19,8 @@ class Train(CMD):
         # subparser.add_argument('--buckets', default=32, type=int,
         #                        help='max num of buckets to use')
         subparser.add_argument(
-            "--bert_type",
-            "-b",
+            "--embedding_type",
+            "-t",
             help="bert type to use (see huggingface models list)",
         )
         subparser.add_argument(
@@ -49,6 +48,9 @@ class Train(CMD):
 
     def __call__(self, args, model_params: ModelParams_T):
         super(Train, self).__call__(args, model_params)
+
+        if args.embedding_type:
+            model_params["embedding_type"] = args.embedding_type
 
         if args.max_epoch:
             model_params["max_epoch"] = args.max_epoch
@@ -80,12 +82,6 @@ class Train(CMD):
             train_size = int(len(dataset) * args.split_ratio)
             test_size = len(dataset) - train_size
             train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
-
-        # ### for experience with only part of the dataset
-        # if original_args.n_to_train:
-        #     train_size = original_args.n_to_train
-        #     test_size = int(len(train_dataset)) - train_size
-        #     train_dataset, _ = random_split(train_dataset, [train_size, test_size])
 
         params_train = {
             "batch_size": model_params["batch_size"],

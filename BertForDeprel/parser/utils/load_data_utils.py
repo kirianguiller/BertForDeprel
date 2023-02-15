@@ -167,18 +167,27 @@ class ConlluDataset(Dataset):
         subwords_start = tensor([self._pad_list(sentence[1].tolist(), -1, max_sentence_length) for sentence in sentences])
         attn_masks     = tensor([self._pad_list(sentence[2].tolist(),  0, max_sentence_length) for sentence in sentences])
         idx_convertor  = tensor([self._pad_list(sentence[3].tolist(), -1, max_sentence_length) for sentence in sentences])
-        poss           = tensor([self._pad_list(sentence[4].tolist(), -1, max_sentence_length) for sentence in sentences])
-        heads          = tensor([self._pad_list(sentence[5].tolist(), -1, max_sentence_length) for sentence in sentences])
-        deprels_main   = tensor([self._pad_list(sentence[6].tolist(), -1, max_sentence_length) for sentence in sentences])
-        return (
-                sequence_ids,
-                subwords_start,
-                attn_masks,
-                idx_convertor,
-                poss,
-                heads,
-                deprels_main,
-            )
+        
+        if self.run_mode == "train":
+            poss           = tensor([self._pad_list(sentence[4].tolist(), -1, max_sentence_length) for sentence in sentences])
+            heads          = tensor([self._pad_list(sentence[5].tolist(), -1, max_sentence_length) for sentence in sentences])
+            deprels_main   = tensor([self._pad_list(sentence[6].tolist(), -1, max_sentence_length) for sentence in sentences])
+            return (
+                    sequence_ids,
+                    subwords_start,
+                    attn_masks,
+                    idx_convertor,
+                    poss,
+                    heads,
+                    deprels_main,
+                )
+        else:
+            return (
+                    sequence_ids,
+                    subwords_start,
+                    attn_masks,
+                    idx_convertor,
+                )
 
 
 def get_index(label: str, mapping: Dict) -> int:

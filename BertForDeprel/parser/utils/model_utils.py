@@ -205,13 +205,13 @@ class BertForDeprel(Module):
     def save_model(self, epoch):
         trainable_weight_names = [n for n, p in self.llm_layer.named_parameters() if p.requires_grad] + \
                                  [n for n, p in self.tagger_layer.named_parameters() if p.requires_grad]
-        state = {"adapters": {}, "epoch": epoch}
+        state = {"adapter": {}, "tagger": {}, "epoch": epoch}
         for k, v in self.llm_layer.state_dict().items():
             if k in trainable_weight_names:
-                state["adapters"][k] = v
+                state["adapter"][k] = v
         for k, v in self.tagger_layer.state_dict().items():
             if k in trainable_weight_names:
-                state["adapters"][k] = v
+                state["tagger"][k] = v
 
         ckpt_fpath = os.path.join(self.model_params["root_folder_path"], self.model_params["model_name"] + ".pt")
         torch.save(state, ckpt_fpath)
@@ -223,3 +223,24 @@ class BertForDeprel(Module):
         config_path = os.path.join(self.model_params["root_folder_path"], self.model_params["model_name"] + ".config.json")
         with open(config_path, "w") as outfile:
             outfile.write(json.dumps(self.model_params))
+
+    def load_pretrained(self):
+        ckpt_fpath = os.path.join(self.model_params["root_folder_path"], self.model_params["model_name"] + ".pt")
+        checkpoint_state = torch.load(ckpt_fpath)
+
+        self.tagger_layer.load_state_dict(checkpoint_state["tagger"])
+        print("tagger_layer state loaded")
+        
+        model_dict = self.llm_layer.state_dict()
+        for k, v in checkpoint_state["adapter"].items():
+            if k in model_dict:
+                model_dict[k] = v
+        self.llm_layer.load_state_dict(model_dict)
+        print("llm_layer state loaded")
+        return
+
+### To reactivate if probleme in the loading of the model states
+# loaded_state_dict = OrderedDict()
+# for k, v in checkpoint["state_dict"].items():
+#     name = k.replace("module.", "")
+#     loaded_state_dict[name] = v

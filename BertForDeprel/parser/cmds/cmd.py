@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from transformers import AutoTokenizer
 from ..utils.types import ModelParams_T
 
