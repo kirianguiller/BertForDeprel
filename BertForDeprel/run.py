@@ -5,6 +5,7 @@ from parser.cmds import Predict, Train
 from parser.utils.gpu_utils import get_gpus_configuration
 from parser.utils.types import get_default_model_params
 import torch
+from pathlib import Path
 
 
 if __name__ == "__main__":
@@ -47,7 +48,8 @@ if __name__ == "__main__":
     if args.conf:
         if os.path.isfile(args.conf):
             with open(args.conf, "r") as infile:
-                model_params = json.loads(infile.read())
+                custom_model_params = json.loads(infile.read())
+                model_params.update(custom_model_params)
         else:
             raise Exception(f"You provided a --conf parameter but no config was found in `{args.conf}`")
     
@@ -62,6 +64,10 @@ if __name__ == "__main__":
 
     if not os.path.isdir(model_params["root_folder_path"]):
         os.makedirs(model_params["root_folder_path"])
+
+    if model_params.get("embedding_cached_path", "") == "":
+        model_params["embedding_cached_path"] = str(Path.home() / ".cache" / "huggingface")
+        print(f"No `embedding_cached_path` provided, saving huggingface pretrained embedding in default cache location : `{model_params['embedding_cached_path']}` ")
 
     if args.path_annotation_schema:
         print("You provided a path to a custom annotation schema, we will use this one for your model")

@@ -48,7 +48,7 @@ class BertForDeprel(Module):
     def __init__(self, model_params: ModelParams_T):
         super(BertForDeprel, self).__init__()
         self.model_params = model_params
-        self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(model_params["embedding_type"])
+        self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(model_params["embedding_type"], cache_dir=model_params.get("embedding_cached_path", None))
         llm_hidden_size = self.llm_layer.config.hidden_size #expected to get embedding size of bert custom model
         adapter_config = AdapterConfig.load("pfeiffer", reduction_factor=4)
         # TODO : find better name (tagger)
@@ -214,13 +214,14 @@ class BertForDeprel(Module):
                 state["tagger"][k] = v
 
         ckpt_fpath = os.path.join(self.model_params["root_folder_path"], self.model_params["model_name"] + ".pt")
+        config_path = os.path.join(self.model_params["root_folder_path"], self.model_params["model_name"] + ".config.json")
         torch.save(state, ckpt_fpath)
         print(
-            "Saving adapter weights to ... {} ({:.2f} MB)".format(
-                ckpt_fpath, os.path.getsize(ckpt_fpath) * 1.0 / (1024 * 1024)
+            "Saving adapter weights to ... {} ({:.2f} MB) (conf path : {})".format(
+                ckpt_fpath, os.path.getsize(ckpt_fpath) * 1.0 / (1024 * 1024),
+                config_path
             )
         )
-        config_path = os.path.join(self.model_params["root_folder_path"], self.model_params["model_name"] + ".config.json")
         with open(config_path, "w") as outfile:
             outfile.write(json.dumps(self.model_params))
 

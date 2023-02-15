@@ -58,6 +58,8 @@ class Train(CMD):
         if args.batch_size:
             model_params["batch_size"] = args.batch_size
 
+        print("Model parameters : ", model_params)
+
         annotation_schema_json = model_params.get("annotation_schema")
         if annotation_schema_json is None:
             # TODO : Implement the auto-annotation schema

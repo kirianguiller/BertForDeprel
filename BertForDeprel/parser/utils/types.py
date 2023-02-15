@@ -25,6 +25,7 @@ class ModelParams_T(TypedDict):
     # Shared
     root_folder_path: str
     model_name: str
+    annotation_schema: AnnotationSchema_T
 
     # Next training params (only relevent if one want to train a model or retrain/finetune)
     max_epoch: int
@@ -37,9 +38,8 @@ class ModelParams_T(TypedDict):
     embedding_cached_path: str
 
     # Finetuned training meta params
-    n_current_epoch: int
-    current_epoch_results: EpochResults_T
-    annotation_schema: AnnotationSchema_T
+    # n_current_epoch: int
+    # current_epoch_results: EpochResults_T
 
 
 def get_empty_current_epoch_results() -> EpochResults_T:
@@ -68,16 +68,16 @@ def get_empty_annotation_schema() -> AnnotationSchema_T:
 
 def get_default_model_params() -> ModelParams_T:
     params: ModelParams_T = {
-        "root_folder_path": "./",
+        "root_folder_path": "",
         "model_name": "my_bert_for_deprel_model",
+        "annotation_schema": get_empty_annotation_schema(),
         "max_epoch": 30,
         "patience": 5,
         "batch_size": 8,
         "maxlen": 512,
         "embedding_type": "xlm-roberta-large",
-        "embedding_cached_path": "~/.cache/",
-        "n_current_epoch": 0,
-        "current_epoch_results": get_empty_current_epoch_results(),
-        "annotation_schema": get_empty_annotation_schema(),
+        "embedding_cached_path": "",
+        # "n_current_epoch": 0,
+        # "current_epoch_results": get_empty_current_epoch_results(),
     }
     return params
