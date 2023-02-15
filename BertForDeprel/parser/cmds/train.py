@@ -86,11 +86,6 @@ class Train(CMD):
 
         tokenizer = AutoTokenizer.from_pretrained(model_params["embedding_type"])
         dataset = ConlluDataset(args.ftrain, tokenizer, model_params, args.mode)
-        model_params["annotation_schema"]["dep2i"] = dataset.dep2i
-        model_params["annotation_schema"]["i2dep"] = dataset.i2dep
-
-        model_params["annotation_schema"]["pos2i"] = dataset.pos2i
-        model_params["annotation_schema"]["i2pos"] = dataset.i2pos
 
         # prepare test dataset
         if args.ftest:

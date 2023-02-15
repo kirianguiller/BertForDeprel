@@ -19,8 +19,8 @@ class ConlluDataset(Dataset):
         with open(path_file, "r") as infile:
             self.sequences = conllu.parse(infile.read())
 
-        self.dep2i, self.i2dep = self._compute_labels2i(self.model_params["annotation_schema"]["deprels"])
-        self.pos2i, self.i2pos = self._compute_labels2i(self.model_params["annotation_schema"]["uposs"])
+        self.dep2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["deprels"])
+        self.pos2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["uposs"])
         # self.lemma_script2i, self.i2lemma_script = self._compute_labels2i(self.args.list_lemma_script)
 
 

@@ -37,9 +37,6 @@ class Predict(CMD):
         subparser.add_argument("--infile", '-i', required=True, help="path to infile (can be a folder)")
         subparser.add_argument("--outfile", '-o',help="path to predicted outfile(s)")
         subparser.add_argument(
-            "--upostag", action="store_true", help="whether to predict POS"
-        )
-        subparser.add_argument(
             "--overwrite", action="store_true", help="whether to overwrite predicted file if already existing"
         )
         subparser.add_argument(
@@ -211,11 +208,11 @@ class Predict(CMD):
                                 misc = token["misc"]
                                 if not misc:
                                     misc = OrderedDict()
-                                misc["deprel_main_pred"] = annotation_schema["i2dep"][dmpmstn]
+                                misc["deprel_main_pred"] = annotation_schema["deprels"][dmpmstn]
 
                                 # misc['head_MST']= str(gov_dict.get(n_token+1, 'missing_gov'))
                                 misc["head_MST_pred"] = str(head_chuliu)
-                                misc["upostag_pred"] = annotation_schema["i2pos"][pos_index]
+                                misc["upostag_pred"] = annotation_schema["uposs"][pos_index]
                                 # lemma_script = annotation_schema["i2lemma_script"][lemma_script_index]
                                 # misc["lemma_pred"] = apply_lemma_rule(token["form"], lemma_script)
                                 token["misc"] = misc
@@ -224,10 +221,10 @@ class Predict(CMD):
                             else:
                                 # token["head"] = gov_dict.get(n_token+1, 'missing_gov')
                                 token["head"] = str(head_chuliu)
-                                token["upos"] = annotation_schema["i2pos"][str(pos_index)]
+                                token["upos"] = annotation_schema["uposs"][pos_index]
                                 # lemma_script = annotation_schema["i2lemma_script"][lemma_script_index]
                                 # token["lemma"] = apply_lemma_rule(token["form"], lemma_script)
-                                token["deprel"] = annotation_schema["i2dep"][str(dmpmstn)]
+                                token["deprel"] = annotation_schema["deprels"][dmpmstn]
 
 
                         list_conllu_sequences.append(conllu_sequence)

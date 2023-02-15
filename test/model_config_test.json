@@ -1,6 +1,6 @@
 {
     "root_folder_path": "/home/kirian/models/",
-    "model_name": "test_2",
+    "model_name": "test_4",
     "max_epoch": 150,
     "patience": 30,
     "batch_size": 16,

@@ -14,11 +14,8 @@ class EpochResults_T(TypedDict):
 class AnnotationSchema_T(TypedDict):
     deprels: List[str]
     uposs: List[str]
+    lemma_scripts: List[str]
 
-    dep2i: Dict[str, int]
-    i2dep: Dict[int, str]    
-    pos2i: Dict[str, int]
-    i2pos: Dict[int, str]
 
 
 class ModelParams_T(TypedDict):
@@ -58,11 +55,7 @@ def get_empty_annotation_schema() -> AnnotationSchema_T:
     return {
         "deprels": [],
         "uposs": [],
-
-        "dep2i": {},
-        "i2dep": {},
-        "pos2i": {},
-        "i2pos": {},
+        "lemma_scripts": [],
     }
 
 
