@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from time import time
 import json
+from typing import Optional
 
 from torch import nn
 from torch.utils.data import DataLoader, random_split
@@ -44,7 +45,7 @@ class Train(CMD):
             type=float,
             help="split ratio to use (if no --ftest is provided)",
         )
-        # subparser.add_argument("--fpretrain", default="", help="path to pretrain model")
+        subparser.add_argument("--conf_pretrain", default="", help="path to pretrain model config")
         subparser.add_argument(
             "--keep_epoch",
             action="store_true",
@@ -70,8 +71,8 @@ class Train(CMD):
             raise Exception(f"`model_name` parameter has to be a filename, and not a relative or absolute path : `{model_params['model_name']}`")
 
         if not os.path.isdir(model_params["root_folder_path"]):
-            os.makedirs(model_params["root_folder_path"])
-
+            os.makedirs(model_params["root_folder_path"])            
+        
         if args.embedding_type:
             model_params["embedding_type"] = args.embedding_type
 
@@ -98,6 +99,21 @@ class Train(CMD):
             # The annotation schema was never given in json config or path argument, we need to compute it on --ftrain
             print("Computing annotation schema on --ftrain file")
             model_params["annotation_schema"] = create_annotation_schema(args.ftrain)
+
+        pretrain_model_params: Optional[ModelParams_T] = None
+        if args.conf_pretrain:
+            # We are finetuning an existing BertForDeprel model, where a pretrain model config is provided
+            # we need to be sure that :
+            # - the annotation schema of new model is the same as finetuned 
+            # - the new model doesnt erase the old one (root_path_folder + model_name are different)
+            # - the new model has same architecture as old one
+            with open(args.conf_pretrain, "r") as infile:
+                pretrain_model_params_: ModelParams_T = json.loads(infile.read())
+                model_params["annotation_schema"] = pretrain_model_params_["annotation_schema"] 
+                pretrain_model_params = pretrain_model_params_
+            if os.path.join(pretrain_model_params_["root_folder_path"], pretrain_model_params_["model_name"])  == \
+                os.path.join(model_params["root_folder_path"], model_params["model_name"]):
+                assert Exception("The pretrained model and the new model have same full path. It's not allowed as it would result in erasing the pretrained model")
 
         tokenizer = AutoTokenizer.from_pretrained(model_params["embedding_type"])
         dataset = ConlluDataset(args.ftrain, tokenizer, model_params, args.mode)
@@ -136,7 +152,7 @@ class Train(CMD):
         )
 
         print("Create the model")
-        model = BertForDeprel(model_params)
+        model = BertForDeprel(model_params, pretrain_model_params=pretrain_model_params)
 
         n_epoch_start = 0
         # if args.fpretrain:

@@ -33,7 +33,7 @@ class Predict(CMD):
         subparser = parser.add_parser(
             name, help="Use a trained model to make predictions."
         )
-        subparser.add_argument("--batch_size", default=1, type=int, help="batch size")
+        subparser.add_argument("--batch_size", default=4, type=int, help="batch size")
         subparser.add_argument("--infile", '-i', required=True, help="path to infile (can be a folder)")
         subparser.add_argument("--outfile", '-o',help="path to predicted outfile(s)")
         subparser.add_argument(

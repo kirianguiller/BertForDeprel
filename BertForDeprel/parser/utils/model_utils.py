@@ -1,5 +1,6 @@
 import os
 from timeit import default_timer as timer
+from typing import Optional
 import numpy as np
 import json
 
@@ -45,9 +46,10 @@ class PosAndDeprelParserHead(Module):
 
 
 class BertForDeprel(Module):
-    def __init__(self, model_params: ModelParams_T):
+    def __init__(self, model_params: ModelParams_T, pretrain_model_params: Optional[ModelParams_T] = None):
         super(BertForDeprel, self).__init__()
         self.model_params = model_params
+        self.pretrain_model_params = pretrain_model_params
         self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(model_params["embedding_type"], cache_dir=model_params.get("embedding_cached_path", None))
         llm_hidden_size = self.llm_layer.config.hidden_size #expected to get embedding size of bert custom model
         adapter_config = AdapterConfig.load("pfeiffer", reduction_factor=4)
@@ -60,6 +62,10 @@ class BertForDeprel(Module):
         n_uposs = len(model_params["annotation_schema"]["uposs"])
         n_deprels = len(model_params["annotation_schema"]["deprels"])
         self.tagger_layer = PosAndDeprelParserHead(n_uposs, n_deprels, llm_hidden_size)
+
+        if self.pretrain_model_params:
+            print("Loading weights of the pretrained model")
+            self.load_pretrained()
 
         self.total_trainable_parameters = self.get_total_trainable_parameters()
         print("TOTAL TRAINABLE PARAMETERS : ", self.total_trainable_parameters)
@@ -226,18 +232,19 @@ class BertForDeprel(Module):
             outfile.write(json.dumps(self.model_params))
 
     def load_pretrained(self):
-        ckpt_fpath = os.path.join(self.model_params["root_folder_path"], self.model_params["model_name"] + ".pt")
+        params = self.pretrain_model_params or self.model_params
+        ckpt_fpath = os.path.join(params["root_folder_path"], params["model_name"] + ".pt")
         checkpoint_state = torch.load(ckpt_fpath)
 
         self.tagger_layer.load_state_dict(checkpoint_state["tagger"])
-        print("tagger_layer state loaded")
         
         model_dict = self.llm_layer.state_dict()
-        for k, v in checkpoint_state["adapter"].items():
-            if k in model_dict:
-                model_dict[k] = v
+        for layer_name, weights in checkpoint_state["adapter"].items():
+            if self.pretrain_model_params:
+                layer_name = layer_name.replace(self.pretrain_model_params["model_name"], self.model_params["model_name"])
+            if layer_name in model_dict:
+                model_dict[layer_name] = weights
         self.llm_layer.load_state_dict(model_dict)
-        print("llm_layer state loaded")
         return
 
 ### To reactivate if probleme in the loading of the model states
