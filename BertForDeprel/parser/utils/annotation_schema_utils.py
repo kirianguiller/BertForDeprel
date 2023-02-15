@@ -1,5 +1,8 @@
+import os
+import glob
 import conllu
-from lemma_script_utils import gen_lemma_rule, gen_lemma_script_from_conll_token
+from .lemma_script_utils import gen_lemma_rule, gen_lemma_script_from_conll_token
+from .types import AnnotationSchema_T
 
 
 def create_lemma_script_list(*paths):
@@ -77,3 +80,25 @@ def create_annotation_schema(*paths):
     annotation_schema["lemma_script"] = lemma_scripts
     print(annotation_schema)
     return annotation_schema
+
+def get_path_of_conllus_from_folder_path(path_folder: str):
+    if os.path.isfile(path_folder):
+        if path_folder.endswith(".conllu"):
+            paths = [path_folder]
+        else:
+            raise BaseException("input file was not .conll neither a folder of conllu : ", path_folder)
+    else:
+        paths = glob.glob(os.path.join(path_folder, "*.conllu"))
+        if paths == []:
+            raise BaseException("No conllu was found")
+    return paths
+
+def get_annotation_schema_from_input_folder(path_folder: str):
+    path_conllus = get_path_of_conllus_from_folder_path(path_folder)
+    annotation_schema = create_annotation_schema(*path_conllus)
+    return annotation_schema
+
+
+def is_annotation_schema_empty(annotation_schema: AnnotationSchema_T):
+    print("KK annotation_schema", annotation_schema)
+    return (len(annotation_schema["uposs"]) == 0) or len(annotation_schema["deprels"]) == 0

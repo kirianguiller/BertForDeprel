@@ -23,9 +23,6 @@ if __name__ == "__main__":
         subparser.add_argument(
             "--model_name", "-m", help="name of current saved model"
         )
-        subparser.add_argument(
-            "--path_annotation_schema", default="", help="path to annotation schema (default : in folder/annotation_schema.json"
-        )
 
         subparser.add_argument('--gpu_ids', default='-2',
                                help='ID of GPU to use (-1 for cpu, -2 for all gpus, 0 for gpu 0; 0,1 for gpu 0 and 1)')
@@ -69,12 +66,7 @@ if __name__ == "__main__":
         model_params["embedding_cached_path"] = str(Path.home() / ".cache" / "huggingface")
         print(f"No `embedding_cached_path` provided, saving huggingface pretrained embedding in default cache location : `{model_params['embedding_cached_path']}` ")
 
-    if args.path_annotation_schema:
-        print("You provided a path to a custom annotation schema, we will use this one for your model")
-        with open(args.path_annotation_schema, "r") as infile:
-            model_params["annotation_schema"] = json.loads(infile.read())
 
-    print(args.path_annotation_schema)
     print(f"Set the seed for generating random numbers to {args.seed}")
     torch.manual_seed(args.seed)
     

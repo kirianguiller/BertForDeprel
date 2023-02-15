@@ -1,5 +1,6 @@
 from datetime import datetime
 from time import time
+import json
 
 from torch import nn
 from torch.utils.data import DataLoader, random_split
@@ -11,7 +12,7 @@ from ..utils.load_data_utils import ConlluDataset
 from ..utils.model_utils import BertForDeprel
 from ..utils.types import ModelParams_T
 from ..utils.scores_and_losses_utils import update_history
-
+from ..utils.annotation_schema_utils import get_annotation_schema_from_input_folder, create_annotation_schema, is_annotation_schema_empty
 
 class Train(CMD):
     def add_subparser(self, name, parser):
@@ -44,6 +45,13 @@ class Train(CMD):
             action="store_true",
             help="keep previous numpr of epochs if pretrained",
         )
+        subparser.add_argument(
+            "--path_annotation_schema", help="path to annotation schema (default : in folder/annotation_schema.json"
+        )
+
+        subparser.add_argument(
+            "--path_folder_compute_annotation_schema", help="path to annotation schema (default : in folder/annotation_schema.json"
+        )
         return subparser
 
     def __call__(self, args, model_params: ModelParams_T):
@@ -58,14 +66,23 @@ class Train(CMD):
         if args.batch_size:
             model_params["batch_size"] = args.batch_size
 
+        # if user provided a path to an annotation schema, use this one (or overwrite current one if it exits)
+        if args.path_annotation_schema:
+            if args.path_folder_compute_annotation_schema:
+                raise Exception("You provided both --path_annotation_schema and --path_folder_compute_annotation_schema, it's not allowed as it is ambiguous. You can provide none of them or at maximum one of this two.")
+            print(f"You provided a path to a custom annotation schema, we will use this one for your model `{args.path_annotation_schema}`")
+            with open(args.path_annotation_schema, "r") as infile:
+                model_params["annotation_schema"] = json.loads(infile.read())
+
+        # if no annotation schema where provided, either 
+        if args.path_folder_compute_annotation_schema:
+            model_params["annotation_schema"] = get_annotation_schema_from_input_folder(args.path_folder_compute_annotation_schema)
         print("Model parameters : ", model_params)
 
-        annotation_schema_json = model_params.get("annotation_schema")
-        if annotation_schema_json is None:
-            # TODO : Implement the auto-annotation schema
-            raise Exception(
-                "You didnt provide an annotation schema. The auto-annotation schema computing is still not implemented"
-            )
+        if is_annotation_schema_empty(model_params["annotation_schema"]) == True:
+            # The annotation schema was never given in json config or path argument, we need to compute it on --ftrain
+            print("Computing annotation schema on --ftrain file")
+            model_params["annotation_schema"] = create_annotation_schema(args.ftrain)
 
         tokenizer = AutoTokenizer.from_pretrained(model_params["embedding_type"])
         dataset = ConlluDataset(args.ftrain, tokenizer, model_params, args.mode)
