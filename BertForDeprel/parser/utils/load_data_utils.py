@@ -1,5 +1,6 @@
 from typing import Dict, List, Any
 import conllu
+from conllup.conllup import sentenceConllToJson, sentenceJson_T
 from torch.utils.data import Dataset
 from torch import tensor
 from transformers import RobertaTokenizer
@@ -15,9 +16,11 @@ class ConlluDataset(Dataset):
         self.SEP_token_id = tokenizer.sep_token_id
 
         # Load all the sequences from the file
-        # TODO : make a generator
         with open(path_file, "r") as infile:
             self.sequences = conllu.parse(infile.read())
+
+        with open(path_file, "r") as infile2:
+            self.sequences2 = [sentenceConllToJson(sentence_conll) for sentence_conll in infile2.read().split("\n\n")]
 
         self.dep2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["deprels"])
         self.pos2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["uposs"])
