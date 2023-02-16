@@ -1,9 +1,9 @@
-from typing import Dict, List, Any, TypedDict
+from typing import Dict, List, Any, TypedDict, Literal
 import conllu
 from conllup.conllup import sentenceConllToJson, sentenceJson_T
 
 from torch.utils.data import Dataset
-from torch import tensor
+from torch import tensor, Tensor
 from transformers import AutoTokenizer, RobertaTokenizer
 
 from .types import ModelParams_T
@@ -22,20 +22,33 @@ class SequenceOutput_T(TypedDict):
     deprels: List[int]
 
 class Sequence_T(TypedDict):
-    dataset_idx: List[int]
+    idx: List[int]
     # SequenceInput_T
     seq_ids: List[int]
     attn_masks: List[int]
     subwords_start: List[int]
-    idx_convertor: List[int] 
+    idx_convertor: List[int]
     tokens_len: List[int]
     # SequenceOutput_T
     uposs: List[int]
     heads: List[int]
     deprels: List[int]
 
+class SequenceBatch_T(TypedDict):
+    idx: Tensor
+    # SequenceInput_T
+    seq_ids: Tensor
+    attn_masks: Tensor
+    subwords_start: Tensor
+    idx_convertor: Tensor
+    tokens_len: Tensor
+    # SequenceOutput_T
+    uposs: Tensor
+    heads: Tensor
+    deprels: Tensor
+
 class ConlluDataset(Dataset):
-    def __init__(self, path_file: str, model_params: ModelParams_T, run_mode: str, compute_annotation_schema_if_not_found = False):
+    def __init__(self, path_file: str, model_params: ModelParams_T, run_mode: Literal["train", "predict"], compute_annotation_schema_if_not_found = False):
         if is_annotation_schema_empty(model_params["annotation_schema"]):
             if compute_annotation_schema_if_not_found == True:
                 model_params["annotation_schema"] = compute_annotation_schema(path_file)
@@ -66,8 +79,8 @@ class ConlluDataset(Dataset):
     def __len__(self):
         return len(self.sequences)
 
-    def __getitem__(self, index):
-        return self._get_processed(self.sequences[index]), index
+    def __getitem__(self, idx):
+        return self._get_processed(idx)
 
     def _mount_dep2i(self, list_deprel):
         i2dr = {}
@@ -128,10 +141,10 @@ class ConlluDataset(Dataset):
 
         sequence_ids = sequence_ids + [self.SEP_token_id]
 
-        sequence_ids = tensor(sequence_ids)
-        subwords_start = tensor(subwords_start)
-        idx_convertor = tensor(idx_convertor)
-        attn_masks = tensor([int(token_id > 0) for token_id in sequence_ids])
+        sequence_ids = sequence_ids
+        subwords_start = subwords_start
+        idx_convertor = idx_convertor
+        attn_masks = [int(token_id > 0) for token_id in sequence_ids]
         return {
             "seq_ids": sequence_ids,
             "attn_masks": attn_masks,
@@ -140,7 +153,7 @@ class ConlluDataset(Dataset):
             "tokens_len": tokens_len,
         }
 
-    def _get_output(self, sequence, tokens_len):
+    def _get_output(self, sequence, tokens_len) -> SequenceOutput_T:
         poss = [-1]
         heads = [-1]
         deprels_main = [-1]
@@ -174,71 +187,51 @@ class ConlluDataset(Dataset):
         deprels_main = self._trunc(deprels_main)
         poss = self._trunc(poss)
 
-        poss = tensor(poss)
-        heads = tensor(heads)
-        deprels_main = tensor(deprels_main)
+        poss = poss
+        heads = heads
+        deprels_main = deprels_main
 
-        return poss, heads, deprels_main
+        return {"uposs": poss, "heads": heads, "deprels": deprels_main}
 
-    def _get_processed(self, sequence):
-        (
-            sequence_ids,
-            subwords_start,
-            attn_masks,
-            idx_convertor,
-            token_lens,
-        ) = self._get_input(sequence)
+    def _get_processed(self, idx):
+        processed_sequence = {"idx": idx}
+        sequence = self.sequences[idx]
+        sequence_input = self._get_input(sequence)
+        processed_sequence.update(sequence_input)
 
-        if self.run_mode == "predict":
-            return sequence_ids, subwords_start, attn_masks, idx_convertor
-
-        else:
-            poss, heads, deprels_main = self._get_output(
-                sequence, token_lens
-            )
-
-            return (
-                sequence_ids,
-                subwords_start,
-                attn_masks,
-                idx_convertor,
-                poss,
-                heads,
-                deprels_main,
-            )
-    def collate_fn(self, sentences):
-        # print("KK sentences", sentences)
-        # print("KK sentences", sentences[0][0])
-        max_sentence_length = max([len(sentence[0][0]) for sentence in sentences])
-        sequence_ids   = tensor([self._pad_list(sentence[0][0].tolist(),  0, max_sentence_length) for sentence in sentences])
-        subwords_start = tensor([self._pad_list(sentence[0][1].tolist(), -1, max_sentence_length) for sentence in sentences])
-        attn_masks     = tensor([self._pad_list(sentence[0][2].tolist(),  0, max_sentence_length) for sentence in sentences])
-        idx_convertor  = tensor([self._pad_list(sentence[0][3].tolist(), -1, max_sentence_length) for sentence in sentences])
-        sentence_idxs  = tensor([sentence[1] for sentence in sentences])
-        
         if self.run_mode == "train":
-            poss           = tensor([self._pad_list(sentence[0][4].tolist(), -1, max_sentence_length) for sentence in sentences])
-            heads          = tensor([self._pad_list(sentence[0][5].tolist(), -1, max_sentence_length) for sentence in sentences])
-            deprels_main   = tensor([self._pad_list(sentence[0][6].tolist(), -1, max_sentence_length) for sentence in sentences])
-            return (
-                    sequence_ids,
-                    subwords_start,
-                    attn_masks,
-                    idx_convertor,
-                    sentence_idxs,
-                    poss,
-                    heads,
-                    deprels_main,
-                )
-        else:
-            return (
-                    sequence_ids,
-                    subwords_start,
-                    attn_masks,
-                    idx_convertor,
-                    sentence_idxs
-                )
+            sequence_output = self._get_output(
+                sequence, sequence_input["tokens_len"]
+            )
+            print("KK adding predict")
+            processed_sequence.update(sequence_output)
 
+        return processed_sequence
+
+    def collate_fn(self, sentences: List[Sequence_T]) -> SequenceBatch_T:
+        max_sentence_length = max([len(sentence["seq_ids"]) for sentence in sentences])
+        seq_ids_batch        = tensor([self._pad_list(sentence["seq_ids"],  0, max_sentence_length) for sentence in sentences])
+        subwords_start_batch = tensor([self._pad_list(sentence["subwords_start"], -1, max_sentence_length) for sentence in sentences])
+        attn_masks_batch     = tensor([self._pad_list(sentence["attn_masks"],  0, max_sentence_length) for sentence in sentences])
+        idx_convertor_batch  = tensor([self._pad_list(sentence["idx_convertor"], -1, max_sentence_length) for sentence in sentences])
+        # tokens_len_batch  = tensor([self._pad_list(sentence["tokens_len"], -1, max_sentence_length) for sentence in sentences])
+        idx_batch            = tensor([sentence["idx"] for sentence in sentences])
+        print("KK sentences", sentences[0])
+        collated_batch = {
+            "idx": idx_batch,
+            "seq_ids": seq_ids_batch,
+            "subwords_start": subwords_start_batch,
+            "attn_masks": attn_masks_batch,
+            "idx_convertor": idx_convertor_batch,
+            # "tokens_len": tokens_len_batch,
+        }
+        if self.run_mode == "train":
+            uposs_batch     = tensor([self._pad_list(sentence["uposs"], -1, max_sentence_length) for sentence in sentences])
+            heads_batch     = tensor([self._pad_list(sentence["heads"], -1, max_sentence_length) for sentence in sentences])
+            deprels_batch   = tensor([self._pad_list(sentence["deprels"], -1, max_sentence_length) for sentence in sentences])
+            collated_batch.update({"uposs": uposs_batch, "heads": heads_batch, "deprels": deprels_batch})
+
+        return collated_batch
 
 def get_index(label: str, mapping: Dict) -> int:
     """
@@ -247,7 +240,6 @@ def get_index(label: str, mapping: Dict) -> int:
 
     return : index (int)
     """
-
     index = mapping.get(label, -1)
 
     if index == -1:
@@ -256,5 +248,4 @@ def get_index(label: str, mapping: Dict) -> int:
             f"LOG: label '{label}' was not founded in the label2index mapping : ",
             mapping,
         )
-
     return index
