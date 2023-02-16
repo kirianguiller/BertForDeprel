@@ -1,5 +1,7 @@
 from typing import Dict, List, Any, TypedDict, Literal
+from collections import OrderedDict
 import conllu
+
 from conllup.conllup import sentenceConllToJson, sentenceJson_T
 
 from torch.utils.data import Dataset
@@ -65,11 +67,11 @@ class ConlluDataset(Dataset):
 
 
         # Load all the sequences from the file
-        with open(path_file, "r") as infile:
-            self.sequences = conllu.parse(infile.read())
+        # with open(path_file, "r") as infile:
+        #     self.sequences = conllu.parse(infile.read())
 
         with open(path_file, "r") as infile2:
-            self.sequences2 = [sentenceConllToJson(sentence_conll) for sentence_conll in infile2.read().split("\n\n")]
+            self.sequences = [sentenceConllToJson(sentence_conll) for sentence_conll in infile2.read().split("\n\n")]
 
         self.dep2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["deprels"])
         self.pos2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["uposs"])
@@ -116,18 +118,17 @@ class ConlluDataset(Dataset):
             tensor = tensor[: self.model_params["maxlen"] - 1]
         return tensor
 
-    def _get_input(self, sequence) -> SequenceInput_T:
+    def _get_input(self, sequence: sentenceJson_T) -> SequenceInput_T:
         sequence_ids = [self.CLS_token_id]
         subwords_start = [-1]
         idx_convertor = [0]
         tokens_len = [1]
 
-        for token in sequence:
-            if type(token["id"]) != int:
+        for token in sequence["treeJson"]["nodesJson"].values():
+            if type(token["ID"]) != str:
                 continue
 
-            form = ""
-            form = token["form"]
+            form = token["FORM"]
             token_ids = self.tokenizer.encode(form, add_special_tokens=False)
             idx_convertor.append(len(sequence_ids))
             tokens_len.append(len(token_ids))
@@ -153,23 +154,23 @@ class ConlluDataset(Dataset):
             "tokens_len": tokens_len,
         }
 
-    def _get_output(self, sequence, tokens_len) -> SequenceOutput_T:
+    def _get_output(self, sequence: sentenceJson_T, tokens_len) -> SequenceOutput_T:
         poss = [-1]
         heads = [-1]
         deprels_main = [-1]
         skipped_tokens = 0
         
-        for n_token, token in enumerate(sequence):
-            if type(token["id"]) != int:
+        for n_token, token in enumerate(sequence["treeJson"]["nodesJson"].values()):
+            if type(token["ID"]) != str:
                 skipped_tokens += 1
                 continue
 
             token_len = tokens_len[n_token + 1 - skipped_tokens]
 
-            pos = [get_index(token["upostag"], self.pos2i)] + [-1] * (token_len - 1)
+            pos = [get_index(token["UPOS"], self.pos2i)] + [-1] * (token_len - 1)
             
-            head = [sum(tokens_len[: token["head"]])] + [-1] * (token_len - 1)
-            deprel_main = token["deprel"]
+            head = [sum(tokens_len[: token["HEAD"]])] + [-1] * (token_len - 1)
+            deprel_main = token["DEPREL"]
 
             deprel_main = [get_index(deprel_main, self.dep2i)] + [-1] * (
                 token_len - 1
@@ -203,7 +204,6 @@ class ConlluDataset(Dataset):
             sequence_output = self._get_output(
                 sequence, sequence_input["tokens_len"]
             )
-            print("KK adding predict")
             processed_sequence.update(sequence_output)
 
         return processed_sequence
@@ -216,7 +216,6 @@ class ConlluDataset(Dataset):
         idx_convertor_batch  = tensor([self._pad_list(sentence["idx_convertor"], -1, max_sentence_length) for sentence in sentences])
         # tokens_len_batch  = tensor([self._pad_list(sentence["tokens_len"], -1, max_sentence_length) for sentence in sentences])
         idx_batch            = tensor([sentence["idx"] for sentence in sentences])
-        print("KK sentences", sentences[0])
         collated_batch = {
             "idx": idx_batch,
             "seq_ids": seq_ids_batch,
@@ -232,6 +231,43 @@ class ConlluDataset(Dataset):
             collated_batch.update({"uposs": uposs_batch, "heads": heads_batch, "deprels": deprels_batch})
 
         return collated_batch
+
+
+    def add_prediction_to_sentence_json(self, idx, poss_pred_list, chuliu_heads_list, deprels_main_pred_chuliu_list, write_preds_in_misc = False):
+        predicted_sentence_json: sentenceJson_T = self.sequences[idx].copy()
+        tokens = list(predicted_sentence_json["treeJson"]["nodesJson"].values())
+        annotation_schema = self.model_params["annotation_schema"]
+        for n_token, (pos_index, head_chuliu, deprel_chuliu) in enumerate(
+                zip(
+                    poss_pred_list,
+                    chuliu_heads_list,
+                    deprels_main_pred_chuliu_list,
+                    # lemma_scripts_pred_list,
+                )
+        ):
+            token = tokens[n_token]
+
+            if write_preds_in_misc:
+                misc = token["MISC"]
+                misc["deprel_main_pred"] = annotation_schema["deprels"][deprel_chuliu]
+
+                # misc['head_MST']= str(gov_dict.get(n_token+1, 'missing_gov'))
+                misc["head_MST_pred"] = str(head_chuliu)
+                misc["upostag_pred"] = annotation_schema["uposs"][pos_index]
+                # lemma_script = annotation_schema["i2lemma_script"][lemma_script_index]
+                # misc["lemma_pred"] = apply_lemma_rule(token["form"], lemma_script)
+                token["misc"] = misc
+
+
+            else:
+                # token["head"] = gov_dict.get(n_token+1, 'missing_gov')
+                token["HEAD"] = head_chuliu
+                token["UPOS"] = annotation_schema["uposs"][pos_index]
+                # lemma_script = annotation_schema["i2lemma_script"][lemma_script_index]
+                # token["lemma"] = apply_lemma_rule(token["form"], lemma_script)
+                token["DEPREL"] = annotation_schema["deprels"][deprel_chuliu]
+        return predicted_sentence_json
+
 
 def get_index(label: str, mapping: Dict) -> int:
     """

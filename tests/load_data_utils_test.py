@@ -43,8 +43,8 @@ def test_raise_error_if_no_annotation_schema():
         dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test.copy(), "train")
 
 
-def test_train_output():
-    dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "train", compute_annotation_schema_if_not_found=True)
+def test_predict_output():
+    dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "predict", compute_annotation_schema_if_not_found=True)
     assert dataset[0]["idx"] == 0
     assert dataset[0]["seq_ids"] == [101, 2054, 2003, 1996, 5700, 3462, 2013, 3731, 2000, 1038, 9148, 2008, 4240, 1037,
                                      19782, 102]
@@ -54,8 +54,8 @@ def test_train_output():
     assert dataset[0]["tokens_len"] == [1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1]
 
 
-def test_predict_output():
-    dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "predict", compute_annotation_schema_if_not_found=True)
+def test_train_output():
+    dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "train", compute_annotation_schema_if_not_found=True)
     assert dataset[0]["idx"] == 0
     assert dataset[0]["uposs"] == [-1, 6, 2, 3, 0, 4, 1, 7, 1, 7, -1, 1, 8, 3, 4]
     assert dataset[0]["heads"] == [-1, 2, 0, 5, 5, 2, 5, 6, 5, 8, -1, 5, 11, 14, 12]
@@ -67,3 +67,8 @@ def test_collate_fn():
     batch = dataset.collate_fn([dataset[0], dataset[1]])
     assert torch.equal(batch["deprels"], torch.tensor([[-1, 1, 8, 3, 5, 9, 10, 0, 10, 0, -1, 6, 0, 3, 0, -1],
                                                        [-1, 1, 8, 2, 9, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]]))
+
+def test_add_prediction_to_sentence_json():
+    dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "train", compute_annotation_schema_if_not_found=True)
+    predicted_sentence_json =  dataset.add_prediction_to_sentence_json(0, [2,3,4,2,5], [1,2,4,15,4], [5,2,3,4,3])
+    assert predicted_sentence_json["treeJson"]["nodesJson"]["4"]["HEAD"] == 15

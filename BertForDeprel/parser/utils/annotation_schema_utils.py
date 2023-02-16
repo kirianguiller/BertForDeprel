@@ -46,11 +46,8 @@ def create_pos_list(*paths):
 
 def compute_annotation_schema(*paths):
     annotation_schema = {}
-
     deprels = create_deprel_lists(*paths)
-
     mains, auxs, deeps = [], [], []
-
     for deprel in deprels:
         if deprel.count("@") == 1:
             deprel, deep = deprel.split("@")
@@ -78,7 +75,6 @@ def compute_annotation_schema(*paths):
     annotation_schema["deprels"] = sorted(list(set(deprels)))
     annotation_schema["uposs"] = sorted(upos)
     annotation_schema["lemma_script"] = lemma_scripts
-    print(annotation_schema)
     return annotation_schema
 
 def get_path_of_conllus_from_folder_path(path_folder: str):
@@ -100,5 +96,4 @@ def get_annotation_schema_from_input_folder(path_folder: str):
 
 
 def is_annotation_schema_empty(annotation_schema: AnnotationSchema_T):
-    print("KK annotation_schema", annotation_schema)
     return (len(annotation_schema["uposs"]) == 0) or len(annotation_schema["deprels"]) == 0

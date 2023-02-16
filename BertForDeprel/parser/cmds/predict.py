@@ -1,8 +1,7 @@
 import os
-from collections import OrderedDict
+from conllup.conllup import sentenceJsonToConll
 from timeit import default_timer as timer
 
-from conllup.conllup import sentenceJson_T
 import numpy as np
 import torch
 from scipy.sparse.csgraph import minimum_spanning_tree
@@ -129,8 +128,6 @@ class Predict(CMD):
                     )
 
                     for sentence_in_batch_counter in range(seq_batch.size()[0]):
-                        # sentence_idxs_batch
-
                         subwords_start = subwords_start_batch[sentence_in_batch_counter]
                         idx_convertor = idx_convertor_batch[sentence_in_batch_counter]
                         heads_pred = heads_pred_batch[sentence_in_batch_counter].clone()
@@ -192,40 +189,16 @@ class Predict(CMD):
                                 print("POP :", token)
                                 conllu_sequence.pop(n_token - poped_item)
                                 poped_item += 1
-                        for n_token, (pos_index, head_chuliu, dmpmstn) in enumerate(
-                            zip(
-                                poss_pred_list,
-                                chuliu_heads_list,
-                                deprels_main_pred_chuliu_list,
-                                # lemma_scripts_pred_list,
-                            )
-                        ):
-                            token = conllu_sequence[n_token]
-
-                            if args.write_preds_in_misc:
-                                misc = token["misc"]
-                                if not misc:
-                                    misc = OrderedDict()
-                                misc["deprel_main_pred"] = annotation_schema["deprels"][dmpmstn]
-
-                                # misc['head_MST']= str(gov_dict.get(n_token+1, 'missing_gov'))
-                                misc["head_MST_pred"] = str(head_chuliu)
-                                misc["upostag_pred"] = annotation_schema["uposs"][pos_index]
-                                # lemma_script = annotation_schema["i2lemma_script"][lemma_script_index]
-                                # misc["lemma_pred"] = apply_lemma_rule(token["form"], lemma_script)
-                                token["misc"] = misc
 
 
-                            else:
-                                # token["head"] = gov_dict.get(n_token+1, 'missing_gov')
-                                token["head"] = str(head_chuliu)
-                                token["upos"] = annotation_schema["uposs"][pos_index]
-                                # lemma_script = annotation_schema["i2lemma_script"][lemma_script_index]
-                                # token["lemma"] = apply_lemma_rule(token["form"], lemma_script)
-                                token["deprel"] = annotation_schema["deprels"][dmpmstn]
+                        predicted_sentence_json = pred_dataset.add_prediction_to_sentence_json(
+                            n_sentence,
+                            poss_pred_list,
+                            chuliu_heads_list,
+                            deprels_main_pred_chuliu_list
+                        )
+                        list_conllu_sequences(sentenceJsonToConll(predicted_sentence_json))
 
-
-                        list_conllu_sequences.append(conllu_sequence)
                         time_from_start = timer() - start
                         parsing_speed = int(round(((n_sentence + 1) / time_from_start) / 100, 2) * 100)
                         print(
@@ -234,9 +207,7 @@ class Predict(CMD):
                         )
 
             with open(path_result_file, "w") as f:
-                f.writelines(
-                    [sequence.serialize() for sequence in list_conllu_sequences]
-                )
+                f.write("\n".join(list_conllu_sequences))
             
             print(f"Finished predicting `{path_result_file}, wrote {n_sentence + 1} sents in {round(timer() - start, 2)} secs`")
         
