@@ -44,7 +44,7 @@ def create_pos_list(*paths):
     return list_pos
 
 
-def create_annotation_schema(*paths):
+def compute_annotation_schema(*paths):
     annotation_schema = {}
 
     deprels = create_deprel_lists(*paths)
@@ -95,7 +95,7 @@ def get_path_of_conllus_from_folder_path(path_folder: str):
 
 def get_annotation_schema_from_input_folder(path_folder: str):
     path_conllus = get_path_of_conllus_from_folder_path(path_folder)
-    annotation_schema = create_annotation_schema(*path_conllus)
+    annotation_schema = compute_annotation_schema(*path_conllus)
     return annotation_schema
 
 

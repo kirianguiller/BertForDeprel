@@ -8,7 +8,6 @@ import torch
 from scipy.sparse.csgraph import minimum_spanning_tree
 from torch import nn, Tensor
 from torch.utils.data import DataLoader
-from transformers import AutoTokenizer
 
 from ..cmds.cmd import CMD
 from ..utils.lemma_script_utils import apply_lemma_rule
@@ -79,8 +78,6 @@ class Predict(CMD):
             print("MODEL TO MULTI GPU")
             model = nn.DataParallel(model)
 
-        tokenizer = AutoTokenizer.from_pretrained(model_params["embedding_type"])
-
         model.eval()
         print("Starting Predictions ...")
         for path in paths_pred:
@@ -96,7 +93,7 @@ class Predict(CMD):
 
             print("Load the dataset")
             
-            pred_dataset = ConlluDataset(path, tokenizer, model_params, args.mode)
+            pred_dataset = ConlluDataset(path, model_params, args.mode)
 
             params = {
                 "batch_size": model_params["batch_size"],

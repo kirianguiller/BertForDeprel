@@ -1,11 +1,13 @@
 from typing import Dict, List, Any, TypedDict
 import conllu
 from conllup.conllup import sentenceConllToJson, sentenceJson_T
+
 from torch.utils.data import Dataset
 from torch import tensor
-from transformers import RobertaTokenizer
-from .types import ModelParams_T
+from transformers import AutoTokenizer, RobertaTokenizer
 
+from .types import ModelParams_T
+from .annotation_schema_utils import compute_annotation_schema, is_annotation_schema_empty
 
 class SequenceInput_T(TypedDict):
     seq_ids: List[int]
@@ -33,13 +35,21 @@ class Sequence_T(TypedDict):
     deprels: List[int]
 
 class ConlluDataset(Dataset):
-    def __init__(self, path_file: str, tokenizer: RobertaTokenizer, model_params: ModelParams_T, run_mode: str):
-        self.tokenizer = tokenizer
-        self.run_mode = run_mode
+    def __init__(self, path_file: str, model_params: ModelParams_T, run_mode: str, compute_annotation_schema_if_not_found = False):
+        if is_annotation_schema_empty(model_params["annotation_schema"]):
+            if compute_annotation_schema_if_not_found == True:
+                model_params["annotation_schema"] = compute_annotation_schema(path_file)
+            else:
+                raise Exception("No annotation schema found in `model_params` while `compute_annotation_schema_if_not_found` is set to False")
+        
         self.model_params = model_params
+        self.tokenizer: RobertaTokenizer = AutoTokenizer.from_pretrained(model_params["embedding_type"])
 
-        self.CLS_token_id = tokenizer.cls_token_id
-        self.SEP_token_id = tokenizer.sep_token_id
+        self.run_mode = run_mode
+
+        self.CLS_token_id = self.tokenizer.cls_token_id
+        self.SEP_token_id = self.tokenizer.sep_token_id
+
 
         # Load all the sequences from the file
         with open(path_file, "r") as infile:

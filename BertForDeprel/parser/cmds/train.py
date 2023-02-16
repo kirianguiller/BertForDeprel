@@ -7,14 +7,12 @@ from typing import Optional
 from torch import nn
 from torch.utils.data import DataLoader, random_split
 
-from transformers import AutoTokenizer
-
 from ..cmds.cmd import CMD
 from ..utils.load_data_utils import ConlluDataset
 from ..utils.model_utils import BertForDeprel
 from ..utils.types import ModelParams_T
 from ..utils.scores_and_losses_utils import update_history
-from ..utils.annotation_schema_utils import get_annotation_schema_from_input_folder, create_annotation_schema, is_annotation_schema_empty
+from ..utils.annotation_schema_utils import get_annotation_schema_from_input_folder, compute_annotation_schema, is_annotation_schema_empty
 
 class Train(CMD):
     def add_subparser(self, name, parser):
@@ -86,7 +84,7 @@ class Train(CMD):
         if is_annotation_schema_empty(model_params["annotation_schema"]) == True:
             # The annotation schema was never given in json config or path argument, we need to compute it on --ftrain
             print("Computing annotation schema on --ftrain file")
-            model_params["annotation_schema"] = create_annotation_schema(args.ftrain)
+            model_params["annotation_schema"] = compute_annotation_schema(args.ftrain)
 
         pretrain_model_params: Optional[ModelParams_T] = None
         if args.conf_pretrain:
@@ -103,13 +101,12 @@ class Train(CMD):
                 os.path.join(model_params["root_folder_path"], model_params["model_name"]):
                 assert Exception("The pretrained model and the new model have same full path. It's not allowed as it would result in erasing the pretrained model")
 
-        tokenizer = AutoTokenizer.from_pretrained(model_params["embedding_type"])
-        dataset = ConlluDataset(args.ftrain, tokenizer, model_params, args.mode)
+        dataset = ConlluDataset(args.ftrain, model_params, args.mode)
 
         # prepare test dataset
         if args.ftest:
             train_dataset = dataset
-            test_dataset = ConlluDataset(args.ftest, tokenizer, model_params, args.mode)
+            test_dataset = ConlluDataset(args.ftest, model_params, args.mode)
 
         else:
             train_size = int(len(dataset) * args.split_ratio)
