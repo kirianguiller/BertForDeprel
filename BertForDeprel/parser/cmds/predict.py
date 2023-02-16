@@ -1,4 +1,5 @@
 import os
+from typing import List
 from conllup.conllup import sentenceJsonToConll
 from timeit import default_timer as timer
 
@@ -11,7 +12,7 @@ from torch.utils.data import DataLoader
 from ..cmds.cmd import CMD
 from ..utils.lemma_script_utils import apply_lemma_rule
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
-from ..utils.load_data_utils import ConlluDataset
+from ..utils.load_data_utils import ConlluDataset, SequenceBatch_T
 from ..utils.model_utils import BertForDeprel
 from ..utils.scores_and_losses_utils import deprel_aligner_with_head
 from ..utils.types import ModelParams_T
@@ -98,42 +99,41 @@ class Predict(CMD):
                 "batch_size": model_params["batch_size"],
                 "num_workers": args.num_workers,
             }
-            annotation_schema = model_params["annotation_schema"]
             pred_loader = DataLoader(pred_dataset, collate_fn=pred_dataset.collate_fn, shuffle=False, **params)
             print(
                 f"{'eval:':6} {len(pred_dataset):5} sentences, "
                 f"{len(pred_loader):3} batches, "
             )
             start = timer()
-            list_conllu_sequences = []
+            list_conllu_sequences: List[str] = []
+            batch: SequenceBatch_T
             with torch.no_grad():
-                for batch_counter, (
-                    seq_batch,
-                    subwords_start_batch,
-                    attn_masks_batch,
-                    idx_convertor_batch,
-                    sentence_idxs_batch,
-                ) in enumerate(pred_loader):
+                for batch in pred_loader:
+                    seq_ids_batch = batch["seq_ids"]
+                    subwords_start_batch = batch["subwords_start"]
+                    attn_masks_batch = batch["attn_masks"]
+                    idx_convertor_batch = batch["idx_convertor"]
+                    idx_batch = batch["idx"]
 
-                    seq_batch, attn_masks_batch = seq_batch.to(args.device), attn_masks_batch.to(args.device)
+                    seq_ids_batch, attn_masks_batch = seq_ids_batch.to(args.device), attn_masks_batch.to(args.device)
                     (
                         heads_pred_batch,
                         deprels_main_pred_batch,
                         poss_pred_batch,
-                    ) = model.forward(seq_batch, attn_masks_batch)
+                    ) = model.forward(seq_ids_batch, attn_masks_batch)
                     heads_pred_batch, deprels_main_pred_batch, poss_pred_batch = (
                         heads_pred_batch.detach(),
                         deprels_main_pred_batch.detach(),
                         poss_pred_batch.detach(),
                     )
 
-                    for sentence_in_batch_counter in range(seq_batch.size()[0]):
+                    for sentence_in_batch_counter in range(seq_ids_batch.size()[0]):
                         subwords_start = subwords_start_batch[sentence_in_batch_counter]
                         idx_convertor = idx_convertor_batch[sentence_in_batch_counter]
                         heads_pred = heads_pred_batch[sentence_in_batch_counter].clone()
                         deprels_main_pred = deprels_main_pred_batch[sentence_in_batch_counter].clone()
                         poss_pred = poss_pred_batch[sentence_in_batch_counter].clone()
-                        sentence_idx = sentence_idxs_batch[sentence_in_batch_counter]
+                        sentence_idx = idx_batch[sentence_in_batch_counter]
                         
                         n_sentence = int(sentence_idx)
                         
@@ -157,7 +157,7 @@ class Predict(CMD):
                             chuliu_heads_pred[
                                 idx_convertor[i_token + 1]
                             ] = idx_convertor[chuliu_head_pred]
-                            chuliu_heads_list.append(chuliu_head_pred)
+                            chuliu_heads_list.append(int(chuliu_head_pred))
 
                         chuliu_heads_pred = torch.tensor(chuliu_heads_pred).to(args.device)
 
@@ -180,15 +180,6 @@ class Predict(CMD):
                         for sub in subwords_start.tolist():
                             sum_idx += max(0, sub)
                             idx2head.append(sum_idx)
-                        conllu_sequence = pred_dataset.sequences[n_sentence]
-
-                        poped_item = 0
-                        for n_token in range(len(conllu_sequence)):
-
-                            if type(conllu_sequence[n_token - poped_item]["id"]) != int:
-                                print("POP :", token)
-                                conllu_sequence.pop(n_token - poped_item)
-                                poped_item += 1
 
 
                         predicted_sentence_json = pred_dataset.add_prediction_to_sentence_json(
@@ -197,7 +188,7 @@ class Predict(CMD):
                             chuliu_heads_list,
                             deprels_main_pred_chuliu_list
                         )
-                        list_conllu_sequences(sentenceJsonToConll(predicted_sentence_json))
+                        list_conllu_sequences.append(sentenceJsonToConll(predicted_sentence_json))
 
                         time_from_start = timer() - start
                         parsing_speed = int(round(((n_sentence + 1) / time_from_start) / 100, 2) * 100)

@@ -54,7 +54,7 @@ def compute_LAS(heads_pred: Tensor, deprels_pred: Tensor, heads_true: Tensor, de
 
     return n_correct_LAS, n_total
 
-def compute_LAS_main_aux(heads_pred: Tensor, deprels_main_pred: Tensor, heads_true: Tensor, deprels_main_true: Tensor):
+def compute_LAS(heads_pred: Tensor, deprels_main_pred: Tensor, heads_true: Tensor, deprels_main_true: Tensor):
     mask = (heads_true!=int(heads_true[0][0]))
     deprels_main_pred = deprel_aligner_with_head(deprels_main_pred, heads_true)
 
@@ -68,7 +68,7 @@ def compute_LAS_main_aux(heads_pred: Tensor, deprels_main_pred: Tensor, heads_tr
     return LAS_epoch, n_correct_LAS_main, n_total
 
 
-def compute_LAS_chuliu_main_aux(heads_chuliu_pred: Tensor, deprels_main_pred: Tensor, heads_true: Tensor, deprels_main_true: Tensor):
+def compute_LAS_chuliu(heads_chuliu_pred: Tensor, deprels_main_pred: Tensor, heads_true: Tensor, deprels_main_true: Tensor):
     mask = (heads_true!=int(heads_true[0][0]))
     deprels_main_pred = deprel_aligner_with_head(deprels_main_pred, heads_true)
 
