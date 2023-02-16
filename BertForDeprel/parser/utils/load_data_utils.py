@@ -1,10 +1,36 @@
-from typing import Dict, List, Any
+from typing import Dict, List, Any, TypedDict
 import conllu
 from conllup.conllup import sentenceConllToJson, sentenceJson_T
 from torch.utils.data import Dataset
 from torch import tensor
 from transformers import RobertaTokenizer
 from .types import ModelParams_T
+
+
+class SequenceInput_T(TypedDict):
+    seq_ids: List[int]
+    attn_masks: List[int]
+    subwords_start: List[int]
+    idx_convertor: List[int]
+    tokens_len: List[int]
+
+class SequenceOutput_T(TypedDict):
+    uposs: List[int]
+    heads: List[int]
+    deprels: List[int]
+
+class Sequence_T(TypedDict):
+    dataset_idx: List[int]
+    # SequenceInput_T
+    seq_ids: List[int]
+    attn_masks: List[int]
+    subwords_start: List[int]
+    idx_convertor: List[int] 
+    tokens_len: List[int]
+    # SequenceOutput_T
+    uposs: List[int]
+    heads: List[int]
+    deprels: List[int]
 
 class ConlluDataset(Dataset):
     def __init__(self, path_file: str, tokenizer: RobertaTokenizer, model_params: ModelParams_T, run_mode: str):
@@ -67,7 +93,7 @@ class ConlluDataset(Dataset):
             tensor = tensor[: self.model_params["maxlen"] - 1]
         return tensor
 
-    def _get_input(self, sequence):
+    def _get_input(self, sequence) -> SequenceInput_T:
         sequence_ids = [self.CLS_token_id]
         subwords_start = [-1]
         idx_convertor = [0]
@@ -96,7 +122,13 @@ class ConlluDataset(Dataset):
         subwords_start = tensor(subwords_start)
         idx_convertor = tensor(idx_convertor)
         attn_masks = tensor([int(token_id > 0) for token_id in sequence_ids])
-        return sequence_ids, subwords_start, attn_masks, idx_convertor, tokens_len
+        return {
+            "seq_ids": sequence_ids,
+            "attn_masks": attn_masks,
+            "subwords_start": subwords_start,
+            "idx_convertor": idx_convertor,
+            "tokens_len": tokens_len,
+        }
 
     def _get_output(self, sequence, tokens_len):
         poss = [-1]
@@ -165,6 +197,8 @@ class ConlluDataset(Dataset):
                 deprels_main,
             )
     def collate_fn(self, sentences):
+        # print("KK sentences", sentences)
+        # print("KK sentences", sentences[0][0])
         max_sentence_length = max([len(sentence[0][0]) for sentence in sentences])
         sequence_ids   = tensor([self._pad_list(sentence[0][0].tolist(),  0, max_sentence_length) for sentence in sentences])
         subwords_start = tensor([self._pad_list(sentence[0][1].tolist(), -1, max_sentence_length) for sentence in sentences])

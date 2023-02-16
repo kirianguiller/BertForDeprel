@@ -2,6 +2,7 @@ import os
 from collections import OrderedDict
 from timeit import default_timer as timer
 
+from conllup.conllup import sentenceJson_T
 import numpy as np
 import torch
 from scipy.sparse.csgraph import minimum_spanning_tree
@@ -33,8 +34,8 @@ class Predict(CMD):
         subparser = parser.add_parser(
             name, help="Use a trained model to make predictions."
         )
-        subparser.add_argument("--inpath", '-i', required=True, help="path to infile (can be a folder)")
-        subparser.add_argument("--outpath", '-o',help="path to predicted outfile(s)")
+        subparser.add_argument("--inpath", '-i', required=True, help="path to inpath (can be a folder)")
+        subparser.add_argument("--outpath", '-o',help="path to predicted outpath(s)")
         subparser.add_argument("--suffix", default="", help="suffix that will be added to the name of the predicted files (before the file extension)")
         subparser.add_argument(
             "--overwrite", action="store_true", help="whether to overwrite predicted file if already existing"
@@ -52,15 +53,15 @@ class Predict(CMD):
         if not args.conf:
             raise Exception("Path to model xxx.config.json must be provided as --conf parameter")
         paths_pred = []
-        if os.path.isdir(args.infile):
-            for file in os.listdir(args.infile):
-                paths_pred.append(os.path.join(args.infile, file))
-        elif os.path.isfile(args.infile):
-            paths_pred.append(args.infile)
+        if os.path.isdir(args.inpath):
+            for file in os.listdir(args.inpath):
+                paths_pred.append(os.path.join(args.inpath, file))
+        elif os.path.isfile(args.inpath):
+            paths_pred.append(args.inpath)
         else:
-            raise BaseException(f"args.infile must be a folder or a file, not nothing (current infile = {args.infile})")
+            raise BaseException(f"args.inpath must be a folder or a file, not nothing (current inpath = {args.inpath})")
         
-        path_predicted_files = args.outfile
+        path_predicted_files = args.outpath
 
         if not os.path.isdir(path_predicted_files):
             os.makedirs(path_predicted_files)
@@ -91,15 +92,14 @@ class Predict(CMD):
                     print(f"file '{path_result_file}' already exist and overwrite!=False, skipping ...\n")
                     continue
                 
-            print(args.infile)
+            print(args.inpath)
 
             print("Load the dataset")
             
             pred_dataset = ConlluDataset(path, tokenizer, model_params, args.mode)
 
             params = {
-                # "batch_size": args.batch_size,
-                "batch_size": args.batch_size,
+                "batch_size": model_params["batch_size"],
                 "num_workers": args.num_workers,
             }
             annotation_schema = model_params["annotation_schema"]

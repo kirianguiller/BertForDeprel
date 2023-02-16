@@ -55,6 +55,7 @@ if __name__ == "__main__":
 
     if args.batch_size:
         model_params["batch_size"] = args.batch_size
+        print("KK args.batch_size", args.batch_size)
 
 
     print(f"Set the seed for generating random numbers to {args.seed}")
