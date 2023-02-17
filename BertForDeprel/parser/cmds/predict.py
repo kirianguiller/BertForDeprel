@@ -200,7 +200,7 @@ class Predict(CMD):
                         )
 
             with open(path_result_file, "w") as f:
-                f.write("\n\n".join(list_conllu_sequences))
+                f.write("\n\n".join(list_conllu_sequences) + "\n\n")
             
             print(f"Finished predicting `{path_result_file}, wrote {n_sentence + 1} sents in {round(timer() - start, 2)} secs`")
         
