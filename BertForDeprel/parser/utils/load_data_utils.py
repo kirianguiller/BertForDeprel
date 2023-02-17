@@ -289,7 +289,7 @@ class ConlluDataset(Dataset):
                 token["UPOS"] = annotation_schema["uposs"][upos_index]
                 token["FEATS"] = _featuresConllToJson(annotation_schema["feats"][feats_index])
                 lemma_script = annotation_schema["lemma_scripts"][lemma_script_index]
-                token["LEMMA"] = apply_lemma_rule(token["form"], lemma_script)
+                token["LEMMA"] = apply_lemma_rule(token["FORM"], lemma_script)
                 token["DEPREL"] = annotation_schema["deprels"][deprel_chuliu]
         return predicted_sentence_json
 

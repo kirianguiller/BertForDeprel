@@ -23,7 +23,7 @@ class PosAndDeprelParserHead(Module):
         super(PosAndDeprelParserHead, self).__init__()
 
         # Arc and label
-        self.down_dim = llm_output_size // 2
+        self.down_dim = llm_output_size // 4
         self.down_projection = Linear(llm_output_size, self.down_dim)
         self.arc = BiAffineTrankit(self.down_dim, self.down_dim,
                                        self.down_dim, 1)

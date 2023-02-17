@@ -10,7 +10,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from ..cmds.cmd import CMD
-from ..utils.lemma_script_utils import apply_lemma_rule
+from ..utils.annotation_schema_utils import get_path_of_conllus_from_folder_path
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
 from ..utils.load_data_utils import ConlluDataset, SequenceBatch_T
 from ..utils.model_utils import BertForDeprel
@@ -53,8 +53,7 @@ class Predict(CMD):
             raise Exception("Path to model xxx.config.json must be provided as --conf parameter")
         paths_pred = []
         if os.path.isdir(args.inpath):
-            for file in os.listdir(args.inpath):
-                paths_pred.append(os.path.join(args.inpath, file))
+            paths_pred = get_path_of_conllus_from_folder_path(args.inpath)
         elif os.path.isfile(args.inpath):
             paths_pred.append(args.inpath)
         else:
@@ -116,12 +115,11 @@ class Predict(CMD):
                     idx_batch = batch["idx"]
 
                     model_output = model.forward(seq_ids_batch, attn_masks_batch)
-
-                    heads_pred_batch = model_output[0].detach(),
-                    deprels_main_pred_batch = model_output[1].detach(),
-                    uposs_pred_batch = model_output[2].detach(),
-                    feats_pred_batch = model_output[3].detach(),
-                    lemma_scripts_pred_batch = model_output[4].detach(),
+                    heads_pred_batch = model_output[0].detach()
+                    deprels_main_pred_batch = model_output[1].detach()
+                    uposs_pred_batch = model_output[2].detach()
+                    feats_pred_batch = model_output[3].detach()
+                    lemma_scripts_pred_batch = model_output[4].detach()
 
                     for sentence_in_batch_counter in range(seq_ids_batch.size()[0]):
                         subwords_start = subwords_start_batch[sentence_in_batch_counter]
@@ -141,7 +139,6 @@ class Predict(CMD):
 
                         subwords_start_with_root = subwords_start.clone()
                         subwords_start_with_root[0] = True
-
                         heads_pred_np = heads_pred[
                             :, subwords_start_with_root == 1
                         ][subwords_start_with_root == 1]
