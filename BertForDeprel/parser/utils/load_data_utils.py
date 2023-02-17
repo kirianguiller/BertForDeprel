@@ -7,7 +7,7 @@ from torch import tensor, Tensor
 from transformers import AutoTokenizer, RobertaTokenizer
 
 from .types import ModelParams_T
-from .annotation_schema_utils import compute_annotation_schema, get_path_of_conllus_from_folder_path, is_annotation_schema_empty
+from .annotation_schema_utils import compute_annotation_schema, get_path_of_conllus_from_folder_path, is_annotation_schema_empty, NONE_VOCAB
 from .lemma_script_utils import apply_lemma_rule, gen_lemma_script
 
 class SequenceInput_T(TypedDict):
@@ -26,6 +26,7 @@ class SequenceOutput_T(TypedDict):
 
 class Sequence_T(TypedDict):
     idx: List[int]
+    sentence_json: sentenceJson_T
     # SequenceInput_T
     seq_ids: List[int]
     attn_masks: List[int]
@@ -64,8 +65,6 @@ class ConlluDataset(Dataset):
             else:
                 raise Exception("No annotation schema found in `model_params` while `compute_annotation_schema_if_not_found` is set to False")
         
-        self._load_conll(*paths)
-
         self.model_params = model_params
         self.tokenizer: RobertaTokenizer = AutoTokenizer.from_pretrained(model_params["embedding_type"])
 
@@ -78,23 +77,36 @@ class ConlluDataset(Dataset):
         self.upos2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["uposs"])
         self.feat2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["feats"])
         self.lem2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["lemma_scripts"])
-        # self.lemma_script2i, self.i2lemma_script = self._compute_labels2i(self.args.list_lemma_script)
+
+        self._load_conll(*paths)
 
 
     def _load_conll(self, *paths):
-        self.sequences = []
+        sentences_json: List[sentenceJson_T] = []
         for path in paths:
             print("Loading ", path)
             with open(path, "r") as infile:
                 for sentence_conll in infile.read().split("\n\n"):
                     if sentence_conll.strip():
-                        self.sequences.append(sentenceConllToJson(sentence_conll))
+                        sentences_json.append(sentenceConllToJson(sentence_conll))
+        
+        self.sequences: List[Sequence_T] = []
+        valid_sentence_counter = 0
+        for sentence_json in sentences_json:
+            sequence = self._get_processed(sentence_json)
+            if len(sequence["seq_ids"]) > 511:
+                print("Discarding sentence", len(sequence["seq_ids"]))
+                continue
+            sequence.update({"idx": valid_sentence_counter})
+            self.sequences.append(sequence)
+            valid_sentence_counter += 1
+
 
     def __len__(self):
         return len(self.sequences)
 
     def __getitem__(self, idx):
-        return self._get_processed(idx)
+        return self.sequences[idx]
 
     def _mount_dep2i(self, list_deprel):
         i2dr = {}
@@ -126,8 +138,8 @@ class ConlluDataset(Dataset):
         return l + [padding_value] * (maxlen - len(l))
     
     def _trunc(self, tensor):
-        if len(tensor) >= self.model_params["maxlen"]:
-            tensor = tensor[: self.model_params["maxlen"] - 1]
+        # if len(tensor) >= self.model_params["maxlen"]:
+        #     tensor = tensor[: self.model_params["maxlen"] - 1]
         return tensor
 
     def _get_input(self, sequence: sentenceJson_T) -> SequenceInput_T:
@@ -148,9 +160,9 @@ class ConlluDataset(Dataset):
             sequence_ids += token_ids
             subwords_start += subword_start
 
-        sequence_ids = self._trunc(sequence_ids)
-        subwords_start = self._trunc(subwords_start)
-        idx_convertor = self._trunc(idx_convertor)
+        # sequence_ids = self._trunc(sequence_ids)
+        # subwords_start = self._trunc(subwords_start)
+        # idx_convertor = self._trunc(idx_convertor)
 
         sequence_ids = sequence_ids + [self.SEP_token_id]
 
@@ -202,23 +214,19 @@ class ConlluDataset(Dataset):
             deprels += deprel
             feats += feat
             lemma_scripts += lemma_script
-        heads = self._trunc(heads)
-        deprels = self._trunc(deprels)
-        uposs = self._trunc(uposs)
-        feats = self._trunc(feats)
-        lemma_scripts = self._trunc(lemma_scripts)
-
+        # heads = self._trunc(heads)
+        # deprels = self._trunc(deprels)
+        # uposs = self._trunc(uposs)
+        # feats = self._trunc(feats)
+        # lemma_scripts = self._trunc(lemma_scripts)
         return {"uposs": uposs, "heads": heads, "deprels": deprels, "feats": feats, "lemma_scripts": lemma_scripts}
 
-    def _get_processed(self, idx):
-        processed_sequence = {"idx": idx}
-        sequence = self.sequences[idx]
-        sequence_input = self._get_input(sequence)
-        processed_sequence.update(sequence_input)
+    def _get_processed(self, sentence_json: sentenceJson_T):
+        processed_sequence = self._get_input(sentence_json)
 
         if self.run_mode == "train":
             sequence_output = self._get_output(
-                sequence, sequence_input["tokens_len"]
+                sentence_json, processed_sequence["tokens_len"]
             )
             processed_sequence.update(sequence_output)
 
@@ -304,7 +312,7 @@ def get_index(label: str, mapping: Dict) -> int:
     index = mapping.get(label, -1)
 
     if index == -1:
-        index = mapping["none"]
+        index = mapping[NONE_VOCAB]
         print(
             f"LOG: label '{label}' was not founded in the label2index mapping : ",
             mapping,

@@ -34,6 +34,9 @@ class Train(CMD):
         subparser.add_argument(
             "--patience", type=int, help="number of epoch to do maximum"
         )
+        subparser.add_argument(
+            "--batch_size_eval", type=int, help="number of epoch to do maximum"
+        )
         subparser.add_argument("--ftrain", required=True, help="path to train file or folder (files need to have .conllu extension)")
         subparser.add_argument("--ftest", default="", help="path to test file or folder (files need to have .conllu extension)")
         subparser.add_argument(
@@ -122,13 +125,20 @@ class Train(CMD):
         params_train = {
             "batch_size": model_params["batch_size"],
             "num_workers": args.num_workers,
+            "shuffle": False,
         }
 
         train_loader = DataLoader(
             train_dataset, collate_fn=dataset.collate_fn, **params_train
         )
 
-        params_test = params_train
+        params_test = {
+            "batch_size": model_params["batch_size"],
+            "num_workers": args.num_workers,
+            "shuffle": False,
+        }
+        if args.batch_size_eval:
+            params_test["batch_size"] = args.batch_size_eval
         test_loader = DataLoader(
             test_dataset, collate_fn=dataset.collate_fn, **params_test
         )
