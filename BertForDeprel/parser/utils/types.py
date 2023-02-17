@@ -66,7 +66,7 @@ def get_default_model_params() -> ModelParams_T:
         "model_name": "my_bert_for_deprel_model",
         "annotation_schema": get_empty_annotation_schema(),
         "max_epoch": 30,
-        "patience": 5,
+        "patience": 100,
         "batch_size": 8,
         "maxlen": 512,
         "embedding_type": "xlm-roberta-large",
