@@ -40,7 +40,7 @@ class PosAndDeprelParserHead(Module):
     def forward(self, x):
         uposs = self.upos_ffn(x)
         feats = self.feats_ffn(x)
-        lemma_scripts = self.feats_ffn(x)
+        lemma_scripts = self.lemma_scripts_ffn(x)
         down_projection_embedding = self.down_projection(x) # torch.Size([16, 28, 256])
         arc_scores = self.arc(down_projection_embedding, down_projection_embedding) # torch.Size([16, 28, 28, 1])
         deprel_scores = self.deprel(down_projection_embedding, down_projection_embedding) # torch.Size([16, 28, 28, 40])
