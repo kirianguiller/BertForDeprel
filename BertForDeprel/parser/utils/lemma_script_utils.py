@@ -116,11 +116,9 @@ def apply_lemma_rule(form, lemma_rule):
     return lemma
 
 
-def gen_lemma_script_from_conll_token(token):
+def gen_lemma_script(form: str, lemma: str):
     lemma_script = "none"
 
-    form = token["form"]
-    lemma = token.get("lemma", "")
     if lemma != "":
         lemma_script = gen_lemma_rule(form, lemma)
     

@@ -1,5 +1,4 @@
-from typing import TypedDict, List, Dict
-
+from typing import TypedDict, List
 
 class EpochResults_T(TypedDict):
     LAS: float
@@ -14,6 +13,7 @@ class EpochResults_T(TypedDict):
 class AnnotationSchema_T(TypedDict):
     deprels: List[str]
     uposs: List[str]
+    feats: List[str]
     lemma_scripts: List[str]
 
 
@@ -55,6 +55,7 @@ def get_empty_annotation_schema() -> AnnotationSchema_T:
     return {
         "deprels": [],
         "uposs": [],
+        "feats": [],
         "lemma_scripts": [],
     }
 

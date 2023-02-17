@@ -6,7 +6,7 @@ from timeit import default_timer as timer
 import numpy as np
 import torch
 from scipy.sparse.csgraph import minimum_spanning_tree
-from torch import nn, Tensor
+from torch import nn
 from torch.utils.data import DataLoader
 
 from ..cmds.cmd import CMD
@@ -109,22 +109,23 @@ class Predict(CMD):
             batch: SequenceBatch_T
             with torch.no_grad():
                 for batch in pred_loader:
-                    seq_ids_batch = batch["seq_ids"]
+                    seq_ids_batch = batch["seq_ids"].to(args.device)
+                    attn_masks_batch = batch["attn_masks"].to(args.device)
                     subwords_start_batch = batch["subwords_start"]
-                    attn_masks_batch = batch["attn_masks"]
                     idx_convertor_batch = batch["idx_convertor"]
                     idx_batch = batch["idx"]
 
-                    seq_ids_batch, attn_masks_batch = seq_ids_batch.to(args.device), attn_masks_batch.to(args.device)
                     (
                         heads_pred_batch,
                         deprels_main_pred_batch,
-                        poss_pred_batch,
+                        uposs_pred_batch,
+                        feats_pred_batch,
                     ) = model.forward(seq_ids_batch, attn_masks_batch)
-                    heads_pred_batch, deprels_main_pred_batch, poss_pred_batch = (
+                    heads_pred_batch, deprels_main_pred_batch, uposs_pred_batch, feats_pred_batch = (
                         heads_pred_batch.detach(),
                         deprels_main_pred_batch.detach(),
-                        poss_pred_batch.detach(),
+                        uposs_pred_batch.detach(),
+                        feats_pred_batch.detach(),
                     )
 
                     for sentence_in_batch_counter in range(seq_ids_batch.size()[0]):
@@ -132,7 +133,8 @@ class Predict(CMD):
                         idx_convertor = idx_convertor_batch[sentence_in_batch_counter]
                         heads_pred = heads_pred_batch[sentence_in_batch_counter].clone()
                         deprels_main_pred = deprels_main_pred_batch[sentence_in_batch_counter].clone()
-                        poss_pred = poss_pred_batch[sentence_in_batch_counter].clone()
+                        uposs_pred = uposs_pred_batch[sentence_in_batch_counter].clone()
+                        feats_pred = feats_pred_batch[sentence_in_batch_counter].clone()
                         sentence_idx = idx_batch[sentence_in_batch_counter]
                         
                         n_sentence = int(sentence_idx)
@@ -167,7 +169,11 @@ class Predict(CMD):
                         
                         deprels_main_pred_chuliu_list = deprels_main_pred_chuliu.max(dim=0).indices[subwords_start == 1].tolist()
 
-                        poss_pred_list = poss_pred.max(dim=1).indices[
+                        uposs_pred_list = uposs_pred.max(dim=1).indices[
+                            subwords_start == 1
+                        ].tolist()
+
+                        feats_pred_list = feats_pred.max(dim=1).indices[
                             subwords_start == 1
                         ].tolist()
 
@@ -175,18 +181,19 @@ class Predict(CMD):
                         #     subwords_start == 1
                         # ].tolist()
 
-                        idx2head = []
-                        sum_idx = 0
-                        for sub in subwords_start.tolist():
-                            sum_idx += max(0, sub)
-                            idx2head.append(sum_idx)
+                        # idx2head = []
+                        # sum_idx = 0
+                        # for sub in subwords_start.tolist():
+                        #     sum_idx += max(0, sub)
+                        #     idx2head.append(sum_idx)
 
 
                         predicted_sentence_json = pred_dataset.add_prediction_to_sentence_json(
                             n_sentence,
-                            poss_pred_list,
+                            uposs_pred_list,
                             chuliu_heads_list,
-                            deprels_main_pred_chuliu_list
+                            deprels_main_pred_chuliu_list,
+                            feats_pred_list,
                         )
                         list_conllu_sequences.append(sentenceJsonToConll(predicted_sentence_json))
 
@@ -198,7 +205,7 @@ class Predict(CMD):
                         )
 
             with open(path_result_file, "w") as f:
-                f.write("\n".join(list_conllu_sequences))
+                f.write("\n\n".join(list_conllu_sequences))
             
             print(f"Finished predicting `{path_result_file}, wrote {n_sentence + 1} sents in {round(timer() - start, 2)} secs`")
         

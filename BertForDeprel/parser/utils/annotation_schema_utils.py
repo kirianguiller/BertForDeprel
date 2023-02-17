@@ -1,80 +1,50 @@
 import os
 import glob
-import conllu
-from .lemma_script_utils import gen_lemma_rule, gen_lemma_script_from_conll_token
+from typing import List, Set
+
+from conllup.conllup import sentenceConllToJson, _featuresConllToJson, _featuresJsonToConll
+from .lemma_script_utils import gen_lemma_script
 from .types import AnnotationSchema_T
 
 
-def create_lemma_script_list(*paths):
-    lemma_scripts = []
-    for path in paths:
-        with open(path, "r", encoding="utf-8") as infile:
-            parsed_conllu = conllu.parse(infile.read())
-
-        for sequence in parsed_conllu:
-            for token in sequence:
-                lemma_script = gen_lemma_script_from_conll_token(token)
-                lemma_scripts.append(lemma_script)
-    lemma_scripts.append("none")
-    return sorted(list((set(lemma_scripts))))
-
-def create_deprel_lists(*paths):
-    deprels = []
-    for path in paths:
-        with open(path, "r", encoding="utf-8") as infile:
-            parsed_conllu = conllu.parse(infile.read())
-
-        for sequence in parsed_conllu:
-            for token in sequence:
-                deprels.append(token["deprel"])
-    return set(deprels)
-
-
-def create_pos_list(*paths):
-    list_pos = []
-    for path in paths:
-        with open(path, "r", encoding="utf-8") as infile:
-            result = conllu.parse(infile.read())
-
-        for sequence in result:
-            for token in sequence:
-                list_pos.append(token["upostag"])
-    list_pos.append("none")
-    list_pos = sorted(set(list_pos))
-    return list_pos
+NONE_VOCAB = '_none' # default fallback
 
 
 def compute_annotation_schema(*paths):
-    annotation_schema = {}
-    deprels = create_deprel_lists(*paths)
-    mains, auxs, deeps = [], [], []
-    for deprel in deprels:
-        if deprel.count("@") == 1:
-            deprel, deep = deprel.split("@")
-            deeps.append(deep)
-        if deprel.count(":") == 1:
-            deprel, aux = deprel.split(":")
-            auxs.append(aux)
+    all_sentences_json = []
+    for path in paths:
+        with open(path, "r", encoding="utf-8") as infile:
+            all_sentences_json += [sentenceConllToJson(sentence_conll) for sentence_conll in infile.read().split("\n\n")]
 
-        if (":" not in deprel) and ("@" not in deprel):
-            mains.append(deprel)
+    uposs: List[str] = []
+    feats: List[str] = []
+    deprels: List[str] = []
+    lemma_scripts: List[str] = []
+    for sentence_json in all_sentences_json:
+        for token in sentence_json["treeJson"]["nodesJson"].values():
+            deprels.append(token["DEPREL"])
+            uposs.append(token["UPOS"])
+            feats.append(_featuresJsonToConll(token["FEATS"]))
 
-    deprels = list(deprels)
-    deprels.append("none")
-    mains.append("none")
-    auxs.append("none")
-    deeps.append("none")
+            lemma_script = gen_lemma_script(token["FORM"], token["LEMMA"])
+            lemma_scripts.append(lemma_script)
+    
+    deprels.append(NONE_VOCAB)
+    uposs.append(NONE_VOCAB)
+    feats.append(NONE_VOCAB)
+    lemma_scripts.append(NONE_VOCAB)
 
-    splitted_deprel = {}
-    splitted_deprel["main"] = sorted(list(set(mains)))
-    splitted_deprel["aux"] = sorted(list(set(auxs)))
-    splitted_deprel["deep"] = sorted(list(set(deeps)))
+    deprels = sorted(set(deprels))
+    uposs = sorted(set(uposs))
+    feats = sorted(set(feats))
+    lemma_scripts = sorted(set(lemma_scripts))
 
-    upos = create_pos_list(*paths)
-    lemma_scripts = create_lemma_script_list(*paths)
-    annotation_schema["deprels"] = sorted(list(set(deprels)))
-    annotation_schema["uposs"] = sorted(upos)
-    annotation_schema["lemma_script"] = lemma_scripts
+    annotation_schema: AnnotationSchema_T = {
+        "deprels": deprels,
+        "uposs": uposs,
+        "feats": feats,
+        "lemma_scripts": lemma_scripts
+    }
     return annotation_schema
 
 def get_path_of_conllus_from_folder_path(path_folder: str):

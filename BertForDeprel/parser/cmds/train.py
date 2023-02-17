@@ -31,6 +31,9 @@ class Train(CMD):
         subparser.add_argument(
             "--max_epoch", type=int, help="number of epoch to do maximum"
         )
+        subparser.add_argument(
+            "--patience", type=int, help="number of epoch to do maximum"
+        )
         subparser.add_argument("--ftrain", required=True, help="path to train file")
         subparser.add_argument("--ftest", default="", help="path to test file")
         subparser.add_argument(
@@ -67,6 +70,9 @@ class Train(CMD):
 
         if args.max_epoch:
             model_params["max_epoch"] = args.max_epoch
+            
+        if args.patience:
+            model_params["patience"] = args.patience
 
         # if user provided a path to an annotation schema, use this one (or overwrite current one if it exits)
         if args.path_annotation_schema:

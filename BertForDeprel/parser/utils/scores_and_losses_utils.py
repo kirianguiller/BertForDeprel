@@ -27,7 +27,7 @@ def compute_acc_head(heads_pred: Tensor, heads_true: Tensor, eps=1e-10):
     total_head = float(sum(sum(mask))) + eps
     return good_head, total_head
 
-def compute_acc_pos(poss_pred: Tensor, poss_true: Tensor, eps=1e-10):
+def compute_acc_upos(poss_pred: Tensor, poss_true: Tensor, eps=1e-10):
     mask = (poss_true!=int(poss_true[0][0]))
     good_pos = float(sum(poss_true[mask] == poss_pred.max(dim=2)[1][mask]))
     total_pos = float(sum(sum(mask))) + eps

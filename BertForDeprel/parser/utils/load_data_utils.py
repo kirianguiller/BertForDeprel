@@ -1,8 +1,6 @@
 from typing import Dict, List, Any, TypedDict, Literal
-from collections import OrderedDict
-import conllu
 
-from conllup.conllup import sentenceConllToJson, sentenceJson_T
+from conllup.conllup import sentenceConllToJson, sentenceJson_T, _featuresConllToJson, _featuresJsonToConll
 
 from torch.utils.data import Dataset
 from torch import tensor, Tensor
@@ -22,6 +20,7 @@ class SequenceOutput_T(TypedDict):
     uposs: List[int]
     heads: List[int]
     deprels: List[int]
+    feats: List[int]
 
 class Sequence_T(TypedDict):
     idx: List[int]
@@ -35,6 +34,7 @@ class Sequence_T(TypedDict):
     uposs: List[int]
     heads: List[int]
     deprels: List[int]
+    feats: List[int]
 
 class SequenceBatch_T(TypedDict):
     idx: Tensor
@@ -48,6 +48,7 @@ class SequenceBatch_T(TypedDict):
     uposs: Tensor
     heads: Tensor
     deprels: Tensor
+    feats: Tensor
 
 class ConlluDataset(Dataset):
     def __init__(self, path_file: str, model_params: ModelParams_T, run_mode: Literal["train", "predict"], compute_annotation_schema_if_not_found = False):
@@ -74,7 +75,8 @@ class ConlluDataset(Dataset):
             self.sequences = [sentenceConllToJson(sentence_conll) for sentence_conll in infile2.read().split("\n\n")]
 
         self.dep2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["deprels"])
-        self.pos2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["uposs"])
+        self.upos2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["uposs"])
+        self.feat2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["feats"])
         # self.lemma_script2i, self.i2lemma_script = self._compute_labels2i(self.args.list_lemma_script)
 
 
@@ -155,9 +157,10 @@ class ConlluDataset(Dataset):
         }
 
     def _get_output(self, sequence: sentenceJson_T, tokens_len) -> SequenceOutput_T:
-        poss = [-1]
+        uposs = [-1]
         heads = [-1]
-        deprels_main = [-1]
+        feats = [-1]
+        deprels = [-1]
         skipped_tokens = 0
         
         for n_token, token in enumerate(sequence["treeJson"]["nodesJson"].values()):
@@ -167,12 +170,13 @@ class ConlluDataset(Dataset):
 
             token_len = tokens_len[n_token + 1 - skipped_tokens]
 
-            pos = [get_index(token["UPOS"], self.pos2i)] + [-1] * (token_len - 1)
+            upos = [get_index(token["UPOS"], self.upos2i)] + [-1] * (token_len - 1)
+            feat = [get_index(_featuresJsonToConll(token["FEATS"]), self.feat2i)] + [-1] * (token_len - 1)
             
             head = [sum(tokens_len[: token["HEAD"]])] + [-1] * (token_len - 1)
-            deprel_main = token["DEPREL"]
+            deprel = token["DEPREL"]
 
-            deprel_main = [get_index(deprel_main, self.dep2i)] + [-1] * (
+            deprel = [get_index(deprel, self.dep2i)] + [-1] * (
                 token_len - 1
             )
             # Example of what we have for a token of 2 subtokens
@@ -181,18 +185,21 @@ class ConlluDataset(Dataset):
             # head = [2, -1]
             # lemma_script = [3424, -1]
             # token_len = 2
-            poss += pos
+            uposs += upos
             heads += head
-            deprels_main += deprel_main
+            deprels += deprel
+            feats += feat
         heads = self._trunc(heads)
-        deprels_main = self._trunc(deprels_main)
-        poss = self._trunc(poss)
+        deprels = self._trunc(deprels)
+        uposs = self._trunc(uposs)
+        feats = self._trunc(feats)
 
-        poss = poss
+        uposs = uposs
         heads = heads
-        deprels_main = deprels_main
+        feats = feats
+        deprels = deprels
 
-        return {"uposs": poss, "heads": heads, "deprels": deprels_main}
+        return {"uposs": uposs, "heads": heads, "deprels": deprels, "feats": feats}
 
     def _get_processed(self, idx):
         processed_sequence = {"idx": idx}
@@ -228,32 +235,38 @@ class ConlluDataset(Dataset):
             uposs_batch     = tensor([self._pad_list(sentence["uposs"], -1, max_sentence_length) for sentence in sentences])
             heads_batch     = tensor([self._pad_list(sentence["heads"], -1, max_sentence_length) for sentence in sentences])
             deprels_batch   = tensor([self._pad_list(sentence["deprels"], -1, max_sentence_length) for sentence in sentences])
-            collated_batch.update({"uposs": uposs_batch, "heads": heads_batch, "deprels": deprels_batch})
+            feats_batch   = tensor([self._pad_list(sentence["feats"], -1, max_sentence_length) for sentence in sentences])
+            collated_batch.update({"uposs": uposs_batch,
+                                     "heads": heads_batch,
+                                     "deprels": deprels_batch,
+                                     "feats": feats_batch,
+                                     })
 
         return collated_batch
 
 
-    def add_prediction_to_sentence_json(self, idx, poss_pred_list, chuliu_heads_list, deprels_main_pred_chuliu_list, write_preds_in_misc = False):
+    def add_prediction_to_sentence_json(self, idx, uposs_pred_list, chuliu_heads_list, deprels_pred_chuliu_list, feats_pred_list, write_preds_in_misc = False):
         predicted_sentence_json: sentenceJson_T = self.sequences[idx].copy()
         tokens = list(predicted_sentence_json["treeJson"]["nodesJson"].values())
         annotation_schema = self.model_params["annotation_schema"]
-        for n_token, (pos_index, head_chuliu, deprel_chuliu) in enumerate(
+        for n_token, (upos_index, head_chuliu, deprel_chuliu, feats_index) in enumerate(
                 zip(
-                    poss_pred_list,
+                    uposs_pred_list,
                     chuliu_heads_list,
-                    deprels_main_pred_chuliu_list,
+                    deprels_pred_chuliu_list,
+                    feats_pred_list,
                     # lemma_scripts_pred_list,
                 )
         ):
             token = tokens[n_token]
-
+            token["MISC"] = {}
             if write_preds_in_misc:
                 misc = token["MISC"]
-                misc["deprel_main_pred"] = annotation_schema["deprels"][deprel_chuliu]
+                misc["deprel_pred"] = annotation_schema["deprels"][deprel_chuliu]
 
                 # misc['head_MST']= str(gov_dict.get(n_token+1, 'missing_gov'))
                 misc["head_MST_pred"] = str(head_chuliu)
-                misc["upostag_pred"] = annotation_schema["uposs"][pos_index]
+                misc["upostag_pred"] = annotation_schema["uposs"][upos_index]
                 # lemma_script = annotation_schema["i2lemma_script"][lemma_script_index]
                 # misc["lemma_pred"] = apply_lemma_rule(token["form"], lemma_script)
                 token["misc"] = misc
@@ -262,7 +275,8 @@ class ConlluDataset(Dataset):
             else:
                 # token["head"] = gov_dict.get(n_token+1, 'missing_gov')
                 token["HEAD"] = head_chuliu
-                token["UPOS"] = annotation_schema["uposs"][pos_index]
+                token["UPOS"] = annotation_schema["uposs"][upos_index]
+                token["FEATS"] = _featuresConllToJson(annotation_schema["feats"][feats_index])
                 # lemma_script = annotation_schema["i2lemma_script"][lemma_script_index]
                 # token["lemma"] = apply_lemma_rule(token["form"], lemma_script)
                 token["DEPREL"] = annotation_schema["deprels"][deprel_chuliu]
@@ -285,3 +299,4 @@ def get_index(label: str, mapping: Dict) -> int:
             mapping,
         )
     return index
+
