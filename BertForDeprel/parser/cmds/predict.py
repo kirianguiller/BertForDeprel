@@ -114,19 +114,21 @@ class Predict(CMD):
                     idx_convertor_batch = batch["idx_convertor"]
                     idx_batch = batch["idx"]
 
-                    model_output = model.forward(seq_ids_batch, attn_masks_batch)
-                    heads_pred_batch = model_output[0].detach()
-                    deprels_main_pred_batch = model_output[1].detach()
-                    uposs_pred_batch = model_output[2].detach()
-                    feats_pred_batch = model_output[3].detach()
-                    lemma_scripts_pred_batch = model_output[4].detach()
+                    preds = model.forward(seq_ids_batch, attn_masks_batch)
+                    heads_pred_batch = preds["heads"].detach()
+                    deprels_pred_batch = preds["deprels"].detach()
+                    uposs_pred_batch = preds["uposs"].detach()
+                    xposs_pred_batch = preds["xposs"].detach()
+                    feats_pred_batch = preds["feats"].detach()
+                    lemma_scripts_pred_batch = preds["lemma_scripts"].detach()
 
                     for sentence_in_batch_counter in range(seq_ids_batch.size()[0]):
                         subwords_start = subwords_start_batch[sentence_in_batch_counter]
                         idx_convertor = idx_convertor_batch[sentence_in_batch_counter]
                         heads_pred = heads_pred_batch[sentence_in_batch_counter].clone()
-                        deprels_main_pred = deprels_main_pred_batch[sentence_in_batch_counter].clone()
+                        deprels_pred = deprels_pred_batch[sentence_in_batch_counter].clone()
                         uposs_pred = uposs_pred_batch[sentence_in_batch_counter].clone()
+                        xposs_pred = xposs_pred_batch[sentence_in_batch_counter].clone()
                         feats_pred = feats_pred_batch[sentence_in_batch_counter].clone()
                         lemma_scripts_pred = lemma_scripts_pred_batch[sentence_in_batch_counter].clone()
                         sentence_idx = idx_batch[sentence_in_batch_counter]
@@ -156,13 +158,17 @@ class Predict(CMD):
 
                         chuliu_heads_pred = torch.tensor(chuliu_heads_pred).to(args.device)
 
-                        deprels_main_pred_chuliu = deprel_aligner_with_head(
-                            deprels_main_pred.unsqueeze(0), chuliu_heads_pred.unsqueeze(0)
+                        deprels_pred_chuliu = deprel_aligner_with_head(
+                            deprels_pred.unsqueeze(0), chuliu_heads_pred.unsqueeze(0)
                         ).squeeze(0)
                         
-                        deprels_main_pred_chuliu_list = deprels_main_pred_chuliu.max(dim=0).indices[subwords_start == 1].tolist()
+                        deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[subwords_start == 1].tolist()
 
                         uposs_pred_list = uposs_pred.max(dim=1).indices[
+                            subwords_start == 1
+                        ].tolist()
+
+                        xposs_pred_list = xposs_pred.max(dim=1).indices[
                             subwords_start == 1
                         ].tolist()
 
@@ -178,8 +184,9 @@ class Predict(CMD):
                         predicted_sentence_json = pred_dataset.add_prediction_to_sentence_json(
                             n_sentence,
                             uposs_pred_list,
+                            xposs_pred_list,
                             chuliu_heads_list,
-                            deprels_main_pred_chuliu_list,
+                            deprels_pred_chuliu_list,
                             feats_pred_list,
                             lemma_scripts_pred_list,
                         )

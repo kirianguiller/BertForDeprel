@@ -36,6 +36,7 @@ class Sequence_T(TypedDict):
     tokens_len: List[int]
     # SequenceOutput_T
     uposs: List[int]
+    xposs: List[int]
     heads: List[int]
     deprels: List[int]
     feats: List[int]
@@ -52,6 +53,7 @@ class SequenceBatch_T(TypedDict):
     tokens_len: Tensor
     # SequenceOutput_T
     uposs: Tensor
+    xposs: Tensor
     heads: Tensor
     deprels: Tensor
     feats: Tensor
@@ -77,6 +79,7 @@ class ConlluDataset(Dataset):
 
         self.dep2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["deprels"])
         self.upos2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["uposs"])
+        self.xpos2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["xposs"])
         self.feat2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["feats"])
         self.lem2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["lemma_scripts"])
 
@@ -109,16 +112,6 @@ class ConlluDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.sequences[idx]
-
-    def _mount_dep2i(self, list_deprel):
-        i2dr = {}
-        dr2i = {}
-
-        for idx, deprel in enumerate(list_deprel):
-            i2dr[idx] = deprel
-            dr2i[deprel] = idx
-
-        return dr2i, i2dr
 
     def _compute_labels2i(self, list_labels):
         sorted_set_labels = sorted(set(list_labels))
@@ -182,6 +175,7 @@ class ConlluDataset(Dataset):
 
     def _get_output(self, sequence: sentenceJson_T, tokens_len) -> SequenceOutput_T:
         uposs = [-1]
+        xposs = [-1]
         heads = [-1]
         feats = [-1]
         lemma_scripts = [-1]
@@ -196,6 +190,7 @@ class ConlluDataset(Dataset):
             token_len = tokens_len[n_token + 1 - skipped_tokens]
 
             upos = [get_index(token["UPOS"], self.upos2i)] + [-1] * (token_len - 1)
+            xpos = [get_index(token["XPOS"], self.xpos2i)] + [-1] * (token_len - 1)
             feat = [get_index(_featuresJsonToConll(token["FEATS"]), self.feat2i)] + [-1] * (token_len - 1)
             lemma_script = [get_index(gen_lemma_script(token["FORM"], token["LEMMA"]), self.lem2i)] + [-1] * (token_len - 1)
             
@@ -212,6 +207,7 @@ class ConlluDataset(Dataset):
             # lemma_script = [3424, -1]
             # token_len = 2
             uposs += upos
+            xposs += xpos
             heads += head
             deprels += deprel
             feats += feat
@@ -221,7 +217,7 @@ class ConlluDataset(Dataset):
         # uposs = self._trunc(uposs)
         # feats = self._trunc(feats)
         # lemma_scripts = self._trunc(lemma_scripts)
-        return {"uposs": uposs, "heads": heads, "deprels": deprels, "feats": feats, "lemma_scripts": lemma_scripts}
+        return {"uposs": uposs, "xposs": xposs, "heads": heads, "deprels": deprels, "feats": feats, "lemma_scripts": lemma_scripts}
 
     def _get_processed(self, sentence_json: sentenceJson_T):
         processed_sequence = self._get_input(sentence_json)
@@ -252,11 +248,13 @@ class ConlluDataset(Dataset):
         }
         if self.run_mode == "train":
             uposs_batch     = tensor([self._pad_list(sentence["uposs"], -1, max_sentence_length) for sentence in sentences])
+            xposs_batch     = tensor([self._pad_list(sentence["xposs"], -1, max_sentence_length) for sentence in sentences])
             heads_batch     = tensor([self._pad_list(sentence["heads"], -1, max_sentence_length) for sentence in sentences])
             deprels_batch   = tensor([self._pad_list(sentence["deprels"], -1, max_sentence_length) for sentence in sentences])
             feats_batch   = tensor([self._pad_list(sentence["feats"], -1, max_sentence_length) for sentence in sentences])
             lemma_scripts_batch   = tensor([self._pad_list(sentence["lemma_scripts"], -1, max_sentence_length) for sentence in sentences])
             collated_batch.update({"uposs": uposs_batch,
+                                     "xposs": xposs_batch,
                                      "heads": heads_batch,
                                      "deprels": deprels_batch,
                                      "feats": feats_batch,
@@ -266,13 +264,14 @@ class ConlluDataset(Dataset):
         return collated_batch
 
 
-    def add_prediction_to_sentence_json(self, idx, uposs_pred_list, chuliu_heads_list, deprels_pred_chuliu_list, feats_pred_list, lemma_scripts_pred_list, write_preds_in_misc = False):
+    def add_prediction_to_sentence_json(self, idx, uposs_pred_list, xposs_pred_list, chuliu_heads_list, deprels_pred_chuliu_list, feats_pred_list, lemma_scripts_pred_list, write_preds_in_misc = False):
         predicted_sentence_json: sentenceJson_T = self.sequences[idx]["sentence_json"].copy()
         tokens = list(predicted_sentence_json["treeJson"]["nodesJson"].values())
         annotation_schema = self.model_params["annotation_schema"]
-        for n_token, (upos_index, head_chuliu, deprel_chuliu, feats_index, lemma_script_index) in enumerate(
+        for n_token, (upos_index, xpos_index, head_chuliu, deprel_chuliu, feats_index, lemma_script_index) in enumerate(
                 zip(
                     uposs_pred_list,
+                    xposs_pred_list,
                     chuliu_heads_list,
                     deprels_pred_chuliu_list,
                     feats_pred_list,
@@ -280,23 +279,18 @@ class ConlluDataset(Dataset):
                 )
         ):
             token = tokens[n_token]
-            token["MISC"] = {}
+
             if write_preds_in_misc:
                 misc = token["MISC"]
-                misc["deprel_pred"] = annotation_schema["deprels"][deprel_chuliu]
-
-                # misc['head_MST']= str(gov_dict.get(n_token+1, 'missing_gov'))
-                misc["head_MST_pred"] = str(head_chuliu)
-                misc["upostag_pred"] = annotation_schema["uposs"][upos_index]
-                # lemma_script = annotation_schema["i2lemma_script"][lemma_script_index]
-                # misc["lemma_pred"] = apply_lemma_rule(token["form"], lemma_script)
-                token["misc"] = misc
-
+                misc["DEPREL_pred"] = annotation_schema["deprels"][deprel_chuliu]
+                misc["HEAD_pred"] = str(head_chuliu)
+                misc["UPOSS_pred"] = annotation_schema["uposs"][upos_index]
+                misc["XPOSS_pred"] = annotation_schema["xposs"][xpos_index]
 
             else:
-                # token["head"] = gov_dict.get(n_token+1, 'missing_gov')
                 token["HEAD"] = head_chuliu
                 token["UPOS"] = annotation_schema["uposs"][upos_index]
+                token["XPOS"] = annotation_schema["xposs"][xpos_index]
                 token["FEATS"] = _featuresConllToJson(annotation_schema["feats"][feats_index])
                 lemma_script = annotation_schema["lemma_scripts"][lemma_script_index]
                 token["LEMMA"] = apply_lemma_rule(token["FORM"], lemma_script)

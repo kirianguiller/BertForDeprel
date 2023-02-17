@@ -13,6 +13,7 @@ class EpochResults_T(TypedDict):
 class AnnotationSchema_T(TypedDict):
     deprels: List[str]
     uposs: List[str]
+    xposs: List[str]
     feats: List[str]
     lemma_scripts: List[str]
 
@@ -55,6 +56,7 @@ def get_empty_annotation_schema() -> AnnotationSchema_T:
     return {
         "deprels": [],
         "uposs": [],
+        "xposs": [],
         "feats": [],
         "lemma_scripts": [],
     }

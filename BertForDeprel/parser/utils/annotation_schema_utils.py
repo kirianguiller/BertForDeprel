@@ -19,6 +19,7 @@ def compute_annotation_schema(*paths):
                     all_sentences_json.append(sentenceConllToJson(sentence_conll))
 
     uposs: List[str] = []
+    xposs: List[str] = []
     feats: List[str] = []
     deprels: List[str] = []
     lemma_scripts: List[str] = []
@@ -26,6 +27,7 @@ def compute_annotation_schema(*paths):
         for token in sentence_json["treeJson"]["nodesJson"].values():
             deprels.append(token["DEPREL"])
             uposs.append(token["UPOS"])
+            xposs.append(token["XPOS"])
             feats.append(_featuresJsonToConll(token["FEATS"]))
 
             lemma_script = gen_lemma_script(token["FORM"], token["LEMMA"])
@@ -33,17 +35,20 @@ def compute_annotation_schema(*paths):
     
     deprels.append(NONE_VOCAB)
     uposs.append(NONE_VOCAB)
+    xposs.append(NONE_VOCAB)
     feats.append(NONE_VOCAB)
     lemma_scripts.append(NONE_VOCAB)
 
     deprels = sorted(set(deprels))
     uposs = sorted(set(uposs))
+    xposs = sorted(set(xposs))
     feats = sorted(set(feats))
     lemma_scripts = sorted(set(lemma_scripts))
 
     annotation_schema: AnnotationSchema_T = {
         "deprels": deprels,
         "uposs": uposs,
+        "xposs": xposs,
         "feats": feats,
         "lemma_scripts": lemma_scripts
     }

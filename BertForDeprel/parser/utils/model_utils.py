@@ -1,6 +1,6 @@
 import os
 from timeit import default_timer as timer
-from typing import Optional
+from typing import Optional, TypedDict
 import numpy as np
 import json
 
@@ -18,8 +18,17 @@ from .scores_and_losses_utils import compute_loss_head, compute_loss_deprel, com
 from .chuliu_edmonds_utils import chuliu_edmonds_one_root
 from .types import ModelParams_T
 
+
+class BertForDeprelOutput(TypedDict):
+    uposs: torch.Tensor
+    xposs: torch.Tensor
+    feats: torch.Tensor
+    lemma_scripts: torch.Tensor
+    deprels: torch.Tensor
+    heads: torch.Tensor
+
 class PosAndDeprelParserHead(Module):
-    def __init__(self, n_uposs: int, n_deprels: int, n_feats: int, n_lemma_scripts: int, llm_output_size: int):
+    def __init__(self, n_uposs: int, n_deprels: int, n_feats: int, n_lemma_scripts: int, n_xposs: int, llm_output_size: int):
         super(PosAndDeprelParserHead, self).__init__()
 
         # Arc and label
@@ -31,22 +40,34 @@ class PosAndDeprelParserHead(Module):
                                     self.down_dim, n_deprels)
         
         # Label POS
-        self.upos_ffn = Linear(llm_output_size, n_uposs)
-        # self.xpos_ffn = Linear(self.xlmr_dim + 50, len(self.vocabs[XPOS]))
+        self.uposs_ffn = Linear(llm_output_size, n_uposs)
+        self.xposs_ffn = Linear(llm_output_size, n_xposs)
         self.feats_ffn = Linear(llm_output_size, n_feats)
         self.lemma_scripts_ffn = Linear(llm_output_size, n_lemma_scripts)
         
 
-    def forward(self, x):
-        uposs = self.upos_ffn(x)
+    def forward(self, x) -> BertForDeprelOutput:
+        uposs = self.uposs_ffn(x)
+        xposs = self.xposs_ffn(x)
         feats = self.feats_ffn(x)
         lemma_scripts = self.lemma_scripts_ffn(x)
         down_projection_embedding = self.down_projection(x) # torch.Size([16, 28, 256])
         arc_scores = self.arc(down_projection_embedding, down_projection_embedding) # torch.Size([16, 28, 28, 1])
         deprel_scores = self.deprel(down_projection_embedding, down_projection_embedding) # torch.Size([16, 28, 28, 40])
-        arc_scores = arc_scores.squeeze(3)
-        deprel_scores = deprel_scores.permute(0, 3, 2, 1)
-        return arc_scores, deprel_scores, uposs, feats, lemma_scripts
+        heads = arc_scores.squeeze(3)
+        deprels = deprel_scores.permute(0, 3, 2, 1)
+
+        return {
+            "uposs": uposs,
+            "xposs": xposs,
+            "feats": feats,
+            "lemma_scripts": lemma_scripts,
+            "deprels": deprels,
+            "heads": heads,
+        }
+
+
+
 
 
 class BertForDeprel(Module):
@@ -64,10 +85,11 @@ class BertForDeprel(Module):
         self.llm_layer.set_active_adapters([adapter_name]) 
 
         n_uposs = len(model_params["annotation_schema"]["uposs"])
+        n_xposs = len(model_params["annotation_schema"]["xposs"])
         n_deprels = len(model_params["annotation_schema"]["deprels"])
         n_feats = len(model_params["annotation_schema"]["feats"])
         n_lemma_scripts = len(model_params["annotation_schema"]["lemma_scripts"])
-        self.tagger_layer = PosAndDeprelParserHead(n_uposs, n_deprels, n_feats, n_lemma_scripts, llm_hidden_size)
+        self.tagger_layer = PosAndDeprelParserHead(n_uposs, n_deprels, n_feats, n_lemma_scripts, n_xposs, llm_hidden_size)
 
         if self.pretrain_model_params:
             print("Loading weights of the pretrained model")
@@ -88,7 +110,7 @@ class BertForDeprel(Module):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
 
-    def forward(self, seq, attn_masks):
+    def forward(self, seq, attn_masks) -> BertForDeprelOutput:
         '''
         Inputs:
             -seq : Tensor of shape [B, T] containing token ids of sequences
@@ -98,7 +120,8 @@ class BertForDeprel(Module):
         bert_output : BaseModelOutputWithPoolingAndCrossAttentions = self.llm_layer.forward(seq, attention_mask = attn_masks)
 
         x = bert_output.last_hidden_state 
-        return self.tagger_layer(x)
+        output = self.tagger_layer.forward(x)
+        return output
 
 
     def train_epoch(self, loader, device):
@@ -111,18 +134,20 @@ class BertForDeprel(Module):
             heads_true = batch["heads"].to(device)
             deprels_true = batch["deprels"].to(device)
             uposs_true = batch["uposs"].to(device)
+            xposs_true = batch["xposs"].to(device)
             feats_true = batch["feats"].to(device)
             lemma_scripts_true = batch["lemma_scripts"].to(device)
             
             self.optimizer.zero_grad()
 
-            heads_pred, deprels_pred, uposs_pred, feats_pred, lemma_scripts_pred = self.forward(seq_ids, attn_masks)
+            preds = self.forward(seq_ids, attn_masks)
             
-            loss_batch = compute_loss_head(heads_pred, heads_true, self.criterion)
-            loss_batch += compute_loss_deprel(deprels_pred, deprels_true, heads_true.clone(), self.criterion)
-            loss_batch += compute_loss_poss(uposs_pred, uposs_true, self.criterion)
-            loss_batch += compute_loss_poss(feats_pred, feats_true, self.criterion)
-            loss_batch += compute_loss_poss(lemma_scripts_pred, lemma_scripts_true, self.criterion)
+            loss_batch = compute_loss_head(preds["heads"], heads_true, self.criterion)
+            loss_batch += compute_loss_deprel(preds["deprels"], deprels_true, heads_true.clone(), self.criterion)
+            loss_batch += compute_loss_poss(preds["uposs"], uposs_true, self.criterion)
+            loss_batch += compute_loss_poss(preds["xposs"], xposs_true, self.criterion)
+            loss_batch += compute_loss_poss(preds["feats"], feats_true, self.criterion)
+            loss_batch += compute_loss_poss(preds["lemma_scripts"], lemma_scripts_true, self.criterion)
             
             loss_batch.backward()
             self.optimizer.step()
@@ -136,11 +161,12 @@ class BertForDeprel(Module):
         with torch.no_grad():
             good_head_epoch, total_head_epoch, loss_head_epoch = 0.0, 0.0, 0.0
             good_uposs_epoch, total_uposs_epoch, loss_uposs_epoch = 0.0, 0.0, 0.0
+            good_xposs_epoch, total_xposs_epoch, loss_xposs_epoch = 0.0, 0.0, 0.0
             good_feats_epoch, total_feats_epoch, loss_feats_epoch = 0.0, 0.0, 0.0
             good_lemma_scripts_epoch, total_lemma_scripts_epoch, loss_lemma_scripts_epoch = 0.0, 0.0, 0.0
             good_deprel_epoch, total_deprel_epoch, loss_deprel_epoch = 0.0, 0.0, 0.0
             n_correct_LAS_epoch, n_correct_LAS_epoch, n_total_epoch = 0.0, 0.0, 0.0
-            n_correct_LAS_chuliu_epoch, n_correct_LAS_chuliu_main_epoch,n_correct_LAS_chuliu_aux_epoch, n_total_epoch = 0.0, 0.0, 0.0, 0.0
+            n_correct_LAS_chuliu_epoch, n_total_epoch = 0.0, 0.0
             
             batch: SequenceBatch_T
             for n_batch, batch in enumerate(loader):
@@ -151,17 +177,19 @@ class BertForDeprel(Module):
                 heads_true = batch["heads"].to(device)
                 deprels_true = batch["deprels"].to(device)
                 uposs_true = batch["uposs"].to(device)
+                xposs_true = batch["xposs"].to(device)
                 feats_true = batch["feats"].to(device)
                 lemma_scripts_true = batch["lemma_scripts"].to(device)
 
                 print(f"evaluation on the dataset ... {n_batch}/{len(loader)}batches", end="\r")
                 model_output = self.forward(seq_ids, attn_masks)
                 
-                heads_pred = model_output[0].detach()
-                deprels_pred = model_output[1].detach()
-                uposs_pred = model_output[2].detach()
-                feats_pred = model_output[3].detach() 
-                lemma_scripts_pred = model_output[4].detach()
+                heads_pred = model_output["heads"].detach()
+                deprels_pred = model_output["deprels"].detach()
+                uposs_pred = model_output["uposs"].detach()
+                xposs_pred = model_output["xposs"].detach()
+                feats_pred = model_output["feats"].detach() 
+                lemma_scripts_pred = model_output["lemma_scripts"].detach()
 
                 chuliu_heads_pred = heads_true.clone()
                 for i_vector, (heads_pred_vector, subwords_start_vector, idx_convertor_vector) in enumerate(zip(heads_pred, subwords_start, idx_convertor)):
@@ -178,7 +206,7 @@ class BertForDeprel(Module):
                     
                 n_correct_LAS_batch, n_correct_LAS_batch, n_total_batch = \
                     compute_LAS(heads_pred, deprels_pred, heads_true, deprels_true)
-                n_correct_LAS_chuliu_batch, n_correct_LAS_chuliu_main_batch, n_total_batch = \
+                n_correct_LAS_chuliu_batch, _, n_total_batch = \
                     compute_LAS_chuliu(chuliu_heads_pred, deprels_pred, heads_true, deprels_true)
                 n_correct_LAS_epoch += n_correct_LAS_batch
                 n_correct_LAS_chuliu_epoch += n_correct_LAS_chuliu_batch
@@ -200,6 +228,10 @@ class BertForDeprel(Module):
                 good_uposs_epoch += good_uposs_batch
                 total_uposs_epoch += total_uposs_batch
 
+                good_xposs_batch, total_xposs_batch = compute_acc_upos(xposs_pred, xposs_true, eps=0)
+                good_xposs_epoch += good_xposs_batch
+                total_xposs_epoch += total_xposs_batch
+
                 good_feats_batch, total_feats_batch = compute_acc_upos(feats_pred, feats_true, eps=0)
                 good_feats_epoch += good_feats_batch
                 total_feats_epoch += total_feats_batch
@@ -210,6 +242,9 @@ class BertForDeprel(Module):
 
                 loss_uposs_batch = compute_loss_poss(uposs_pred, uposs_true, self.criterion)
                 loss_uposs_epoch += loss_uposs_batch
+
+                loss_xposs_batch = compute_loss_poss(xposs_pred, xposs_true, self.criterion)
+                loss_xposs_epoch += loss_xposs_batch
 
                 loss_feats_batch = compute_loss_poss(feats_pred, feats_true, self.criterion)
                 loss_feats_epoch += loss_feats_batch
@@ -226,6 +261,8 @@ class BertForDeprel(Module):
             
             acc_uposs_epoch = good_uposs_epoch/total_uposs_epoch
             
+            acc_xposs_epoch = good_xposs_epoch/total_xposs_epoch
+            
             acc_feats_epoch = good_feats_epoch/total_feats_epoch
             
             acc_lemma_scripts_epoch = good_lemma_scripts_epoch/total_lemma_scripts_epoch
@@ -234,9 +271,9 @@ class BertForDeprel(Module):
             LAS_chuliu_epoch = n_correct_LAS_chuliu_epoch/n_total_epoch
 
 
-            loss_epoch = loss_head_epoch + loss_deprel_epoch + loss_uposs_epoch + loss_feats_epoch + loss_lemma_scripts_epoch
-            print("\nevaluation result: LAS={:.3f}; LAS_chuliu={:.3f}; loss_epoch={:.3f}; eval_acc_head={:.3f}; eval_acc_deprel = {:.3f}, eval_acc_upos = {:.3f}, eval_acc_feat = {:.3f}, eval_acc_lemma_script = {:.3f}\n".format(
-            LAS_epoch, LAS_chuliu_epoch, loss_epoch, LAS_epoch, acc_head_epoch, acc_uposs_epoch, acc_feats_epoch, acc_lemma_scripts_epoch))
+            loss_epoch = loss_head_epoch + loss_deprel_epoch + loss_uposs_epoch + loss_xposs_epoch + loss_feats_epoch + loss_lemma_scripts_epoch
+            print("\nevaluation result: LAS={:.3f}; LAS_chuliu={:.3f}; loss_epoch={:.3f}; eval_acc_head={:.3f}; eval_acc_deprel = {:.3f}, eval_acc_upos = {:.3f}, eval_acc_feat = {:.3f}, eval_acc_lemma_script = {:.3f}, acc_xposs_epoch = {:.3f}\n".format(
+            LAS_epoch, LAS_chuliu_epoch, loss_epoch, LAS_epoch, acc_head_epoch, acc_uposs_epoch, acc_feats_epoch, acc_lemma_scripts_epoch, acc_xposs_epoch))
 
         results = {
             "LAS_epoch": LAS_epoch,
@@ -244,11 +281,12 @@ class BertForDeprel(Module):
             "acc_head_epoch": acc_head_epoch,
             "acc_deprel_epoch" : acc_deprel_epoch,
             "acc_uposs_epoch": acc_uposs_epoch,
+            "acc_xposs_epoch": acc_xposs_epoch,
             "acc_feats_epoch": acc_feats_epoch,
             "acc_lemma_scripts_epoch": acc_lemma_scripts_epoch,
             "loss_head_epoch": loss_head_epoch,
             "loss_deprel_epoch": loss_deprel_epoch,
-            "loss_uposs_epoch": loss_uposs_epoch,
+            "loss_xposs_epoch": loss_xposs_epoch,
             "loss_feats_epoch": loss_feats_epoch,
             "loss_lemma_scripts_epoch": loss_lemma_scripts_epoch,
             "loss_epoch": loss_epoch,
