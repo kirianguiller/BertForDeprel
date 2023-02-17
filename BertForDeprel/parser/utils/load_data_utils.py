@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List, Any, TypedDict, Literal
 
 from conllup.conllup import sentenceConllToJson, sentenceJson_T, _featuresConllToJson, _featuresJsonToConll
@@ -66,6 +67,7 @@ class ConlluDataset(Dataset):
                 raise Exception("No annotation schema found in `model_params` while `compute_annotation_schema_if_not_found` is set to False")
         
         self.model_params = model_params
+        os.environ["TOKENIZERS_PARALLELISM"] = "true"
         self.tokenizer: RobertaTokenizer = AutoTokenizer.from_pretrained(model_params["embedding_type"])
 
         self.run_mode = run_mode
