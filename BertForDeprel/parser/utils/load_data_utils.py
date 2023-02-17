@@ -97,7 +97,7 @@ class ConlluDataset(Dataset):
             if len(sequence["seq_ids"]) > 511:
                 print("Discarding sentence", len(sequence["seq_ids"]))
                 continue
-            sequence.update({"idx": valid_sentence_counter})
+            sequence.update({"idx": valid_sentence_counter, "sentence_json": sentence_json})
             self.sequences.append(sequence)
             valid_sentence_counter += 1
 
@@ -265,7 +265,7 @@ class ConlluDataset(Dataset):
 
 
     def add_prediction_to_sentence_json(self, idx, uposs_pred_list, chuliu_heads_list, deprels_pred_chuliu_list, feats_pred_list, lemma_scripts_pred_list, write_preds_in_misc = False):
-        predicted_sentence_json: sentenceJson_T = self.sequences[idx].copy()
+        predicted_sentence_json: sentenceJson_T = self.sequences[idx]["sentence_json"].copy()
         tokens = list(predicted_sentence_json["treeJson"]["nodesJson"].values())
         annotation_schema = self.model_params["annotation_schema"]
         for n_token, (upos_index, head_chuliu, deprel_chuliu, feats_index, lemma_script_index) in enumerate(
