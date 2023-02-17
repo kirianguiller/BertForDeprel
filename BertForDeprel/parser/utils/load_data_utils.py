@@ -7,7 +7,7 @@ from torch import tensor, Tensor
 from transformers import AutoTokenizer, RobertaTokenizer
 
 from .types import ModelParams_T
-from .annotation_schema_utils import compute_annotation_schema, is_annotation_schema_empty
+from .annotation_schema_utils import compute_annotation_schema, get_path_of_conllus_from_folder_path, is_annotation_schema_empty
 from .lemma_script_utils import apply_lemma_rule, gen_lemma_script
 
 class SequenceInput_T(TypedDict):
@@ -56,13 +56,16 @@ class SequenceBatch_T(TypedDict):
     lemma_scripts: Tensor
 
 class ConlluDataset(Dataset):
-    def __init__(self, path_file: str, model_params: ModelParams_T, run_mode: Literal["train", "predict"], compute_annotation_schema_if_not_found = False):
+    def __init__(self, path_file_or_folder: str, model_params: ModelParams_T, run_mode: Literal["train", "predict"], compute_annotation_schema_if_not_found = False):
+        paths = get_path_of_conllus_from_folder_path(path_file_or_folder)
         if is_annotation_schema_empty(model_params["annotation_schema"]):
             if compute_annotation_schema_if_not_found == True:
-                model_params["annotation_schema"] = compute_annotation_schema(path_file)
+                model_params["annotation_schema"] = compute_annotation_schema(*paths)
             else:
                 raise Exception("No annotation schema found in `model_params` while `compute_annotation_schema_if_not_found` is set to False")
         
+        self._load_conll(*paths)
+
         self.model_params = model_params
         self.tokenizer: RobertaTokenizer = AutoTokenizer.from_pretrained(model_params["embedding_type"])
 
@@ -71,20 +74,21 @@ class ConlluDataset(Dataset):
         self.CLS_token_id = self.tokenizer.cls_token_id
         self.SEP_token_id = self.tokenizer.sep_token_id
 
-
-        # Load all the sequences from the file
-        # with open(path_file, "r") as infile:
-        #     self.sequences = conllu.parse(infile.read())
-
-        with open(path_file, "r") as infile2:
-            self.sequences = [sentenceConllToJson(sentence_conll) for sentence_conll in infile2.read().split("\n\n")]
-
         self.dep2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["deprels"])
         self.upos2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["uposs"])
         self.feat2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["feats"])
         self.lem2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["lemma_scripts"])
         # self.lemma_script2i, self.i2lemma_script = self._compute_labels2i(self.args.list_lemma_script)
 
+
+    def _load_conll(self, *paths):
+        self.sequences = []
+        for path in paths:
+            print("Loading ", path)
+            with open(path, "r") as infile:
+                for sentence_conll in infile.read().split("\n\n"):
+                    if sentence_conll.strip():
+                        self.sequences.append(sentenceConllToJson(sentence_conll))
 
     def __len__(self):
         return len(self.sequences)

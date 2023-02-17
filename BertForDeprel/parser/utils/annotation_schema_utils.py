@@ -14,7 +14,9 @@ def compute_annotation_schema(*paths):
     all_sentences_json = []
     for path in paths:
         with open(path, "r", encoding="utf-8") as infile:
-            all_sentences_json += [sentenceConllToJson(sentence_conll) for sentence_conll in infile.read().split("\n\n")]
+            for sentence_conll in infile.read().split("\n\n"):
+                if sentence_conll.strip():
+                    all_sentences_json.append(sentenceConllToJson(sentence_conll))
 
     uposs: List[str] = []
     feats: List[str] = []

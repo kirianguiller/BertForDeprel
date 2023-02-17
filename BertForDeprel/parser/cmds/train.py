@@ -34,8 +34,8 @@ class Train(CMD):
         subparser.add_argument(
             "--patience", type=int, help="number of epoch to do maximum"
         )
-        subparser.add_argument("--ftrain", required=True, help="path to train file")
-        subparser.add_argument("--ftest", default="", help="path to test file")
+        subparser.add_argument("--ftrain", required=True, help="path to train file or folder (files need to have .conllu extension)")
+        subparser.add_argument("--ftest", default="", help="path to test file or folder (files need to have .conllu extension)")
         subparser.add_argument(
             "--split_ratio",
             default=0.8,
@@ -87,10 +87,10 @@ class Train(CMD):
             model_params["annotation_schema"] = get_annotation_schema_from_input_folder(args.path_folder_compute_annotation_schema)
         print("Model parameters : ", model_params)
 
-        if is_annotation_schema_empty(model_params["annotation_schema"]) == True:
-            # The annotation schema was never given in json config or path argument, we need to compute it on --ftrain
-            print("Computing annotation schema on --ftrain file")
-            model_params["annotation_schema"] = compute_annotation_schema(args.ftrain)
+        # if is_annotation_schema_empty(model_params["annotation_schema"]) == True:
+        #     # The annotation schema was never given in json config or path argument, we need to compute it on --ftrain
+        #     print("Computing annotation schema on --ftrain file")
+        #     model_params["annotation_schema"] = compute_annotation_schema(args.ftrain)
 
         pretrain_model_params: Optional[ModelParams_T] = None
         if args.conf_pretrain:
@@ -107,7 +107,7 @@ class Train(CMD):
                 os.path.join(model_params["root_folder_path"], model_params["model_name"]):
                 assert Exception("The pretrained model and the new model have same full path. It's not allowed as it would result in erasing the pretrained model")
 
-        dataset = ConlluDataset(args.ftrain, model_params, args.mode)
+        dataset = ConlluDataset(args.ftrain, model_params, args.mode, compute_annotation_schema_if_not_found=True)
 
         # prepare test dataset
         if args.ftest:

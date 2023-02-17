@@ -64,9 +64,9 @@ PS : here an example of a valid config.json
 
 `--patience` : number of epochs without improve required to stop the training (early stopping)
 
-`--ftrain` : path to train file (required)
+`--ftrain` : path to train file or folder (files need .conllu extension))
 
-`--ftest` : path to train file (not required. If not provided, see `--split_ratio` )
+`--ftest` : path to train file or folder (files need .conllu extension) (not required. If not provided, see `--split_ratio` )
 
 `--split_ratio` : Ratio for splitting ftrain dataset in train and test dataset (default : 0.8)
 
@@ -102,6 +102,7 @@ You will need some conllus for training the model and doing inferences.
 For training, you have the choice between :
 - providing a single conllu file (`--ftrain` cli parameter) with all your training and testing sentences (train_test split ratio is 0.8 by default, but you can set it with `--split_ratio` parameter)
 - providing a train conllu file (`--ftrain`) and a test conllu file (`--ftest`)
+- providing a train folder containing the .conllu files (--ftest can also be provided, as a file or a folder too)
 
 ### data for inferences
 For inference, you have to provide an input file or folder (`--inpath` or `-i`). The model will infere parse trees for all sentences of all conllus, and these outputted conllus will be written in the output folder (`--outpath` or `-o`)
