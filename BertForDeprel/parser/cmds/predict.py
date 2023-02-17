@@ -115,18 +115,13 @@ class Predict(CMD):
                     idx_convertor_batch = batch["idx_convertor"]
                     idx_batch = batch["idx"]
 
-                    (
-                        heads_pred_batch,
-                        deprels_main_pred_batch,
-                        uposs_pred_batch,
-                        feats_pred_batch,
-                    ) = model.forward(seq_ids_batch, attn_masks_batch)
-                    heads_pred_batch, deprels_main_pred_batch, uposs_pred_batch, feats_pred_batch = (
-                        heads_pred_batch.detach(),
-                        deprels_main_pred_batch.detach(),
-                        uposs_pred_batch.detach(),
-                        feats_pred_batch.detach(),
-                    )
+                    model_output = model.forward(seq_ids_batch, attn_masks_batch)
+
+                    heads_pred_batch = model_output[0].detach(),
+                    deprels_main_pred_batch = model_output[1].detach(),
+                    uposs_pred_batch = model_output[2].detach(),
+                    feats_pred_batch = model_output[3].detach(),
+                    lemma_scripts_pred_batch = model_output[4].detach(),
 
                     for sentence_in_batch_counter in range(seq_ids_batch.size()[0]):
                         subwords_start = subwords_start_batch[sentence_in_batch_counter]
@@ -135,6 +130,7 @@ class Predict(CMD):
                         deprels_main_pred = deprels_main_pred_batch[sentence_in_batch_counter].clone()
                         uposs_pred = uposs_pred_batch[sentence_in_batch_counter].clone()
                         feats_pred = feats_pred_batch[sentence_in_batch_counter].clone()
+                        lemma_scripts_pred = lemma_scripts_pred_batch[sentence_in_batch_counter].clone()
                         sentence_idx = idx_batch[sentence_in_batch_counter]
                         
                         n_sentence = int(sentence_idx)
@@ -177,15 +173,9 @@ class Predict(CMD):
                             subwords_start == 1
                         ].tolist()
 
-                        # lemma_scripts_pred_list = lemma_scripts_pred.max(dim=2)[1][
-                        #     subwords_start == 1
-                        # ].tolist()
-
-                        # idx2head = []
-                        # sum_idx = 0
-                        # for sub in subwords_start.tolist():
-                        #     sum_idx += max(0, sub)
-                        #     idx2head.append(sum_idx)
+                        lemma_scripts_pred_list = lemma_scripts_pred.max(dim=1).indices[
+                            subwords_start == 1
+                        ].tolist()
 
 
                         predicted_sentence_json = pred_dataset.add_prediction_to_sentence_json(
@@ -194,6 +184,7 @@ class Predict(CMD):
                             chuliu_heads_list,
                             deprels_main_pred_chuliu_list,
                             feats_pred_list,
+                            lemma_scripts_pred_list,
                         )
                         list_conllu_sequences.append(sentenceJsonToConll(predicted_sentence_json))
 
