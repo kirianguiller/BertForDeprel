@@ -75,7 +75,7 @@ class BertForDeprel(Module):
         super(BertForDeprel, self).__init__()
         self.model_params = model_params
         self.pretrain_model_params = pretrain_model_params
-        self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(model_params["embedding_type"], cache_dir=model_params.get("embedding_cached_path", None))
+        self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(model_params["embedding_type"])
         llm_hidden_size = self.llm_layer.config.hidden_size #expected to get embedding size of bert custom model
         adapter_config = AdapterConfig.load("pfeiffer", reduction_factor=4)
         # TODO : find better name (tagger)

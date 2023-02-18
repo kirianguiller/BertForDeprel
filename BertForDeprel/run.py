@@ -48,9 +48,9 @@ if __name__ == "__main__":
             raise Exception(f"You provided a --conf parameter but no config was found in `{args.conf}`")
     
 
-    if model_params.get("embedding_cached_path", "") == "":
-        model_params["embedding_cached_path"] = str(Path.home() / ".cache" / "huggingface")
-        print(f"No `embedding_cached_path` provided, saving huggingface pretrained embedding in default cache location : `{model_params['embedding_cached_path']}` ")
+    # if model_params.get("embedding_cached_path", "") == "":
+    #     model_params["embedding_cached_path"] = str(Path.home() / ".cache" / "huggingface")
+    #     print(f"No `embedding_cached_path` provided, saving huggingface pretrained embedding in default cache location : `{model_params['embedding_cached_path']}` ")
 
 
     if args.batch_size:

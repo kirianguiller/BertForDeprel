@@ -38,7 +38,6 @@ PS : here an example of a valid config.json
     "batch_size": 16,
     "maxlen": 512,
     "embedding_type": "xlm-roberta-large",
-    "embedding_cached_path": "",
     "adapter_config_type": ""
 }
 ```

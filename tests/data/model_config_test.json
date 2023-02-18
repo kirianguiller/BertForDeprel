@@ -6,6 +6,5 @@
     "batch_size": 8,
     "maxlen": 512,
     "embedding_type": "xlm-roberta-large",
-    "embedding_cached_path": "",
     "adapter_config_type": ""
 }

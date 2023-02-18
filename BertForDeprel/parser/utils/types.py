@@ -33,7 +33,7 @@ class ModelParams_T(TypedDict):
 
     # Embedding (xlm-roberta-large / bert-multilingual-base-uncased ...)
     embedding_type: str
-    embedding_cached_path: str
+    # embedding_cached_path: str
 
     # Finetuned training meta params
     # n_current_epoch: int
@@ -72,7 +72,7 @@ def get_default_model_params() -> ModelParams_T:
         "batch_size": 8,
         "maxlen": 512,
         "embedding_type": "xlm-roberta-large",
-        "embedding_cached_path": "",
+        # "embedding_cached_path": "",
         # "n_current_epoch": 0,
         # "current_epoch_results": get_empty_current_epoch_results(),
     }
