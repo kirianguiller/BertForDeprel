@@ -1,7 +1,7 @@
 import os
 from typing import Dict, List, Any, TypedDict, Literal
 
-from conllup.conllup import sentenceConllToJson, sentenceJson_T, _featuresConllToJson, _featuresJsonToConll
+from conllup.conllup import sentenceConllToJson, sentenceJson_T, _featuresConllToJson, _featuresJsonToConll, readConlluFile
 
 from torch.utils.data import Dataset
 from torch import tensor, Tensor
@@ -89,11 +89,7 @@ class ConlluDataset(Dataset):
     def _load_conll(self, *paths):
         sentences_json: List[sentenceJson_T] = []
         for path in paths:
-            print("Loading ", path)
-            with open(path, "r") as infile:
-                for sentence_conll in infile.read().split("\n\n"):
-                    if sentence_conll.strip():
-                        sentences_json.append(sentenceConllToJson(sentence_conll))
+            sentences_json += readConlluFile(path)
         
         self.sequences: List[Sequence_T] = []
         valid_sentence_counter = 0
@@ -236,7 +232,6 @@ class ConlluDataset(Dataset):
         subwords_start_batch = tensor([self._pad_list(sentence["subwords_start"], -1, max_sentence_length) for sentence in sentences])
         attn_masks_batch     = tensor([self._pad_list(sentence["attn_masks"],  0, max_sentence_length) for sentence in sentences])
         idx_convertor_batch  = tensor([self._pad_list(sentence["idx_convertor"], -1, max_sentence_length) for sentence in sentences])
-        # tokens_len_batch  = tensor([self._pad_list(sentence["tokens_len"], -1, max_sentence_length) for sentence in sentences])
         idx_batch            = tensor([sentence["idx"] for sentence in sentences])
         collated_batch = {
             "idx": idx_batch,
@@ -244,7 +239,6 @@ class ConlluDataset(Dataset):
             "subwords_start": subwords_start_batch,
             "attn_masks": attn_masks_batch,
             "idx_convertor": idx_convertor_batch,
-            # "tokens_len": tokens_len_batch,
         }
         if self.run_mode == "train":
             uposs_batch     = tensor([self._pad_list(sentence["uposs"], -1, max_sentence_length) for sentence in sentences])
@@ -310,8 +304,7 @@ def get_index(label: str, mapping: Dict) -> int:
     if index == -1:
         index = mapping[NONE_VOCAB]
         print(
-            f"LOG: label '{label}' was not founded in the label2index mapping : ",
-            mapping,
+            f"LOG: label '{label}' was not founded in the label2index mapping : "
         )
     return index
 

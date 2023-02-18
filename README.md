@@ -70,12 +70,13 @@ PS : here an example of a valid config.json
 
 `--split_ratio` : Ratio for splitting ftrain dataset in train and test dataset (default : 0.8)
 
-`--conf_pretrain` : path to pretrain model config, used for finetuning a pretrained BertForDeprel model
 
 `--path_annotation_schema`: path to an annotation schema (json format)
 
 `--path_folder_compute_annotation_schema` provide a path to a folder containing various conllu, so the annotation schema is computed on these conllus before starting the training on --ftrain
-`
+
+`--conf_pretrain` : path to pretrain model config, used for finetuning a pretrained BertForDeprel model
+`--overwrite_pretrain_classifiers`: erase pretraines classifier heads and recompute annotation schema 
 
 ### predict
 `--inpath` `-i` : path to the file or the folder containing the files to predict

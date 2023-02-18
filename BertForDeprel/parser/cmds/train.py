@@ -37,15 +37,16 @@ class Train(CMD):
         subparser.add_argument(
             "--batch_size_eval", type=int, help="number of epoch to do maximum"
         )
-        subparser.add_argument("--ftrain", required=True, help="path to train file or folder (files need to have .conllu extension)")
-        subparser.add_argument("--ftest", default="", help="path to test file or folder (files need to have .conllu extension)")
+        subparser.add_argument(
+            "--ftrain", required=True, help="path to train file or folder (files need to have .conllu extension)")
+        subparser.add_argument(
+            "--ftest", default="", help="path to test file or folder (files need to have .conllu extension)")
         subparser.add_argument(
             "--split_ratio",
             default=0.8,
             type=float,
             help="split ratio to use (if no --ftest is provided)",
         )
-        subparser.add_argument("--conf_pretrain", default="", help="path to pretrain model config")
         subparser.add_argument(
             "--path_annotation_schema", help="path to annotation schema (default : in folder/annotation_schema.json"
         )
@@ -53,6 +54,11 @@ class Train(CMD):
         subparser.add_argument(
             "--path_folder_compute_annotation_schema", help="path to annotation schema (default : in folder/annotation_schema.json"
         )
+        subparser.add_argument(
+            "--conf_pretrain", default="", help="path to pretrain model config")
+        subparser.add_argument(
+            "--overwrite_pretrain_classifiers", action="store_true", help="erase pretraines classifier heads and recompute annotation schema")
+        
         return subparser
 
     def __call__(self, args, model_params: ModelParams_T):
@@ -104,7 +110,8 @@ class Train(CMD):
             # - the new model has same architecture as old one
             with open(args.conf_pretrain, "r") as infile:
                 pretrain_model_params_: ModelParams_T = json.loads(infile.read())
-                model_params["annotation_schema"] = pretrain_model_params_["annotation_schema"] 
+                if args.overwrite_pretrain_classifiers == False:
+                    model_params["annotation_schema"] = pretrain_model_params_["annotation_schema"] 
                 pretrain_model_params = pretrain_model_params_
             if os.path.join(pretrain_model_params_["root_folder_path"], pretrain_model_params_["model_name"])  == \
                 os.path.join(model_params["root_folder_path"], model_params["model_name"]):
@@ -125,7 +132,7 @@ class Train(CMD):
         params_train = {
             "batch_size": model_params["batch_size"],
             "num_workers": args.num_workers,
-            "shuffle": False,
+            "shuffle": True,
         }
 
         train_loader = DataLoader(
@@ -135,7 +142,7 @@ class Train(CMD):
         params_test = {
             "batch_size": model_params["batch_size"],
             "num_workers": args.num_workers,
-            "shuffle": False,
+            "shuffle": True,
         }
         if args.batch_size_eval:
             params_test["batch_size"] = args.batch_size_eval
@@ -153,29 +160,15 @@ class Train(CMD):
         )
 
         print("Create the model")
-        model = BertForDeprel(model_params, pretrain_model_params=pretrain_model_params)
+        model = BertForDeprel(model_params, pretrain_model_params=pretrain_model_params, overwrite_pretrain_classifiers=args.overwrite_pretrain_classifiers)
 
         n_epoch_start = 0
-        # if args.fpretrain:
-        #     print("loading pretrain model")
-        #     ### To reactivate if probleme in the loading of the model states
-        #     loaded_state_dict = OrderedDict()
-        #     for k, v in checkpoint["state_dict"].items():
-        #         name = k.replace("module.", "")
-        #         loaded_state_dict[name] = v
-
-        #     model.load_state_dict(loaded_state_dict)
-
-        #     if args.keep_epoch == True:
-        #         n_epoch_start = args.n_pretrain_epoch
-
         model.to(args.device)
 
         if args.multi_gpu:
             print("MODEL TO MULTI GPU")
             model = nn.DataParallel(model)
 
-        # args.batch_per_epoch = len(train_loader)
         # scheduler = get_linear_schedule_with_warmup(args.optimizer, args.batch_per_epoch * 5, args.batch_per_epoch*args.epochs)
 
         total_timer_start = datetime.now()

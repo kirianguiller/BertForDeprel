@@ -71,7 +71,7 @@ class PosAndDeprelParserHead(Module):
 
 
 class BertForDeprel(Module):
-    def __init__(self, model_params: ModelParams_T, pretrain_model_params: Optional[ModelParams_T] = None):
+    def __init__(self, model_params: ModelParams_T, pretrain_model_params: Optional[ModelParams_T] = None, overwrite_pretrain_classifiers = True):
         super(BertForDeprel, self).__init__()
         self.model_params = model_params
         self.pretrain_model_params = pretrain_model_params
@@ -93,7 +93,7 @@ class BertForDeprel(Module):
 
         if self.pretrain_model_params:
             print("Loading weights of the pretrained model")
-            self.load_pretrained()
+            self.load_pretrained(overwrite_pretrain_classifiers)
 
         self.total_trainable_parameters = self.get_total_trainable_parameters()
         print("TOTAL TRAINABLE PARAMETERS : ", self.total_trainable_parameters)
@@ -318,20 +318,37 @@ class BertForDeprel(Module):
         with open(config_path, "w") as outfile:
             outfile.write(json.dumps(self.model_params))
 
-    def load_pretrained(self):
+    def load_pretrained(self, overwrite_pretrain_classifiers=False):
         params = self.pretrain_model_params or self.model_params
         ckpt_fpath = os.path.join(params["root_folder_path"], params["model_name"] + ".pt")
         checkpoint_state = torch.load(ckpt_fpath)
-
-        self.tagger_layer.load_state_dict(checkpoint_state["tagger"])
         
-        model_dict = self.llm_layer.state_dict()
+        tagger_pretrained_dict = self.tagger_layer.state_dict()
+        for layer_name, weights in checkpoint_state["tagger"].items():
+            if overwrite_pretrain_classifiers == True and layer_name in [
+                "deprel.pairwise_weight", 
+                "uposs_ffn.weight", 
+                "uposs_ffn.bias",
+                "xposs_ffn.weight",
+                "xposs_ffn.bias",
+                "lemma_scripts_ffn.weight",
+                "lemma_scripts_ffn.bias",
+                "feats_ffn.weight",
+                "feats_ffn.bias",
+                ]:
+                print(f"Overwritting pretrained layer {layer_name}")
+                continue
+            tagger_pretrained_dict[layer_name] = weights
+        self.tagger_layer.load_state_dict(tagger_pretrained_dict)
+        
+        
+        llm_pretrained_dict = self.llm_layer.state_dict()
         for layer_name, weights in checkpoint_state["adapter"].items():
             if self.pretrain_model_params:
                 layer_name = layer_name.replace(self.pretrain_model_params["model_name"], self.model_params["model_name"])
-            if layer_name in model_dict:
-                model_dict[layer_name] = weights
-        self.llm_layer.load_state_dict(model_dict)
+            if layer_name in llm_pretrained_dict:
+                llm_pretrained_dict[layer_name] = weights
+        self.llm_layer.load_state_dict(llm_pretrained_dict)
         return
 
 ### To reactivate if probleme in the loading of the model states

@@ -1,6 +1,6 @@
 import os
 from typing import List
-from conllup.conllup import sentenceJsonToConll
+from conllup.conllup import writeConlluFile, sentenceJson_T
 from timeit import default_timer as timer
 
 import numpy as np
@@ -104,7 +104,7 @@ class Predict(CMD):
                 f"{len(pred_loader):3} batches, "
             )
             start = timer()
-            list_conllu_sequences: List[str] = []
+            predicted_sentences_json: List[sentenceJson_T] = []
             batch: SequenceBatch_T
             with torch.no_grad():
                 for batch in pred_loader:
@@ -190,7 +190,7 @@ class Predict(CMD):
                             feats_pred_list,
                             lemma_scripts_pred_list,
                         )
-                        list_conllu_sequences.append(sentenceJsonToConll(predicted_sentence_json))
+                        predicted_sentences_json.append(predicted_sentence_json)
 
                         time_from_start = timer() - start
                         parsing_speed = int(round(((n_sentence + 1) / time_from_start) / 100, 2) * 100)
@@ -199,8 +199,7 @@ class Predict(CMD):
                             end="\r",
                         )
 
-            with open(path_result_file, "w") as f:
-                f.write("\n\n".join(list_conllu_sequences) + "\n\n")
+            writeConlluFile(path_result_file, predicted_sentences_json, overwrite=args.overwrite)
             
             print(f"Finished predicting `{path_result_file}, wrote {n_sentence + 1} sents in {round(timer() - start, 2)} secs`")
         
