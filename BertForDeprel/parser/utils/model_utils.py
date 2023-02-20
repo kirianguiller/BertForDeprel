@@ -125,6 +125,8 @@ class BertForDeprel(Module):
 
 
     def train_epoch(self, loader, device):
+        time_from_start = 0
+        parsing_speed = 0
         start = timer()
         self.train()
         processed_sentence_counter = 0
@@ -163,7 +165,7 @@ class BertForDeprel(Module):
                 print(
                 f'Training: {100 * (batch_counter + 1) / len(loader):.2f}% complete. {time_from_start:.2f} seconds in epoch ({parsing_speed:.2f} sents/sec)',
                 end='\r')
-        print(f"\nFinished training epoch in {time_from_start:.2} seconds")
+        print(f"\nFinished training epoch in {time_from_start:.2} seconds ({processed_sentence_counter} sentence at {parsing_speed} sents/sec)\n")
 
     def eval_epoch(self, loader, device):
         self.eval()
