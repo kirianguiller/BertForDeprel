@@ -105,6 +105,7 @@ class Predict(CMD):
             )
             start = timer()
             predicted_sentences_json: List[sentenceJson_T] = []
+            parsed_sentence_counter = 0
             batch: SequenceBatch_T
             with torch.no_grad():
                 for batch in pred_loader:
@@ -191,13 +192,13 @@ class Predict(CMD):
                             lemma_scripts_pred_list,
                         )
                         predicted_sentences_json.append(predicted_sentence_json)
-
+                        parsed_sentence_counter += 1
                         time_from_start = timer() - start
-                        parsing_speed = int(round(((n_sentence + 1) / time_from_start) / 100, 2) * 100)
-                        print(
-                            f"Predicting: {100 * (n_sentence + 1) / len(pred_dataset):.2f}% complete. {time_from_start:.2f} seconds in epoch ({parsing_speed} sents/sec).",
-                            end="\r",
-                        )
+                        parsing_speed = int(round(((parsed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
+                    print(
+                        f"Predicting: {100 * (parsed_sentence_counter + 1) / len(pred_dataset):.2f}% complete. {time_from_start:.2f} seconds in file ({parsing_speed} sents/sec).",
+                        end="\r",
+                    )
 
             writeConlluFile(path_result_file, predicted_sentences_json, overwrite=args.overwrite)
             

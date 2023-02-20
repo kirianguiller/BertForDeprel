@@ -127,8 +127,11 @@ class BertForDeprel(Module):
     def train_epoch(self, loader, device):
         start = timer()
         self.train()
+        processed_sentence_counter = 0
+        total_number_batch = len(loader)
+        print_every = max(1, total_number_batch // 8) # so we print only around 8 times per epochs
         batch: SequenceBatch_T
-        for n_batch, batch in enumerate(loader):
+        for batch_counter, batch in enumerate(loader):
             seq_ids = batch["seq_ids"].to(device)
             attn_masks = batch["attn_masks"].to(device)
             heads_true = batch["heads"].to(device)
@@ -152,9 +155,15 @@ class BertForDeprel(Module):
             loss_batch.backward()
             self.optimizer.step()
 
-            print(
-            f'Training: {100 * (n_batch + 1) / len(loader):.2f}% complete. {timer() - start:.2f} seconds in epoch',
-            end='\r')
+            processed_sentence_counter += seq_ids.size(0)
+            time_from_start = timer() - start
+            parsing_speed = int(round(((processed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
+            
+            if batch_counter % print_every == 0:
+                print(
+                f'Training: {100 * (batch_counter + 1) / len(loader):.2f}% complete. {time_from_start:.2f} seconds in epoch ({parsing_speed:.2f} sents/sec)',
+                end='\r')
+        print(f"\nFinished training epoch in ${time_from_start:.2} seconds")
 
     def eval_epoch(self, loader, device):
         self.eval()
@@ -168,8 +177,13 @@ class BertForDeprel(Module):
             n_correct_LAS_epoch, n_correct_LAS_epoch, n_total_epoch = 0.0, 0.0, 0.0
             n_correct_LAS_chuliu_epoch, n_total_epoch = 0.0, 0.0
             
+            start = timer()
+            processed_sentence_counter = 0
+            total_number_batch = len(loader)
+            print_every = max(1, total_number_batch // 4) # so we print only around 8 times per epochs
+
             batch: SequenceBatch_T
-            for n_batch, batch in enumerate(loader):
+            for batch_counter, batch in enumerate(loader):
                 seq_ids = batch["seq_ids"].to(device)
                 attn_masks = batch["attn_masks"].to(device)
                 subwords_start = batch["subwords_start"].to(device)
@@ -181,7 +195,6 @@ class BertForDeprel(Module):
                 feats_true = batch["feats"].to(device)
                 lemma_scripts_true = batch["lemma_scripts"].to(device)
 
-                print(f"evaluation on the dataset ... {n_batch}/{len(loader)}batches", end="\r")
                 model_output = self.forward(seq_ids, attn_masks)
                 
                 heads_pred = model_output["heads"].detach()
@@ -251,6 +264,15 @@ class BertForDeprel(Module):
 
                 loss_lemma_scripts_batch = compute_loss_poss(lemma_scripts_pred, lemma_scripts_true, self.criterion)
                 loss_lemma_scripts_epoch += loss_lemma_scripts_batch
+
+                processed_sentence_counter += seq_ids.size(0)
+                time_from_start = timer() - start
+                parsing_speed = int(round(((processed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
+                
+                if batch_counter % print_every == 0:
+                    print(
+                    f'Evaluating: {100 * (batch_counter + 1) / len(loader):.2f}% complete. {time_from_start:.2f} seconds in epoch ({parsing_speed:.2f} sents/sec)',
+                    end='\r')
 
 
             loss_head_epoch = loss_head_epoch/len(loader)
