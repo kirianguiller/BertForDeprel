@@ -89,7 +89,7 @@ class ConlluDataset(Dataset):
     def _load_conll(self, *paths):
         sentences_json: List[sentenceJson_T] = []
         for path in paths:
-            sentences_json += readConlluFile(path)
+            sentences_json += readConlluFile(path, keep_empty_trees=False)
         
         self.sequences: List[Sequence_T] = []
         valid_sentence_counter = 0
