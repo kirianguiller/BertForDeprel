@@ -11,7 +11,7 @@ idna==2.10
 joblib==1.0.0
 mypy==0.800
 mypy-extensions==0.4.3
-numpy==1.19.5
+numpy==1.22.1
 packaging==20.8
 pandas==1.1.5
 pathspec==0.8.1
