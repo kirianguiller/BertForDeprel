@@ -63,9 +63,9 @@ def get_path_of_conllus_from_folder_path(path_folder: str):
     elif os.path.isdir(path_folder):
         paths = glob.glob(os.path.join(path_folder, "*.conllu"))
         if paths == []:
-            raise BaseException("No conllu was found")
+            raise BaseException(f"No conllu was found in path_folder=`{path_folder}`")
     else:
-        raise Exception("No conllu was found (error 2)")
+        raise Exception(f"No conllu was found in path_folder=`{path_folder}` (error 2)")
     return paths
 
 def get_annotation_schema_from_input_folder(path_folder: str):
