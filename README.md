@@ -23,16 +23,15 @@ Either provide the path to a model json config :
 python /home/BertForDeprel/BertForDeprel/run.py train --conf /home/models/template.config.json   --ftrain /home/parsing_project/conllus/train.conllu
 ```
 
-or just give a `--root_folder_path` and a `--model_name` parameter (default params will be loaded if no config or no CLI parameters are provided)
+or just give a `--model_folder_path` and a `--model_name` parameter (default params will be loaded if no config or no CLI parameters are provided)
 ```bash
-python /home/BertForDeprel/BertForDeprel/run.py train --root_folder_path /home/models/ --model_name my_parser   --ftrain /home/parsing_project/conllus/train.conllu
+python /home/BertForDeprel/BertForDeprel/run.py train --model_folder_path /home/models/ --model_name my_parser   --ftrain /home/parsing_project/conllus/train.conllu
 ```
 
 PS : here an example of a valid config.json
 ```json
 {
-    "root_folder_path": "/home/user1/models/",
-    "model_name": "my_parser",
+    "model_folder_path": "/home/user1/models/",
     "max_epoch": 150,
     "patience": 30,
     "batch_size": 16,
@@ -43,7 +42,7 @@ PS : here an example of a valid config.json
 ```
 ## All Command line parameters :
 ### shared
-`--conf` `-c` : path to config json file (for training, it's optional if both `--root_folder_path` and `model_name` are provided)
+`--conf` `-c` : path to config json file (for training, it's optional if both `--model_folder_path` and `model_name` are provided)
 
 `--batch_size`: numbers of sample per batches (high incidence on total speed)
 
@@ -53,9 +52,7 @@ PS : here an example of a valid config.json
 
 
 ### train
-`--root_folder_path` `-f` path to parent folder of the model : optional if `--conf` is already provided
-
-`--model_name` `-m` name of the model (WITHOUT the extension)
+`--model_folder_path` `-f` path to parent folder of the model : optional if `--conf` is already provided
 
 `--embedding_type`  `e` : type of embedding (default : `xlm-roberta-large`)
 
@@ -137,7 +134,7 @@ WARNING : when training from a pretrained model, be sure to use the same annotat
 
 To fine-tune a pre-trained model, need to follow the same step as for training a new model, but need to also provide the path to the config file of the previously trained model with `--conf_pretrained` 
 ```bash
-python /home/BertForDeprel/BertForDeprel/run.py train --root_folder_path /home/models/ --model_name my_parser  --ftrain /home/parsing_project/conllus/train.conllu  --conf_pretrained /home/models/pretrained_model.config.json
+python /home/BertForDeprel/BertForDeprel/run.py train --model_folder_path /home/models/ --model_name my_parser  --ftrain /home/parsing_project/conllus/train.conllu  --conf_pretrained /home/models/pretrained_model.config.json
 ```
 
 

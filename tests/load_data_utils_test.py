@@ -12,8 +12,7 @@ PATH_TEST_MODELS_FOLDER = Path(__file__).parent / "models"
 PATH_TEST_CONLLU = str(PATH_TEST_DATA_FOLDER / "english.conllu")
 
 model_params_test: ModelParams_T = {
-    "root_folder_path": str(PATH_TEST_MODELS_FOLDER),
-    "model_name": "test_model",
+    "model_folder_path": str(PATH_TEST_MODELS_FOLDER),
     "annotation_schema": get_empty_annotation_schema(),
     "max_epoch": 5,
     "patience": 3,

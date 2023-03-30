@@ -79,7 +79,7 @@ class BertForDeprel(Module):
         llm_hidden_size = self.llm_layer.config.hidden_size #expected to get embedding size of bert custom model
         adapter_config = AdapterConfig.load("pfeiffer", reduction_factor=4)
         # TODO : find better name (tagger)
-        adapter_name = model_params["model_name"]
+        adapter_name = "adapter"
         self.llm_layer.add_adapter(adapter_name, config=adapter_config)
         self.llm_layer.train_adapter([adapter_name])
         self.llm_layer.set_active_adapters([adapter_name]) 
@@ -300,20 +300,20 @@ class BertForDeprel(Module):
             LAS_epoch, LAS_chuliu_epoch, loss_epoch, LAS_epoch, acc_head_epoch, acc_uposs_epoch, acc_feats_epoch, acc_lemma_scripts_epoch, acc_xposs_epoch))
 
         results = {
-            "LAS_epoch": LAS_epoch,
-            "LAS_chuliu_epoch": LAS_chuliu_epoch,
-            "acc_head_epoch": acc_head_epoch,
+            "LAS_epoch": round(float(LAS_epoch), 3),
+            "LAS_chuliu_epoch": round(float(LAS_chuliu_epoch), 3),
+            "acc_head_epoch": round(float(acc_head_epoch), 3),
             "acc_deprel_epoch" : acc_deprel_epoch,
-            "acc_uposs_epoch": acc_uposs_epoch,
-            "acc_xposs_epoch": acc_xposs_epoch,
-            "acc_feats_epoch": acc_feats_epoch,
-            "acc_lemma_scripts_epoch": acc_lemma_scripts_epoch,
-            "loss_head_epoch": loss_head_epoch,
-            "loss_deprel_epoch": loss_deprel_epoch,
-            "loss_xposs_epoch": loss_xposs_epoch,
-            "loss_feats_epoch": loss_feats_epoch,
-            "loss_lemma_scripts_epoch": loss_lemma_scripts_epoch,
-            "loss_epoch": loss_epoch,
+            "acc_uposs_epoch": round(float(acc_uposs_epoch), 3),
+            "acc_xposs_epoch": round(float(acc_xposs_epoch), 3),
+            "acc_feats_epoch": round(float(acc_feats_epoch), 3),
+            "acc_lemma_scripts_epoch": round(float(acc_lemma_scripts_epoch), 3),
+            "loss_head_epoch": round(float(loss_head_epoch), 3),
+            "loss_deprel_epoch": round(float(loss_deprel_epoch), 3),
+            "loss_xposs_epoch": round(float(loss_xposs_epoch), 3),
+            "loss_feats_epoch": round(float(loss_feats_epoch), 3),
+            "loss_lemma_scripts_epoch": round(float(loss_lemma_scripts_epoch), 3),
+            "loss_epoch": round(float(loss_epoch), 3),
         }
 
         return results
@@ -330,8 +330,8 @@ class BertForDeprel(Module):
             if k in trainable_weight_names:
                 state["tagger"][k] = v
 
-        ckpt_fpath = os.path.join(self.model_params["root_folder_path"], self.model_params["model_name"] + ".pt")
-        config_path = os.path.join(self.model_params["root_folder_path"], self.model_params["model_name"] + ".config.json")
+        ckpt_fpath = os.path.join(self.model_params["model_folder_path"], "model.pt")
+        config_path = os.path.join(self.model_params["model_folder_path"], "config.json")
         torch.save(state, ckpt_fpath)
         print(
             "Saving adapter weights to ... {} ({:.2f} MB) (conf path : {})".format(
@@ -344,7 +344,7 @@ class BertForDeprel(Module):
 
     def load_pretrained(self, overwrite_pretrain_classifiers=False):
         params = self.pretrain_model_params or self.model_params
-        ckpt_fpath = os.path.join(params["root_folder_path"], params["model_name"] + ".pt")
+        ckpt_fpath = os.path.join(params["model_folder_path"], "model" + ".pt")
         checkpoint_state = torch.load(ckpt_fpath)
         
         tagger_pretrained_dict = self.tagger_layer.state_dict()
@@ -368,8 +368,6 @@ class BertForDeprel(Module):
         
         llm_pretrained_dict = self.llm_layer.state_dict()
         for layer_name, weights in checkpoint_state["adapter"].items():
-            if self.pretrain_model_params:
-                layer_name = layer_name.replace(self.pretrain_model_params["model_name"], self.model_params["model_name"])
             if layer_name in llm_pretrained_dict:
                 llm_pretrained_dict[layer_name] = weights
         self.llm_layer.load_state_dict(llm_pretrained_dict)

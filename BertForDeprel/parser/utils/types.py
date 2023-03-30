@@ -21,8 +21,7 @@ class AnnotationSchema_T(TypedDict):
 
 class ModelParams_T(TypedDict):
     # Shared
-    root_folder_path: str
-    model_name: str
+    model_folder_path: str
     annotation_schema: AnnotationSchema_T
 
     # Next training params (only relevent if one want to train a model or retrain/finetune)
@@ -64,8 +63,7 @@ def get_empty_annotation_schema() -> AnnotationSchema_T:
 
 def get_default_model_params() -> ModelParams_T:
     params: ModelParams_T = {
-        "root_folder_path": "",
-        "model_name": "my_bert_for_deprel_model",
+        "model_folder_path": "",
         "annotation_schema": get_empty_annotation_schema(),
         "max_epoch": 30,
         "patience": 100,

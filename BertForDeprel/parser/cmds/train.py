@@ -18,11 +18,8 @@ class Train(CMD):
     def add_subparser(self, name, parser):
         subparser = parser.add_parser(name, help="Train a model.")
         subparser.add_argument(
-            "--root_folder_path", "-f", help="path to models folder"
+            "--model_folder_path", "-f", help="path to models folder"
         )
-        subparser.add_argument(
-            "--model_name", "-m", help="name of current saved model"
-        ) 
         subparser.add_argument(
             "--embedding_type",
             "-e",
@@ -63,16 +60,11 @@ class Train(CMD):
 
     def __call__(self, args, model_params: ModelParams_T):
         super(Train, self).__call__(args, model_params)
-        if args.root_folder_path:
-            model_params["root_folder_path"] = args.root_folder_path
-        if args.model_name:
-            model_params["model_name"] = args.model_name
+        if args.model_folder_path:
+            model_params["model_folder_path"] = args.model_folder_path
 
-        if "/" in model_params["model_name"]:
-            raise Exception(f"`model_name` parameter has to be a filename, and not a relative or absolute path : `{model_params['model_name']}`")
-
-        if not os.path.isdir(model_params["root_folder_path"]):
-            os.makedirs(model_params["root_folder_path"])            
+        if not os.path.isdir(model_params["model_folder_path"]):
+            os.makedirs(model_params["model_folder_path"])            
         
         if args.embedding_type:
             model_params["embedding_type"] = args.embedding_type
@@ -113,8 +105,8 @@ class Train(CMD):
                 if args.overwrite_pretrain_classifiers == False:
                     model_params["annotation_schema"] = pretrain_model_params_["annotation_schema"] 
                 pretrain_model_params = pretrain_model_params_
-            if os.path.join(pretrain_model_params_["root_folder_path"], pretrain_model_params_["model_name"])  == \
-                os.path.join(model_params["root_folder_path"], model_params["model_name"]):
+            if os.path.join(pretrain_model_params_["model_folder_path"], "model.pt")  == \
+                os.path.join(model_params["model_folder_path"], "model.pt"):
                 assert Exception("The pretrained model and the new model have same full path. It's not allowed as it would result in erasing the pretrained model")
 
         dataset = ConlluDataset(args.ftrain, model_params, args.mode, compute_annotation_schema_if_not_found=True)
@@ -176,16 +168,27 @@ class Train(CMD):
         n_epoch = 0
 
         results = model.eval_epoch(test_loader, args.device)
+        results["n_sentences_train"] = len(train_dataset)
+        results["n_sentences_test"] = len(test_dataset)
+
+        history = {
+            n_epoch_start: results,
+        }
         best_loss = results["loss_epoch"]
         best_LAS = results["LAS_epoch"]
         best_epoch_results = results
-
-        # history = []
-        # history = update_history(history, results, n_epoch_start, args)
+        path_scores_history = os.path.join(model_params["model_folder_path"], "scores.history.json")
+        path_scores_best = os.path.join(model_params["model_folder_path"], "scores.best.json")
         for n_epoch in range(n_epoch_start + 1, model_params["max_epoch"] + 1):
             print("\n-----   Epoch {}   -----".format(n_epoch))
             model.train_epoch(train_loader, args.device)
             results = model.eval_epoch(test_loader, args.device)
+            results["n_sentences_train"] = len(train_dataset)
+            results["n_sentences_test"] = len(test_dataset)
+            history[n_epoch] = results
+            with open(path_scores_history, "w") as outfile:
+                outfile.write(json.dumps(history))
+
             # history = update_history(history, results, n_epoch, args)
             loss_epoch = results["loss_epoch"]
             LAS_epoch = results["LAS_epoch"]
@@ -200,6 +203,8 @@ class Train(CMD):
                     print("best epoch (on LAS) so far, saving model...")
 
                 model.save_model(n_epoch)
+                with open(path_scores_best, "w") as outfile:
+                    outfile.write(json.dumps(results))
                 best_epoch_results = results
 
             else:
@@ -217,3 +222,7 @@ class Train(CMD):
         total_time_elapsed = total_timer_end - total_timer_start
 
         print("Training ended. Total time elapsed = {}".format(total_time_elapsed))
+
+        path_finished_state_file = os.path.join(model_params["model_folder_path"], ".finished")
+        with open(path_finished_state_file, "w") as outfile:
+            outfile.write("")
