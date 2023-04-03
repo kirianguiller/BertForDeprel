@@ -170,10 +170,10 @@ class Train(CMD):
         results = model.eval_epoch(test_loader, args.device)
         results["n_sentences_train"] = len(train_dataset)
         results["n_sentences_test"] = len(test_dataset)
+        results["epoch"] = n_epoch_start
 
-        history = {
-            n_epoch_start: results,
-        }
+        history = []
+        history.append(results)
         best_loss = results["loss_epoch"]
         best_LAS = results["LAS_epoch"]
         best_epoch_results = results
@@ -185,7 +185,9 @@ class Train(CMD):
             results = model.eval_epoch(test_loader, args.device)
             results["n_sentences_train"] = len(train_dataset)
             results["n_sentences_test"] = len(test_dataset)
-            history[n_epoch] = results
+            results["epoch"] = n_epoch
+
+            history.append(results)
             with open(path_scores_history, "w") as outfile:
                 outfile.write(json.dumps(history))
 
