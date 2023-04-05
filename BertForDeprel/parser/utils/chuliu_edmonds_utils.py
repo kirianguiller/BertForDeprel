@@ -1,4 +1,6 @@
+from typing import List, Tuple
 import numpy as np
+from numpy.typing import NDArray
 
 def tarjan(tree):
     """"""
@@ -45,7 +47,6 @@ def tarjan(tree):
 
 def chuliu_edmonds(scores):
     """"""
-
     np.fill_diagonal(scores, -float('inf')) # prevent self-loops
     scores[0] = -float('inf')
     scores[0,0] = 0
@@ -126,7 +127,7 @@ def chuliu_edmonds(scores):
         return new_tree
 
 #===============================================================
-def chuliu_edmonds_one_root(scores):
+def chuliu_edmonds_one_root(scores: NDArray):
     """"""
 
     scores = scores.astype(np.float64)
@@ -162,3 +163,14 @@ def chuliu_edmonds_one_root(scores):
             f.write('{}: {}, {}, {}\n'.format(_tree, _scores, tree_probs, tree_score))
         raise
     return best_tree
+
+
+def chuliu_edmonds_one_root_with_constrains(scores: NDArray, forced_relations: List[Tuple] = []):
+    """
+    forced_relations: List[Tuple] : List of (i, j) tuples, the i-eme index will be forced to be dependant of j-eme token
+    """
+    if len(forced_relations):
+        scores = scores.copy()
+        for forced_relation in forced_relations:
+            scores[forced_relation[0], forced_relation[1]] += 1000
+    return chuliu_edmonds_one_root(scores)
