@@ -71,3 +71,8 @@ def test_add_prediction_to_sentence_json():
     dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "train", compute_annotation_schema_if_not_found=True)
     predicted_sentence_json =  dataset.add_prediction_to_sentence_json(0, [2,3,4,2,5], [0,0,0,0,0], [1,2,4,15,4], [5,2,3,4,3], [2,3,4,2,5], [5,2,3,4,3])
     assert predicted_sentence_json["treeJson"]["nodesJson"]["4"]["HEAD"] == 15
+
+
+def test_get_contrained_dependency_for_chuliu():
+    dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "test", compute_annotation_schema_if_not_found=True)
+    assert dataset.get_contrained_dependency_for_chuliu(1) == [(1, 2), (2, 0), (3, 4), (4, 2), (5, 4)]

@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Tuple
 from conllup.conllup import writeConlluFile, sentenceJson_T
 from timeit import default_timer as timer
 
@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 
 from ..cmds.cmd import CMD
 from ..utils.annotation_schema_utils import get_path_of_conllus_from_folder_path
-from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
+from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constrains
 from ..utils.load_data_utils import ConlluDataset, SequenceBatch_T
 from ..utils.model_utils import BertForDeprel
 from ..utils.scores_and_losses_utils import deprel_aligner_with_head
@@ -43,6 +43,10 @@ class Predict(CMD):
             "--write_preds_in_misc",
             action="store_true",
             help="whether to include punctuation",
+        )
+        subparser.add_argument(
+            "--use_input_rel_as_constrained_rel", action="store_true",
+            help="whether to use deps of input files as constrained for maximum spanning tree",
         )
 
         return subparser
@@ -148,8 +152,12 @@ class Predict(CMD):
 
                         heads_pred_np = heads_pred_np.cpu().numpy()
 
-                        chuliu_heads_vector = chuliu_edmonds_one_root(
-                            np.transpose(heads_pred_np, (1, 0))
+                        forced_relations: List[Tuple] = []
+                        if args.use_input_rel_as_constrained_rel:
+                            forced_relations = pred_dataset.get_contrained_dependency_for_chuliu(n_sentence)
+
+                        chuliu_heads_vector = chuliu_edmonds_one_root_with_constrains(
+                            np.transpose(heads_pred_np, (1, 0)), forced_relations
                         )[1:]
                         for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
                             chuliu_heads_pred[

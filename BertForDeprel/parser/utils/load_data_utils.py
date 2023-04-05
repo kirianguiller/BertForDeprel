@@ -1,7 +1,7 @@
 import os
-from typing import Dict, List, Any, TypedDict, Literal
+from typing import Dict, List, Any, Tuple, TypedDict, Literal
 
-from conllup.conllup import sentenceConllToJson, sentenceJson_T, _featuresConllToJson, _featuresJsonToConll, readConlluFile
+from conllup.conllup import sentenceJson_T, _featuresConllToJson, _featuresJsonToConll, readConlluFile
 
 from torch.utils.data import Dataset
 from torch import tensor, Tensor
@@ -290,6 +290,18 @@ class ConlluDataset(Dataset):
                 token["LEMMA"] = apply_lemma_rule(token["FORM"], lemma_script)
                 token["DEPREL"] = annotation_schema["deprels"][deprel_chuliu]
         return predicted_sentence_json
+    
+    def get_contrained_dependency_for_chuliu(self, idx: int) -> List[Tuple]:
+        forced_relations: List[Tuple] = []
+        
+        sentence_json: sentenceJson_T = self.sequences[idx]["sentence_json"]
+        for token_idx, token_json in sentence_json["treeJson"]["nodesJson"].items():
+            if token_json["HEAD"] >= 0:
+                forced_relations.append((int(token_json["ID"]), token_json["HEAD"]))
+        
+        return forced_relations
+
+
 
 
 def get_index(label: str, mapping: Dict) -> int:
