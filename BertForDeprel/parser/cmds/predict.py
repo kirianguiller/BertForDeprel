@@ -45,8 +45,23 @@ class Predict(CMD):
             help="whether to include punctuation",
         )
         subparser.add_argument(
-            "--use_input_rel_as_constrained_rel", action="store_true",
-            help="whether to use deps of input files as constrained for maximum spanning tree",
+            "--keep_heads", default="NONE",
+            help="whether to use deps of input files as constrained for maximum spanning tree (NONE | EXISTING | ALL) (default : NONE)",
+        )
+        subparser.add_argument(
+            "--keep_deprels", default="NONE", help="whether to keep current deprels and not predict new ones (NONE | EXISTING | ALL) (default : NONE)"
+        )
+        subparser.add_argument(
+            "--keep_upos", default="NONE", help="whether to keep current upos and not predict new ones (NONE | EXISTING | ALL) (default : NONE)"
+        )
+        subparser.add_argument(
+            "--keep_xpos", default="NONE", help="whether to keep current xpos and not predict new ones (NONE | EXISTING | ALL) (default : NONE)"
+        )
+        subparser.add_argument(
+            "--keep_feats", default="NONE", help="whether to keep current feats and not predict new ones (NONE | EXISTING | ALL) (default : NONE)"
+        )
+        subparser.add_argument(
+            "--keep_lemmas", default="NONE", help="whether to keep current lemmas and not predict new ones (NONE | EXISTING | ALL) (default : NONE)"
         )
 
         return subparser
@@ -153,7 +168,7 @@ class Predict(CMD):
                         heads_pred_np = heads_pred_np.cpu().numpy()
 
                         forced_relations: List[Tuple] = []
-                        if args.use_input_rel_as_constrained_rel:
+                        if args.keep_heads == "EXISTING":
                             forced_relations = pred_dataset.get_contrained_dependency_for_chuliu(n_sentence)
 
                         chuliu_heads_vector = chuliu_edmonds_one_root_with_constrains(
@@ -171,7 +186,9 @@ class Predict(CMD):
                             deprels_pred.unsqueeze(0), chuliu_heads_pred.unsqueeze(0)
                         ).squeeze(0)
                         
-                        deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[subwords_start == 1].tolist()
+                        deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[
+                            subwords_start == 1
+                        ].tolist()
 
                         uposs_pred_list = uposs_pred.max(dim=1).indices[
                             subwords_start == 1
@@ -189,7 +206,6 @@ class Predict(CMD):
                             subwords_start == 1
                         ].tolist()
 
-
                         predicted_sentence_json = pred_dataset.add_prediction_to_sentence_json(
                             n_sentence,
                             uposs_pred_list,
@@ -198,6 +214,12 @@ class Predict(CMD):
                             deprels_pred_chuliu_list,
                             feats_pred_list,
                             lemma_scripts_pred_list,
+                            keep_upos=args.keep_upos,
+                            keep_xpos=args.keep_xpos,
+                            keep_feats=args.keep_feats,
+                            keep_deprels=args.keep_deprels,
+                            keep_heads=args.keep_heads,
+                            keep_lemmas=args.keep_lemmas,
                         )
                         predicted_sentences_json.append(predicted_sentence_json)
                         parsed_sentence_counter += 1

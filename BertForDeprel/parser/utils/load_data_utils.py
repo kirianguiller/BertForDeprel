@@ -258,44 +258,51 @@ class ConlluDataset(Dataset):
         return collated_batch
 
 
-    def add_prediction_to_sentence_json(self, idx, uposs_pred_list, xposs_pred_list, chuliu_heads_list, deprels_pred_chuliu_list, feats_pred_list, lemma_scripts_pred_list, write_preds_in_misc = False):
+    def add_prediction_to_sentence_json(self, 
+                                        idx, 
+                                        uposs_preds: List[int]=[], 
+                                        xposs_preds: List[int]=[], 
+                                        chuliu_heads: List[int]=[], 
+                                        deprels_pred_chulius: List[int]=[], 
+                                        feats_preds: List[int]=[], 
+                                        lemma_scripts_preds: List[int]=[], 
+                                        keep_upos: Literal["NONE", "EXISTING", "ALL"]="NONE",
+                                        keep_xpos: Literal["NONE", "EXISTING", "ALL"]="NONE",
+                                        keep_heads: Literal["NONE", "EXISTING", "ALL"]="NONE",
+                                        keep_deprels: Literal["NONE", "EXISTING", "ALL"]="NONE",
+                                        keep_feats: Literal["NONE", "EXISTING", "ALL"]="NONE",
+                                        keep_lemmas: Literal["NONE", "EXISTING", "ALL"]="NONE",
+                                        ):
         predicted_sentence_json: sentenceJson_T = self.sequences[idx]["sentence_json"].copy()
         tokens = list(predicted_sentence_json["treeJson"]["nodesJson"].values())
         annotation_schema = self.model_params["annotation_schema"]
-        for n_token, (upos_index, xpos_index, head_chuliu, deprel_chuliu, feats_index, lemma_script_index) in enumerate(
-                zip(
-                    uposs_pred_list,
-                    xposs_pred_list,
-                    chuliu_heads_list,
-                    deprels_pred_chuliu_list,
-                    feats_pred_list,
-                    lemma_scripts_pred_list,
-                )
-        ):
-            token = tokens[n_token]
-
-            if write_preds_in_misc:
-                misc = token["MISC"]
-                misc["DEPREL_pred"] = annotation_schema["deprels"][deprel_chuliu]
-                misc["HEAD_pred"] = str(head_chuliu)
-                misc["UPOSS_pred"] = annotation_schema["uposs"][upos_index]
-                misc["XPOSS_pred"] = annotation_schema["xposs"][xpos_index]
-
-            else:
-                token["HEAD"] = head_chuliu
-                token["UPOS"] = annotation_schema["uposs"][upos_index]
-                token["XPOS"] = annotation_schema["xposs"][xpos_index]
-                token["FEATS"] = _featuresConllToJson(annotation_schema["feats"][feats_index])
-                lemma_script = annotation_schema["lemma_scripts"][lemma_script_index]
+        for n_token, token in enumerate(tokens):
+            if keep_upos=="NONE" or (keep_upos=="EXISTING" and token["UPOS"] == "_"):
+                token["UPOS"] = annotation_schema["uposs"][uposs_preds[n_token]]
+            
+            if keep_xpos == "NONE" or (keep_xpos=="EXISTING" and token["XPOS"] == "_"):
+                token["XPOS"] = annotation_schema["xposs"][xposs_preds[n_token]]
+            
+            if keep_heads == "NONE" or (keep_heads == "EXISTING" and token["HEAD"] == -1): # this one is special as for keep_heads == "EXISTING", we already handled the case earlier in the code
+                token["HEAD"] = chuliu_heads[n_token]
+            
+            if keep_deprels == "NONE" or (keep_deprels=='EXISTING' and token["DEPREL"] == "_"):
+                token["DEPREL"] = annotation_schema["deprels"][deprels_pred_chulius[n_token]]
+            
+            if keep_feats == "NONE" or (keep_feats=="EXISTING" and token["FEATS"] == {}):
+                token["FEATS"] = _featuresConllToJson(annotation_schema["feats"][feats_preds[n_token]])
+            
+            if keep_lemmas == "NONE" or (keep_lemmas=="EXISTING" and token["LEMMA"] == "_"):
+                lemma_script = annotation_schema["lemma_scripts"][lemma_scripts_preds[n_token]]
                 token["LEMMA"] = apply_lemma_rule(token["FORM"], lemma_script)
-                token["DEPREL"] = annotation_schema["deprels"][deprel_chuliu]
         return predicted_sentence_json
+    
     
     def get_contrained_dependency_for_chuliu(self, idx: int) -> List[Tuple]:
         forced_relations: List[Tuple] = []
         
         sentence_json: sentenceJson_T = self.sequences[idx]["sentence_json"]
-        for token_idx, token_json in sentence_json["treeJson"]["nodesJson"].items():
+        for token_json in sentence_json["treeJson"]["nodesJson"].values():
             if token_json["HEAD"] >= 0:
                 forced_relations.append((int(token_json["ID"]), token_json["HEAD"]))
         
