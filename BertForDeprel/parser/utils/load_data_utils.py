@@ -124,7 +124,7 @@ class ConlluDataset(Dataset):
     def _pad_list(self, l: List[Any], padding_value: int, maxlen: int):
         if len(l) > maxlen:
             print(l, len(l))
-            raise Exception("The sequence is bigger than the size of the tensor")
+            raise Exception(f"The sequence length (={len(l)}) than the maximum allowed length ({maxlen})")
 
         return l + [padding_value] * (maxlen - len(l))
     
@@ -142,9 +142,10 @@ class ConlluDataset(Dataset):
         for token in sequence["treeJson"]["nodesJson"].values():
             if type(token["ID"]) != str:
                 continue
-
             form = token["FORM"]
             token_ids = self.tokenizer.encode(form, add_special_tokens=False)
+            if len(token_ids) == 0:
+                raise Exception(f"The token {token['ID']} of sentence {sequence['metaJson']['sent_id']} is not present in the tokenizer vocabulary, resulting in a 0-length token_ids vector")
             idx_convertor.append(len(sequence_ids))
             tokens_len.append(len(token_ids))
             subword_start = [1] + [0] * (len(token_ids) - 1)
