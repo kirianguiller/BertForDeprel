@@ -160,5 +160,7 @@ Among others, here are the most important pretrained models :
 - [Naija model fine-tuned on spoken naija from model pretrained on written english]("TODO")
 
 ## Major TODOs
-- [ ] Add feats and glose prediction
-- [ ] Add lemma
+- [x] Add feats and glose prediction
+- [x] Add lemma
+- [ ] Add confidence threshold prediction (model outputting nothing when the confidence is below a certain value)
+- [ ] Add possibility of returning the confidence of the predictions (inside miscs)
