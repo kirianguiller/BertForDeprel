@@ -2,7 +2,7 @@ import argparse
 import os
 import json
 from parser.cmds import Predict, Train
-from parser.utils.gpu_utils import get_gpus_configuration
+from parser.utils.gpu_utils import get_devices_configuration
 from parser.utils.types import get_default_model_params
 import torch
 from pathlib import Path
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     print(f"Set the seed for generating random numbers to {args.seed}")
     torch.manual_seed(args.seed)
 
-    args.device, args.train_on_gpu, args.multi_gpu = get_gpus_configuration(args.gpu_ids)
+    args.device, args.train_on_gpu, args.multi_gpu = get_devices_configuration(args.gpu_ids)
 
     print(f"Override the default configs with parsed arguments")
 

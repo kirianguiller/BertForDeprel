@@ -1,6 +1,6 @@
 import torch
 
-def get_gpus_configuration(gpu_ids):
+def get_devices_configuration(gpu_ids):
 
     def get_gpu_devices(gpu_ids: str):
         gpus = []
@@ -50,7 +50,13 @@ def get_gpus_configuration(gpu_ids):
             multi_gpu = False
 
     print(f"Train on gpu: {train_on_gpu}")
-    device = torch.device(f"cuda:0" if train_on_gpu else "cpu")
+    if train_on_gpu:
+        device = torch.device(f"cuda:0")
+    # TODO: probably should be user-configurable whether MPS is used
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
     print(f"Train on device: {device}")
 
 
