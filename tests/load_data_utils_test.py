@@ -96,13 +96,13 @@ def test_add_prediction_to_sentence_json_keep_none():
     assert predicted_sentence_json_none["treeJson"]["nodesJson"]["2"]["UPOS"] == "DET"
     assert predicted_sentence_json_none["treeJson"]["nodesJson"]["3"]["UPOS"] == "NOUN"
     assert predicted_sentence_json_none["treeJson"]["nodesJson"]["4"]["UPOS"] == "AUX"
-    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["5"]["UPOS"] == "PRON"
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["5"]["UPOS"] == "NUM"
 
-    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["1"]["DEPREL"] == "det"
-    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["2"]["DEPREL"] == "comp:obj"
-    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["3"]["DEPREL"] == "comp:pred"
-    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["4"]["DEPREL"] == "compound"
-    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["5"]["DEPREL"] == "comp:pred"
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["1"]["DEPREL"] == "flat"
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["2"]["DEPREL"] == "comp:pred"
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["3"]["DEPREL"] == "compound"
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["4"]["DEPREL"] == "det"
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["5"]["DEPREL"] == "compound"
 
 
 def test_add_prediction_to_sentence_json_keep_existing():
@@ -134,13 +134,13 @@ def test_add_prediction_to_sentence_json_keep_existing():
     assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["2"]["UPOS"] == "AUX"
     assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["3"]["UPOS"] == "NOUN"
     assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["4"]["UPOS"] == "PROPN"
-    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["5"]["UPOS"] == "PRON"
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["5"]["UPOS"] == "NUM"
 
     assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["1"]["DEPREL"] == "comp:pred"
     assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["2"]["DEPREL"] == "root"
     assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["3"]["DEPREL"] == "compound"
     assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["4"]["DEPREL"] == "subj"
-    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["5"]["DEPREL"] == "comp:pred"
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["5"]["DEPREL"] == "flat"
 
 
 def test_add_prediction_to_sentence_json_keep_all():
@@ -166,19 +166,19 @@ def test_add_prediction_to_sentence_json_keep_all():
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["2"]["HEAD"] == 0
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["3"]["HEAD"] == 4
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["4"]["HEAD"] == 2
-    assert predicted_sentence_json_all["treeJson"]["nodesJson"]["5"]["HEAD"] == -1
+    assert predicted_sentence_json_all["treeJson"]["nodesJson"]["5"]["HEAD"] == 4
 
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["1"]["UPOS"] == "PRON"
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["2"]["UPOS"] == "AUX"
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["3"]["UPOS"] == "NOUN"
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["4"]["UPOS"] == "PROPN"
-    assert predicted_sentence_json_all["treeJson"]["nodesJson"]["5"]["UPOS"] == "_"
+    assert predicted_sentence_json_all["treeJson"]["nodesJson"]["5"]["UPOS"] == "NUM"
 
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["1"]["DEPREL"] == "comp:pred"
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["2"]["DEPREL"] == "root"
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["3"]["DEPREL"] == "compound"
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["4"]["DEPREL"] == "subj"
-    assert predicted_sentence_json_all["treeJson"]["nodesJson"]["5"]["DEPREL"] == "_"
+    assert predicted_sentence_json_all["treeJson"]["nodesJson"]["5"]["DEPREL"] == "flat"
 
 
 def test_get_contrained_dependency_for_chuliu():
