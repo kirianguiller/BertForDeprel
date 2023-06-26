@@ -23,4 +23,4 @@ def test_chuliu_edmonds_one_root_with_constrains():
     assert chuliu_edmonds_one_root_with_constrains(mock_coefs_array, [(1, 0)]).tolist() == [0, 0, 1, 2, 3, 3]
     assert chuliu_edmonds_one_root_with_constrains(mock_coefs_array, [(3, 0)]).tolist() == [0, 2, 3, 0, 3, 3]
     assert chuliu_edmonds_one_root_with_constrains(mock_coefs_array, [(4, 1), (4, 5)]).tolist() == [0, 2, 0, 2, 1, 3]
-    assert chuliu_edmonds_one_root_with_constrains(mock_coefs_array, [(5, 1), (5, 4)]).tolist() == [0, 2, 0, 2, 3, 43]
+    assert chuliu_edmonds_one_root_with_constrains(mock_coefs_array, [(5, 1), (5, 4)]).tolist() == [0, 2, 0, 2, 3, 4]
