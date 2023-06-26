@@ -77,7 +77,7 @@ class Predict(CMD):
             paths_pred.append(args.inpath)
         else:
             raise BaseException(f"args.inpath must be a folder or a file, not nothing (current inpath = {args.inpath})")
-        
+
         path_predicted_files = args.outpath
 
         if not os.path.isdir(path_predicted_files):
@@ -101,16 +101,16 @@ class Predict(CMD):
         for path in paths_pred:
 
             path_result_file = os.path.join(path_predicted_files, path.split("/")[-1].replace(".conll", args.suffix + ".conll"))
-            
+
             if args.overwrite != True:
                 if os.path.isfile(path_result_file):
                     print(f"file '{path_result_file}' already exist and overwrite!=False, skipping ...\n")
                     continue
-                
+
             print(args.inpath)
 
             print("Load the dataset")
-            
+
             pred_dataset = ConlluDataset(path, model_params, args.mode)
 
             params = {
@@ -152,9 +152,9 @@ class Predict(CMD):
                         feats_pred = feats_pred_batch[sentence_in_batch_counter].clone()
                         lemma_scripts_pred = lemma_scripts_pred_batch[sentence_in_batch_counter].clone()
                         sentence_idx = idx_batch[sentence_in_batch_counter]
-                        
+
                         n_sentence = int(sentence_idx)
-                        
+
                         head_true_like = heads_pred.max(dim=0).indices
                         chuliu_heads_pred = head_true_like.clone().cpu().numpy()
                         chuliu_heads_list = []
@@ -185,7 +185,7 @@ class Predict(CMD):
                         deprels_pred_chuliu = deprel_aligner_with_head(
                             deprels_pred.unsqueeze(0), chuliu_heads_pred.unsqueeze(0)
                         ).squeeze(0)
-                        
+
                         deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[
                             subwords_start == 1
                         ].tolist()
@@ -231,7 +231,7 @@ class Predict(CMD):
                     )
 
             writeConlluFile(path_result_file, predicted_sentences_json, overwrite=args.overwrite)
-            
+
             print(f"Finished predicting `{path_result_file}, wrote {n_sentence + 1} sents in {round(timer() - start, 2)} secs`")
-        
-        
+
+

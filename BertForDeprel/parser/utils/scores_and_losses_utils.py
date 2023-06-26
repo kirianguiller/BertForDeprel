@@ -94,7 +94,7 @@ def confusion_matrix(deprels_pred, deprels_true, heads_true, conf_matrix):
 
     return conf_matrix
 
-    
+
 def update_history(history, results, n_epoch, args):
 
     history.append([n_epoch, *results.values()])

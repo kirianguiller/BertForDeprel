@@ -32,7 +32,7 @@ def compute_annotation_schema(*paths):
 
             lemma_script = gen_lemma_script(token["FORM"], token["LEMMA"])
             lemma_scripts.append(lemma_script)
-    
+
     deprels.append(NONE_VOCAB)
     uposs.append(NONE_VOCAB)
     xposs.append(NONE_VOCAB)

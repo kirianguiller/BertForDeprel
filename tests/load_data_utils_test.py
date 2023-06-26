@@ -69,15 +69,15 @@ def test_collate_fn():
 
 def test_add_prediction_to_sentence_json_keep_none():
     dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "train", compute_annotation_schema_if_not_found=True)
-    
+
     # Check for keep_* = NONE
     predicted_sentence_json_none =  dataset.add_prediction_to_sentence_json(
-        1, 
-        uposs_preds=[2,3,4,2,5], 
-        xposs_preds=[0,0,0,0,0], 
-        chuliu_heads=[1,2,4,15,4], 
-        deprels_pred_chulius=[5,2,3,4,3], 
-        feats_preds=[2,3,4,2,5], 
+        1,
+        uposs_preds=[2,3,4,2,5],
+        xposs_preds=[0,0,0,0,0],
+        chuliu_heads=[1,2,4,15,4],
+        deprels_pred_chulius=[5,2,3,4,3],
+        feats_preds=[2,3,4,2,5],
         lemma_scripts_preds=[5,2,3,4,3],
         keep_upos="NONE",
         keep_xpos="NONE",
@@ -107,15 +107,15 @@ def test_add_prediction_to_sentence_json_keep_none():
 
 def test_add_prediction_to_sentence_json_keep_existing():
     dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "train", compute_annotation_schema_if_not_found=True)
-    
+
     # Check for keep_* = EXISTING
     predicted_sentence_json_existing =  dataset.add_prediction_to_sentence_json(
-        1, 
-        uposs_preds=[2,3,4,2,5], 
-        xposs_preds=[0,0,0,0,0], 
-        chuliu_heads=[1,2,4,15,4], 
-        deprels_pred_chulius=[5,2,3,4,3], 
-        feats_preds=[2,3,4,2,5], 
+        1,
+        uposs_preds=[2,3,4,2,5],
+        xposs_preds=[0,0,0,0,0],
+        chuliu_heads=[1,2,4,15,4],
+        deprels_pred_chulius=[5,2,3,4,3],
+        feats_preds=[2,3,4,2,5],
         lemma_scripts_preds=[5,2,3,4,3],
         keep_upos="EXISTING",
         keep_xpos="EXISTING",
@@ -145,15 +145,15 @@ def test_add_prediction_to_sentence_json_keep_existing():
 
 def test_add_prediction_to_sentence_json_keep_all():
     dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "train", compute_annotation_schema_if_not_found=True)
-    
+
     # Check for keep_* = ALL
     predicted_sentence_json_all =  dataset.add_prediction_to_sentence_json(
-        1, 
-        uposs_preds=[2,3,4,2,5], 
-        xposs_preds=[0,0,0,0,0], 
-        chuliu_heads=[1,2,4,15,4], 
-        deprels_pred_chulius=[5,2,3,4,3], 
-        feats_preds=[2,3,4,2,5], 
+        1,
+        uposs_preds=[2,3,4,2,5],
+        xposs_preds=[0,0,0,0,0],
+        chuliu_heads=[1,2,4,15,4],
+        deprels_pred_chulius=[5,2,3,4,3],
+        feats_preds=[2,3,4,2,5],
         lemma_scripts_preds=[5,2,3,4,3],
         keep_upos="ALL",
         keep_xpos="ALL",

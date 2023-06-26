@@ -55,7 +55,7 @@ class Train(CMD):
             "--conf_pretrain", default="", help="path to pretrain model config")
         subparser.add_argument(
             "--overwrite_pretrain_classifiers", action="store_true", help="erase pretraines classifier heads and recompute annotation schema")
-        
+
         return subparser
 
     def __call__(self, args, model_params: ModelParams_T):
@@ -64,14 +64,14 @@ class Train(CMD):
             model_params["model_folder_path"] = args.model_folder_path
 
         if not os.path.isdir(model_params["model_folder_path"]):
-            os.makedirs(model_params["model_folder_path"])            
-        
+            os.makedirs(model_params["model_folder_path"])
+
         if args.embedding_type:
             model_params["embedding_type"] = args.embedding_type
 
         if args.max_epoch:
             model_params["max_epoch"] = args.max_epoch
-            
+
         if args.patience:
             model_params["patience"] = args.patience
 
@@ -83,7 +83,7 @@ class Train(CMD):
             with open(args.path_annotation_schema, "r") as infile:
                 model_params["annotation_schema"] = json.loads(infile.read())
 
-        # if no annotation schema where provided, either 
+        # if no annotation schema where provided, either
         if args.path_folder_compute_annotation_schema:
             model_params["annotation_schema"] = get_annotation_schema_from_input_folder(args.path_folder_compute_annotation_schema)
         print("Model parameters : ", model_params)
@@ -97,13 +97,13 @@ class Train(CMD):
         if args.conf_pretrain:
             # We are finetuning an existing BertForDeprel model, where a pretrain model config is provided
             # we need to be sure that :
-            # - the annotation schema of new model is the same as finetuned 
+            # - the annotation schema of new model is the same as finetuned
             # - the new model doesnt erase the old one (root_path_folder + model_name are different)
             # - the new model has same architecture as old one
             with open(args.conf_pretrain, "r") as infile:
                 pretrain_model_params_: ModelParams_T = json.loads(infile.read())
                 if args.overwrite_pretrain_classifiers == False:
-                    model_params["annotation_schema"] = pretrain_model_params_["annotation_schema"] 
+                    model_params["annotation_schema"] = pretrain_model_params_["annotation_schema"]
                 pretrain_model_params = pretrain_model_params_
             if os.path.join(pretrain_model_params_["model_folder_path"], "model.pt")  == \
                 os.path.join(model_params["model_folder_path"], "model.pt"):

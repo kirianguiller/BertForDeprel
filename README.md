@@ -1,8 +1,8 @@
 
 # Tutorial End-to-End
 
-Google colab showing how to use this parser are available here : 
-- naija spoken training from pre-trained english model : [link](https://colab.research.google.com/drive/1QmM73BkeoUqi3LSeeEyh79zB2oVnf-qj?usp=sharing) 
+Google colab showing how to use this parser are available here :
+- naija spoken training from pre-trained english model : [link](https://colab.research.google.com/drive/1QmM73BkeoUqi3LSeeEyh79zB2oVnf-qj?usp=sharing)
 - training from scratch on naija spoken : [link](https://colab.research.google.com/drive/1j9jrxBnsRsI0d93uN3r9Kx--KumYSh86?usp=sharing)
 - training from scratch on written english : [link](https://colab.research.google.com/drive/1UngKLyqRZk7vXawWnYzJtrjrNisPnhgK?usp=sharing)
 - mock colab for testing if everything is fine : [link](https://colab.research.google.com/drive/1J50pOlBnY-sCliBTinF-9soK6LZRZndn?usp=sharing)
@@ -72,7 +72,7 @@ PS : here an example of a valid config.json
 `--path_folder_compute_annotation_schema` provide a path to a folder containing various conllu, so the annotation schema is computed on these conllus before starting the training on --ftrain
 
 `--conf_pretrain` : path to pretrain model config, used for finetuning a pretrained BertForDeprel model
-`--overwrite_pretrain_classifiers`: erase pretraines classifier heads and recompute annotation schema 
+`--overwrite_pretrain_classifiers`: erase pretraines classifier heads and recompute annotation schema
 
 ### predict
 `--inpath` `-i` : path to the file or the folder containing the files to predict
@@ -87,7 +87,7 @@ PS : here an example of a valid config.json
 
 
 ### Predicting on raw conllus
-For predicting, you need to provide the `--conf` parameter, which is the path to the xxx.config.json file. You also need to provide the `--inpath` parameter, which is the path to a single conllu file or a folder containing multiple conllu. The output folder parameter `--outpath` (or `-o`) is optional. 
+For predicting, you need to provide the `--conf` parameter, which is the path to the xxx.config.json file. You also need to provide the `--inpath` parameter, which is the path to a single conllu file or a folder containing multiple conllu. The output folder parameter `--outpath` (or `-o`) is optional.
 ```bash
 python /home/BertForDeprel/BertForDeprel/run.py train --conf /home/models/my_parser.config.json   --inpath /home/parsing_project/to_predict/ --outpath /home/parsing_project/predicted/
 ```
@@ -132,7 +132,7 @@ where `<train.conllu>` and `<test.conllu>` are respectively the train and test d
 ## Finetuning a previously trained BertForDeprel model
 WARNING : when training from a pretrained model, be sure to use the same annotation_schema.json for fine-tuning that the one that was used for pretraining. It would break the training otherwise.
 
-To fine-tune a pre-trained model, need to follow the same step as for training a new model, but need to also provide the path to the config file of the previously trained model with `--conf_pretrained` 
+To fine-tune a pre-trained model, need to follow the same step as for training a new model, but need to also provide the path to the config file of the previously trained model with `--conf_pretrained`
 ```bash
 python /home/BertForDeprel/BertForDeprel/run.py train --model_folder_path /home/models/ --model_name my_parser  --ftrain /home/parsing_project/conllus/train.conllu  --conf_pretrained /home/models/pretrained_model.config.json
 ```

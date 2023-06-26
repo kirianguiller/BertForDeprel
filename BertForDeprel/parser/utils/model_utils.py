@@ -38,13 +38,13 @@ class PosAndDeprelParserHead(Module):
                                        self.down_dim, 1)
         self.deprel = BiAffineTrankit(self.down_dim, self.down_dim,
                                     self.down_dim, n_deprels)
-        
+
         # Label POS
         self.uposs_ffn = Linear(llm_output_size, n_uposs)
         self.xposs_ffn = Linear(llm_output_size, n_xposs)
         self.feats_ffn = Linear(llm_output_size, n_feats)
         self.lemma_scripts_ffn = Linear(llm_output_size, n_lemma_scripts)
-        
+
 
     def forward(self, x) -> BertForDeprelOutput:
         uposs = self.uposs_ffn(x)
@@ -82,7 +82,7 @@ class BertForDeprel(Module):
         adapter_name = "adapter"
         self.llm_layer.add_adapter(adapter_name, config=adapter_config)
         self.llm_layer.train_adapter([adapter_name])
-        self.llm_layer.set_active_adapters([adapter_name]) 
+        self.llm_layer.set_active_adapters([adapter_name])
 
         n_uposs = len(model_params["annotation_schema"]["uposs"])
         n_xposs = len(model_params["annotation_schema"]["xposs"])
@@ -119,7 +119,7 @@ class BertForDeprel(Module):
         #Feeding the input to BERT model to obtain contextualized representations
         bert_output : BaseModelOutputWithPoolingAndCrossAttentions = self.llm_layer.forward(seq, attention_mask = attn_masks)
 
-        x = bert_output.last_hidden_state 
+        x = bert_output.last_hidden_state
         output = self.tagger_layer.forward(x)
         return output
 
@@ -142,25 +142,25 @@ class BertForDeprel(Module):
             xposs_true = batch["xposs"].to(device)
             feats_true = batch["feats"].to(device)
             lemma_scripts_true = batch["lemma_scripts"].to(device)
-            
+
             self.optimizer.zero_grad()
 
             preds = self.forward(seq_ids, attn_masks)
-            
+
             loss_batch = compute_loss_head(preds["heads"], heads_true, self.criterion)
             loss_batch += compute_loss_deprel(preds["deprels"], deprels_true, heads_true.clone(), self.criterion)
             loss_batch += compute_loss_poss(preds["uposs"], uposs_true, self.criterion)
             loss_batch += compute_loss_poss(preds["xposs"], xposs_true, self.criterion)
             loss_batch += compute_loss_poss(preds["feats"], feats_true, self.criterion)
             loss_batch += compute_loss_poss(preds["lemma_scripts"], lemma_scripts_true, self.criterion)
-            
+
             loss_batch.backward()
             self.optimizer.step()
 
             processed_sentence_counter += seq_ids.size(0)
             time_from_start = timer() - start
             parsing_speed = int(round(((processed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
-            
+
             if batch_counter % print_every == 0:
                 print(
                 f'Training: {100 * (batch_counter + 1) / len(loader):.2f}% complete. {time_from_start:.2f} seconds in epoch ({parsing_speed:.2f} sents/sec)',
@@ -178,7 +178,7 @@ class BertForDeprel(Module):
             good_deprel_epoch, total_deprel_epoch, loss_deprel_epoch = 0.0, 0.0, 0.0
             n_correct_LAS_epoch, n_correct_LAS_epoch, n_total_epoch = 0.0, 0.0, 0.0
             n_correct_LAS_chuliu_epoch, n_total_epoch = 0.0, 0.0
-            
+
             start = timer()
             processed_sentence_counter = 0
             total_number_batch = len(loader)
@@ -198,12 +198,12 @@ class BertForDeprel(Module):
                 lemma_scripts_true = batch["lemma_scripts"].to(device)
 
                 model_output = self.forward(seq_ids, attn_masks)
-                
+
                 heads_pred = model_output["heads"].detach()
                 deprels_pred = model_output["deprels"].detach()
                 uposs_pred = model_output["uposs"].detach()
                 xposs_pred = model_output["xposs"].detach()
-                feats_pred = model_output["feats"].detach() 
+                feats_pred = model_output["feats"].detach()
                 lemma_scripts_pred = model_output["lemma_scripts"].detach()
 
                 chuliu_heads_pred = heads_true.clone()
@@ -213,12 +213,12 @@ class BertForDeprel(Module):
 
                     heads_pred_np = heads_pred_vector[:,subwords_start_with_root == 1][subwords_start_with_root == 1]
                     heads_pred_np = heads_pred_np.cpu().numpy()
-                    
+
                     chuliu_heads_vector = chuliu_edmonds_one_root(np.transpose(heads_pred_np, (1,0)))[1:]
-                    
+
                     for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
                         chuliu_heads_pred[i_vector, idx_convertor_vector[i_token+1]] = idx_convertor_vector[chuliu_head_pred]
-                    
+
                 n_correct_LAS_batch, n_correct_LAS_batch, n_total_batch = \
                     compute_LAS(heads_pred, deprels_pred, heads_true, deprels_true)
                 n_correct_LAS_chuliu_batch, _, n_total_batch = \
@@ -232,13 +232,13 @@ class BertForDeprel(Module):
                 loss_head_epoch += loss_head_batch.item()
                 good_head_epoch += good_head_batch
                 total_head_epoch += total_head_batch
-                
+
                 loss_deprel_batch = compute_loss_deprel(deprels_pred, deprels_true, heads_true, self.criterion)
                 good_deprel_batch, total_deprel_batch = compute_acc_deprel(deprels_pred, deprels_true, heads_true, eps=0)
                 loss_deprel_epoch += loss_deprel_batch.item()
                 good_deprel_epoch += good_deprel_batch
                 total_deprel_epoch += total_deprel_batch
-                
+
                 good_uposs_batch, total_uposs_batch = compute_acc_upos(uposs_pred, uposs_true, eps=0)
                 good_uposs_epoch += good_uposs_batch
                 total_uposs_epoch += total_uposs_batch
@@ -270,7 +270,7 @@ class BertForDeprel(Module):
                 processed_sentence_counter += seq_ids.size(0)
                 time_from_start = timer() - start
                 parsing_speed = int(round(((processed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
-                
+
                 if batch_counter % print_every == 0:
                     print(
                     f'Evaluating: {100 * (batch_counter + 1) / len(loader):.2f}% complete. {time_from_start:.2f} seconds in epoch ({parsing_speed:.2f} sents/sec)',
@@ -279,16 +279,16 @@ class BertForDeprel(Module):
 
             loss_head_epoch = loss_head_epoch/len(loader)
             acc_head_epoch = good_head_epoch/total_head_epoch
-            
+
             loss_deprel_epoch = loss_deprel_epoch/len(loader)
             acc_deprel_epoch = good_deprel_epoch/total_deprel_epoch
-            
+
             acc_uposs_epoch = good_uposs_epoch/total_uposs_epoch
-            
+
             acc_xposs_epoch = good_xposs_epoch/total_xposs_epoch
-            
+
             acc_feats_epoch = good_feats_epoch/total_feats_epoch
-            
+
             acc_lemma_scripts_epoch = good_lemma_scripts_epoch/total_lemma_scripts_epoch
 
             LAS_epoch = n_correct_LAS_epoch/n_total_epoch
@@ -317,8 +317,8 @@ class BertForDeprel(Module):
         }
 
         return results
-        
-        
+
+
     def save_model(self, epoch):
         trainable_weight_names = [n for n, p in self.llm_layer.named_parameters() if p.requires_grad] + \
                                  [n for n, p in self.tagger_layer.named_parameters() if p.requires_grad]
@@ -346,12 +346,12 @@ class BertForDeprel(Module):
         params = self.pretrain_model_params or self.model_params
         ckpt_fpath = os.path.join(params["model_folder_path"], "model" + ".pt")
         checkpoint_state = torch.load(ckpt_fpath)
-        
+
         tagger_pretrained_dict = self.tagger_layer.state_dict()
         for layer_name, weights in checkpoint_state["tagger"].items():
             if overwrite_pretrain_classifiers == True and layer_name in [
-                "deprel.pairwise_weight", 
-                "uposs_ffn.weight", 
+                "deprel.pairwise_weight",
+                "uposs_ffn.weight",
                 "uposs_ffn.bias",
                 "xposs_ffn.weight",
                 "xposs_ffn.bias",
@@ -364,8 +364,8 @@ class BertForDeprel(Module):
                 continue
             tagger_pretrained_dict[layer_name] = weights
         self.tagger_layer.load_state_dict(tagger_pretrained_dict)
-        
-        
+
+
         llm_pretrained_dict = self.llm_layer.state_dict()
         for layer_name, weights in checkpoint_state["adapter"].items():
             if layer_name in llm_pretrained_dict:

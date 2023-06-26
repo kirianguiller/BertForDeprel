@@ -121,5 +121,5 @@ def gen_lemma_script(form: str, lemma: str):
 
     if lemma != "":
         lemma_script = gen_lemma_rule(form, lemma)
-    
+
     return lemma_script

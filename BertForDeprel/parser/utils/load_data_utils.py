@@ -67,7 +67,7 @@ class ConlluDataset(Dataset):
                 model_params["annotation_schema"] = compute_annotation_schema(*paths)
             else:
                 raise Exception("No annotation schema found in `model_params` while `compute_annotation_schema_if_not_found` is set to False")
-        
+
         self.model_params = model_params
         os.environ["TOKENIZERS_PARALLELISM"] = "true"
         self.tokenizer: RobertaTokenizer = AutoTokenizer.from_pretrained(model_params["embedding_type"])
@@ -90,7 +90,7 @@ class ConlluDataset(Dataset):
         sentences_json: List[sentenceJson_T] = []
         for path in paths:
             sentences_json += readConlluFile(path, keep_empty_trees=False)
-        
+
         self.sequences: List[Sequence_T] = []
         valid_sentence_counter = 0
         for sentence_json in sentences_json:
@@ -127,7 +127,7 @@ class ConlluDataset(Dataset):
             raise Exception(f"The sequence length (={len(l)}) than the maximum allowed length ({maxlen})")
 
         return l + [padding_value] * (maxlen - len(l))
-    
+
     def _trunc(self, tensor):
         # if len(tensor) >= self.model_params["maxlen"]:
         #     tensor = tensor[: self.model_params["maxlen"] - 1]
@@ -178,7 +178,7 @@ class ConlluDataset(Dataset):
         lemma_scripts = [-1]
         deprels = [-1]
         skipped_tokens = 0
-        
+
         for n_token, token in enumerate(sequence["treeJson"]["nodesJson"].values()):
             if type(token["ID"]) != str:
                 skipped_tokens += 1
@@ -190,7 +190,7 @@ class ConlluDataset(Dataset):
             xpos = [get_index(token["XPOS"], self.xpos2i)] + [-1] * (token_len - 1)
             feat = [get_index(_featuresJsonToConll(token["FEATS"]), self.feat2i)] + [-1] * (token_len - 1)
             lemma_script = [get_index(gen_lemma_script(token["FORM"], token["LEMMA"]), self.lem2i)] + [-1] * (token_len - 1)
-            
+
             head = [sum(tokens_len[: token["HEAD"]])] + [-1] * (token_len - 1)
             deprel = token["DEPREL"]
 
@@ -259,14 +259,14 @@ class ConlluDataset(Dataset):
         return collated_batch
 
 
-    def add_prediction_to_sentence_json(self, 
-                                        idx, 
-                                        uposs_preds: List[int]=[], 
-                                        xposs_preds: List[int]=[], 
-                                        chuliu_heads: List[int]=[], 
-                                        deprels_pred_chulius: List[int]=[], 
-                                        feats_preds: List[int]=[], 
-                                        lemma_scripts_preds: List[int]=[], 
+    def add_prediction_to_sentence_json(self,
+                                        idx,
+                                        uposs_preds: List[int]=[],
+                                        xposs_preds: List[int]=[],
+                                        chuliu_heads: List[int]=[],
+                                        deprels_pred_chulius: List[int]=[],
+                                        feats_preds: List[int]=[],
+                                        lemma_scripts_preds: List[int]=[],
                                         keep_upos: Literal["NONE", "EXISTING", "ALL"]="NONE",
                                         keep_xpos: Literal["NONE", "EXISTING", "ALL"]="NONE",
                                         keep_heads: Literal["NONE", "EXISTING", "ALL"]="NONE",
@@ -280,33 +280,33 @@ class ConlluDataset(Dataset):
         for n_token, token in enumerate(tokens):
             if keep_upos=="NONE" or (keep_upos=="EXISTING" and token["UPOS"] == "_"):
                 token["UPOS"] = annotation_schema["uposs"][uposs_preds[n_token]]
-            
+
             if keep_xpos == "NONE" or (keep_xpos=="EXISTING" and token["XPOS"] == "_"):
                 token["XPOS"] = annotation_schema["xposs"][xposs_preds[n_token]]
-            
+
             if keep_heads == "NONE" or (keep_heads == "EXISTING" and token["HEAD"] == -1): # this one is special as for keep_heads == "EXISTING", we already handled the case earlier in the code
                 token["HEAD"] = chuliu_heads[n_token]
-            
+
             if keep_deprels == "NONE" or (keep_deprels=='EXISTING' and token["DEPREL"] == "_"):
                 token["DEPREL"] = annotation_schema["deprels"][deprels_pred_chulius[n_token]]
-            
+
             if keep_feats == "NONE" or (keep_feats=="EXISTING" and token["FEATS"] == {}):
                 token["FEATS"] = _featuresConllToJson(annotation_schema["feats"][feats_preds[n_token]])
-            
+
             if keep_lemmas == "NONE" or (keep_lemmas=="EXISTING" and token["LEMMA"] == "_"):
                 lemma_script = annotation_schema["lemma_scripts"][lemma_scripts_preds[n_token]]
                 token["LEMMA"] = apply_lemma_rule(token["FORM"], lemma_script)
         return predicted_sentence_json
-    
-    
+
+
     def get_contrained_dependency_for_chuliu(self, idx: int) -> List[Tuple]:
         forced_relations: List[Tuple] = []
-        
+
         sentence_json: sentenceJson_T = self.sequences[idx]["sentence_json"]
         for token_json in sentence_json["treeJson"]["nodesJson"].values():
             if token_json["HEAD"] >= 0:
                 forced_relations.append((int(token_json["ID"]), token_json["HEAD"]))
-        
+
         return forced_relations
 
 
