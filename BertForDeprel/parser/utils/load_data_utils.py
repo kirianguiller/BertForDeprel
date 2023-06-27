@@ -312,10 +312,10 @@ class ConlluDataset(Dataset):
 
 
 
-def get_index(label: str, mapping: Dict) -> int:
+def get_index(label: str, mapping: Dict[str, int]) -> int:
     """
     label: a string that represent the label whose integer is required
-    mapping: a dictionnary with a set of labels as keys and index integer as values
+    mapping: a dictionary with a set of labels as keys and index integers as values
 
     return : index (int)
     """
@@ -324,7 +324,7 @@ def get_index(label: str, mapping: Dict) -> int:
     if index == -1:
         index = mapping[NONE_VOCAB]
         print(
-            f"LOG: label '{label}' was not founded in the label2index mapping : "
+            f"LOG: label '{label}' was not found in the label2index mapping. Using the index for '{NONE_VOCAB}' instead."
         )
     return index
 
