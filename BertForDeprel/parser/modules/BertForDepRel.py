@@ -17,7 +17,8 @@ from ..utils.types import ModelParams_T
 import torch.mps
 from torch.nn import CrossEntropyLoss, Module
 from torch.optim import AdamW
-from transformers import AdapterConfig, AutoModel, XLMRobertaModel
+from transformers import AutoModel, XLMRobertaModel
+from transformers.adapters import PfeifferConfig
 from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAttentions
 
 
@@ -49,9 +50,8 @@ class BertForDeprel(Module):
     def __setup_language_model_layer(self, embedding_type):
         # TODO: user gets to choose the type here, so it's wrong to assume XLMRobertaModel
         self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(embedding_type)
-        adapter_config = AdapterConfig.load("pfeiffer", reduction_factor=4)
-        # TODO : find better name (tagger)
-        adapter_name = "adapter"
+        adapter_config = PfeifferConfig(reduction_factor=4, non_linearity="gelu")
+        adapter_name = "Pfeiffer_gelu"
         self.llm_layer.add_adapter(adapter_name, config=adapter_config)
         self.llm_layer.train_adapter([adapter_name])
         self.llm_layer.set_active_adapters([adapter_name])
