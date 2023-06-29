@@ -1,16 +1,26 @@
 """
 Utilities for processing lemmas
 
-Adopted from UDPipe Future
-https://github.com/CoNLL-UD-2018/UDPipe-Future
+Adopted from UDPipe Future: https://github.com/CoNLL-UD-2018/UDPipe-Future.
+See section 4.4 of "UDPipe 2.0 Prototype at CoNLL 2018 UD Shared Task"
+(https://aclanthology.org/K18-2020.pdf).
+
+Note that, in the original paper, allow_copy is set to whichever value
+yields fewer unique rules for a given language.
 """
 
 
-def min_edit_script(source, target, allow_copy=False):
+def min_edit_script(source: str, target: str, allow_copy=False) -> str:
     """
-    Finds the minimum edit script to transform the source to the target
+    Returns the minimum edit script to transform the source to the target using
+    the Levenshtein algorithm. The returned script is a sequence of operations:
+    - +x: insert x
+    - -: delete char from source
+    - →: copy from source to target
+    The copy action is only allowed if allow_copy is True.
     """
-    a = [[(len(source) + len(target) + 1, None)] * (len(target) + 1) for _ in range(len(source) + 1)]
+    a: list[list[tuple[int, str]]]
+    a = [[(len(source) + len(target) + 1, "")] * (len(target) + 1) for _ in range(len(source) + 1)]
     for i in range(0, len(source) + 1):
         for j in range(0, len(target) + 1):
             if i == 0 and j == 0:
@@ -25,7 +35,7 @@ def min_edit_script(source, target, allow_copy=False):
     return a[-1][-1][1]
 
 
-def gen_lemma_rule(form, lemma, allow_copy=False):
+def gen_lemma_rule(form: str, lemma: str, allow_copy=False) -> str:
     """
     Generates a lemma rule to transform the source to the target
     """
@@ -61,13 +71,13 @@ def gen_lemma_rule(form, lemma, allow_copy=False):
     return rule
 
 
-def apply_lemma_rule(form, lemma_rule):
+def apply_lemma_rule(form: str, lemma_rule: str) -> str:
     """
     Applies the lemma rule to the form to generate the lemma
     """
 
     if ";" not in lemma_rule:
-        print("apply_lemma_rule warning : lemma_rule does not have a ';'    lemma_rule = ", lemma_rule)
+        print(f"error: unable to apply lemma rule '{lemma_rule}' because it does not contain a ';'")
         return form
 
     casing, rule = lemma_rule.split(";", 1)
@@ -116,7 +126,7 @@ def apply_lemma_rule(form, lemma_rule):
     return lemma
 
 
-def gen_lemma_script(form: str, lemma: str):
+def gen_lemma_script(form: str, lemma: str) -> str:
     lemma_script = "none"
 
     if lemma != "":

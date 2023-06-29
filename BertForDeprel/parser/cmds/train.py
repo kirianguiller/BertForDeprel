@@ -1,3 +1,4 @@
+from argparse import _SubParsersAction, ArgumentParser
 import os
 from datetime import datetime
 from time import time
@@ -7,15 +8,15 @@ from typing import Optional
 from torch import nn
 from torch.utils.data import DataLoader, random_split
 
-from ..cmds.cmd import CMD
+from ..cmds.cmd import CMD, SubparsersType
 from ..utils.load_data_utils import ConlluDataset
-from ..utils.model_utils import BertForDeprel
+from ..modules.BertForDepRel import BertForDeprel
 from ..utils.types import ModelParams_T
 from ..utils.scores_and_losses_utils import update_history
 from ..utils.annotation_schema_utils import get_annotation_schema_from_input_folder, compute_annotation_schema, is_annotation_schema_empty
 
 class Train(CMD):
-    def add_subparser(self, name, parser):
+    def add_subparser(self, name: str, parser: SubparsersType) -> ArgumentParser:
         subparser = parser.add_parser(name, help="Train a model.")
         subparser.add_argument(
             "--model_folder_path", "-f", help="path to models folder"
@@ -189,7 +190,7 @@ class Train(CMD):
 
             history.append(results)
             with open(path_scores_history, "w") as outfile:
-                outfile.write(json.dumps(history))
+                outfile.write(json.dumps(history, indent=4))
 
             # history = update_history(history, results, n_epoch, args)
             loss_epoch = results["loss_epoch"]
@@ -206,7 +207,7 @@ class Train(CMD):
 
                 model.save_model(n_epoch)
                 with open(path_scores_best, "w") as outfile:
-                    outfile.write(json.dumps(results))
+                    outfile.write(json.dumps(results, indent=4))
                 best_epoch_results = results
 
             else:

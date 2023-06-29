@@ -1,3 +1,4 @@
+from argparse import _SubParsersAction, ArgumentParser
 import os
 from typing import List, Tuple
 from conllup.conllup import writeConlluFile, sentenceJson_T
@@ -9,27 +10,23 @@ from scipy.sparse.csgraph import minimum_spanning_tree
 from torch import nn
 from torch.utils.data import DataLoader
 
-from ..cmds.cmd import CMD
+from ..cmds.cmd import CMD, SubparsersType
 from ..utils.annotation_schema_utils import get_path_of_conllus_from_folder_path
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constrains
 from ..utils.load_data_utils import ConlluDataset, SequenceBatch_T
-from ..utils.model_utils import BertForDeprel
+from ..modules.BertForDepRel import BertForDeprel
 from ..utils.scores_and_losses_utils import deprel_aligner_with_head
 from ..utils.types import ModelParams_T
 
-def min_span_matrix(matrix):
-    matrix = -1 * matrix
-    return minimum_spanning_tree(matrix)
 
-
-# np.ndarray -> np.ndarray
-def max_span_matrix(matrix):
-    m = min_span_matrix(matrix)
-    return -1 * (m.toarray().astype(int))
+def max_span_matrix(matrix: np.ndarray) -> np.ndarray:
+    matrix_inverted = -1 * matrix
+    max_span_inverted = minimum_spanning_tree(matrix_inverted)
+    return -1 * (max_span_inverted.toarray().astype(int))
 
 
 class Predict(CMD):
-    def add_subparser(self, name, parser):
+    def add_subparser(self, name: str, parser: SubparsersType) -> ArgumentParser:
         subparser = parser.add_parser(
             name, help="Use a trained model to make predictions."
         )
@@ -85,7 +82,7 @@ class Predict(CMD):
 
         print(paths_pred)
 
-        print("Load the model")
+        print("Loading model...")
         model = BertForDeprel(model_params)
         model.load_pretrained()
 
@@ -93,7 +90,7 @@ class Predict(CMD):
         model.to(args.device)
 
         if args.multi_gpu:
-            print("MODEL TO MULTI GPU")
+            print("Sending model to multiple GPUs...")
             model = nn.DataParallel(model)
 
         model.eval()
@@ -109,7 +106,7 @@ class Predict(CMD):
 
             print(args.inpath)
 
-            print("Load the dataset")
+            print(f"Loading dataset from {args.inpath}...")
 
             pred_dataset = ConlluDataset(path, model_params, args.mode)
 
@@ -119,8 +116,7 @@ class Predict(CMD):
             }
             pred_loader = DataLoader(pred_dataset, collate_fn=pred_dataset.collate_fn, shuffle=False, **params)
             print(
-                f"{'eval:':6} {len(pred_dataset):5} sentences, "
-                f"{len(pred_loader):3} batches, "
+                f"{'Loaded '} {len(pred_dataset):5} sentences ({len(pred_loader):3} batches)"
             )
             start = timer()
             predicted_sentences_json: List[sentenceJson_T] = []
@@ -142,6 +138,8 @@ class Predict(CMD):
                     feats_pred_batch = preds["feats"].detach()
                     lemma_scripts_pred_batch = preds["lemma_scripts"].detach()
 
+                    time_from_start = 0
+                    parsing_speed = 0
                     for sentence_in_batch_counter in range(seq_ids_batch.size()[0]):
                         subwords_start = subwords_start_batch[sentence_in_batch_counter]
                         idx_convertor = idx_convertor_batch[sentence_in_batch_counter]
@@ -225,6 +223,7 @@ class Predict(CMD):
                         parsed_sentence_counter += 1
                         time_from_start = timer() - start
                         parsing_speed = int(round(((parsed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
+
                     print(
                         f"Predicting: {100 * (parsed_sentence_counter + 1) / len(pred_dataset):.2f}% complete. {time_from_start:.2f} seconds in file ({parsing_speed} sents/sec).",
                         end="\r",
@@ -232,6 +231,6 @@ class Predict(CMD):
 
             writeConlluFile(path_result_file, predicted_sentences_json, overwrite=args.overwrite)
 
-            print(f"Finished predicting `{path_result_file}, wrote {n_sentence + 1} sents in {round(timer() - start, 2)} secs`")
+            print(f"Finished predicting `{path_result_file}, wrote {parsed_sentence_counter} sents in {round(timer() - start, 2)} secs`")
 
 

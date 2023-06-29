@@ -1,73 +1,24 @@
-import os
-from timeit import default_timer as timer
-from typing import Optional, TypedDict
 import numpy as np
 import json
-
+import os
+from timeit import default_timer as timer
 import torch
+
+
+from typing import Optional
+
+from .BertForDepRelOutput import BertForDeprelOutput
+from .PosAndDepRelParserHead import PosAndDeprelParserHead
+from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
+from ..utils.load_data_utils import SequenceBatch_T
+from ..utils.scores_and_losses_utils import compute_LAS, compute_LAS_chuliu, compute_acc_deprel, compute_acc_head, compute_acc_upos, compute_loss_deprel, compute_loss_head, compute_loss_poss
+from ..utils.types import ModelParams_T
+
+import torch.mps
+from torch.nn import CrossEntropyLoss, Module
 from torch.optim import AdamW
-from torch.nn import Module, CrossEntropyLoss, Linear
-
-from transformers import AutoModel, XLMRobertaModel
+from transformers import AdapterConfig, AutoModel, XLMRobertaModel
 from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAttentions
-from transformers import AdapterConfig
-
-from .load_data_utils import SequenceBatch_T # this one is specific to adapter-transformers (https://github.com/adapter-hub/adapter-transformers)
-from .modules_utils import BiAffineTrankit
-from .scores_and_losses_utils import compute_loss_head, compute_loss_deprel, compute_loss_poss, confusion_matrix, compute_acc_deprel, compute_acc_head, compute_acc_upos, compute_LAS, compute_LAS_chuliu, compute_LAS
-from .chuliu_edmonds_utils import chuliu_edmonds_one_root
-from .types import ModelParams_T
-
-
-class BertForDeprelOutput(TypedDict):
-    uposs: torch.Tensor
-    xposs: torch.Tensor
-    feats: torch.Tensor
-    lemma_scripts: torch.Tensor
-    deprels: torch.Tensor
-    heads: torch.Tensor
-
-class PosAndDeprelParserHead(Module):
-    def __init__(self, n_uposs: int, n_deprels: int, n_feats: int, n_lemma_scripts: int, n_xposs: int, llm_output_size: int):
-        super(PosAndDeprelParserHead, self).__init__()
-
-        # Arc and label
-        self.down_dim = llm_output_size // 4
-        self.down_projection = Linear(llm_output_size, self.down_dim)
-        self.arc = BiAffineTrankit(self.down_dim, self.down_dim,
-                                       self.down_dim, 1)
-        self.deprel = BiAffineTrankit(self.down_dim, self.down_dim,
-                                    self.down_dim, n_deprels)
-
-        # Label POS
-        self.uposs_ffn = Linear(llm_output_size, n_uposs)
-        self.xposs_ffn = Linear(llm_output_size, n_xposs)
-        self.feats_ffn = Linear(llm_output_size, n_feats)
-        self.lemma_scripts_ffn = Linear(llm_output_size, n_lemma_scripts)
-
-
-    def forward(self, x) -> BertForDeprelOutput:
-        uposs = self.uposs_ffn(x)
-        xposs = self.xposs_ffn(x)
-        feats = self.feats_ffn(x)
-        lemma_scripts = self.lemma_scripts_ffn(x)
-        down_projection_embedding = self.down_projection(x) # torch.Size([16, 28, 256])
-        arc_scores = self.arc(down_projection_embedding, down_projection_embedding) # torch.Size([16, 28, 28, 1])
-        deprel_scores = self.deprel(down_projection_embedding, down_projection_embedding) # torch.Size([16, 28, 28, 40])
-        heads = arc_scores.squeeze(3)
-        deprels = deprel_scores.permute(0, 3, 2, 1)
-
-        return {
-            "uposs": uposs,
-            "xposs": xposs,
-            "feats": feats,
-            "lemma_scripts": lemma_scripts,
-            "deprels": deprels,
-            "heads": heads,
-        }
-
-
-
 
 
 class BertForDeprel(Module):
@@ -75,14 +26,9 @@ class BertForDeprel(Module):
         super(BertForDeprel, self).__init__()
         self.model_params = model_params
         self.pretrain_model_params = pretrain_model_params
-        self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(model_params["embedding_type"])
+
+        self.__setup_language_model_layer(model_params["embedding_type"])
         llm_hidden_size = self.llm_layer.config.hidden_size #expected to get embedding size of bert custom model
-        adapter_config = AdapterConfig.load("pfeiffer", reduction_factor=4)
-        # TODO : find better name (tagger)
-        adapter_name = "adapter"
-        self.llm_layer.add_adapter(adapter_name, config=adapter_config)
-        self.llm_layer.train_adapter([adapter_name])
-        self.llm_layer.set_active_adapters([adapter_name])
 
         n_uposs = len(model_params["annotation_schema"]["uposs"])
         n_xposs = len(model_params["annotation_schema"]["xposs"])
@@ -100,11 +46,20 @@ class BertForDeprel(Module):
 
         self._set_criterions_and_optimizer()
 
+    def __setup_language_model_layer(self, embedding_type):
+        # TODO: user gets to choose the type here, so it's wrong to assume XLMRobertaModel
+        self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(embedding_type)
+        adapter_config = AdapterConfig.load("pfeiffer", reduction_factor=4)
+        # TODO : find better name (tagger)
+        adapter_name = "adapter"
+        self.llm_layer.add_adapter(adapter_name, config=adapter_config)
+        self.llm_layer.train_adapter([adapter_name])
+        self.llm_layer.set_active_adapters([adapter_name])
 
     def _set_criterions_and_optimizer(self):
         self.criterion = CrossEntropyLoss(ignore_index=-1)
         self.optimizer = AdamW(self.parameters(), lr=0.00005)
-        print("Criterion and Optimizers set")
+        print("Criterion and Optimizer set")
 
     def get_total_trainable_parameters(self):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
@@ -165,6 +120,9 @@ class BertForDeprel(Module):
                 print(
                 f'Training: {100 * (batch_counter + 1) / len(loader):.2f}% complete. {time_from_start:.2f} seconds in epoch ({parsing_speed:.2f} sents/sec)',
                 end='\r')
+        # My Mac runs out of shared memory without this. See
+        # https://github.com/pytorch/pytorch/issues/13246#issuecomment-905703662
+        torch.mps.empty_cache()
         print(f"\nFinished training epoch in {time_from_start:.2f} seconds ({processed_sentence_counter} sentence at {parsing_speed} sents/sec)\n")
 
     def eval_epoch(self, loader, device):
@@ -340,7 +298,7 @@ class BertForDeprel(Module):
             )
         )
         with open(config_path, "w") as outfile:
-            outfile.write(json.dumps(self.model_params))
+            outfile.write(json.dumps(self.model_params, ensure_ascii=False, indent=4))
 
     def load_pretrained(self, overwrite_pretrain_classifiers=False):
         params = self.pretrain_model_params or self.model_params

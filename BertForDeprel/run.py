@@ -1,17 +1,20 @@
 import argparse
 import os
 import json
+from pathlib import Path
+import torch
+from typing import Dict
+
 from parser.cmds import Predict, Train
+from parser.cmds.cmd import CMD
 from parser.utils.gpu_utils import get_devices_configuration
 from parser.utils.types import get_default_model_params
-import torch
-from pathlib import Path
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create the Biaffine Parser model.")
     subparsers = parser.add_subparsers(title="Commands", dest="mode")
-    subcommands = {"predict": Predict(), "train": Train()}
+    subcommands: Dict[str, CMD] = {"predict": Predict(), "train": Train()}
     for name, subcommand in subcommands.items():
         subparser = subcommand.add_subparser(name, subparsers)
         subparser.add_argument(
@@ -38,7 +41,6 @@ if __name__ == "__main__":
 
     model_params = get_default_model_params()
 
-    # if a conf
     if args.conf:
         if os.path.isfile(args.conf):
             with open(args.conf, "r") as infile:
@@ -47,7 +49,7 @@ if __name__ == "__main__":
         else:
             raise Exception(f"You provided a --conf parameter but no config was found in `{args.conf}`")
 
-
+    # TODO
     # if model_params.get("embedding_cached_path", "") == "":
     #     model_params["embedding_cached_path"] = str(Path.home() / ".cache" / "huggingface")
     #     print(f"No `embedding_cached_path` provided, saving huggingface pretrained embedding in default cache location : `{model_params['embedding_cached_path']}` ")

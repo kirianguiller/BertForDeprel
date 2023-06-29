@@ -40,6 +40,12 @@ PS : here an example of a valid config.json
     "adapter_config_type": ""
 }
 ```
+### Predicting on raw conllus
+For predicting, you need to provide the `--conf` parameter, which is the path to the xxx.config.json file. You also need to provide the `--inpath` parameter, which is the path to a single conllu file or a folder containing multiple conllu. The output folder parameter `--outpath` (or `-o`) is optional.
+```bash
+python /home/BertForDeprel/BertForDeprel/run.py train --conf /home/models/my_parser.config.json   --inpath /home/parsing_project/to_predict/ --outpath /home/parsing_project/predicted/
+```
+
 ## All Command line parameters :
 ### shared
 `--conf` `-c` : path to config json file (for training, it's optional if both `--model_folder_path` and `model_name` are provided)
@@ -54,13 +60,13 @@ PS : here an example of a valid config.json
 ### train
 `--model_folder_path` `-f` path to parent folder of the model : optional if `--conf` is already provided
 
-`--embedding_type`  `e` : type of embedding (default : `xlm-roberta-large`)
+`--embedding_type`  `-e` : type of embedding (default : `xlm-roberta-large`)
 
 `--max_epoch` : maximum number of epochs (early stopping can shorten this number)
 
 `--patience` : number of epochs without improve required to stop the training (early stopping)
 
-`--ftrain` : path to train file or folder (files need .conllu extension))
+`--ftrain` : path to train file or folder (files need .conllu extension)
 
 `--ftest` : path to train file or folder (files need .conllu extension) (not required. If not provided, see `--split_ratio` )
 
@@ -85,12 +91,6 @@ PS : here an example of a valid config.json
 
 `--write_preds_in_misc` : whether or not to write prediction in the conllu MISC column instead than in the corresponding column for upos deprel and head
 
-
-### Predicting on raw conllus
-For predicting, you need to provide the `--conf` parameter, which is the path to the xxx.config.json file. You also need to provide the `--inpath` parameter, which is the path to a single conllu file or a folder containing multiple conllu. The output folder parameter `--outpath` (or `-o`) is optional.
-```bash
-python /home/BertForDeprel/BertForDeprel/run.py train --conf /home/models/my_parser.config.json   --inpath /home/parsing_project/to_predict/ --outpath /home/parsing_project/predicted/
-```
 
 ## Prepare Dataset
 You will need some conllus for training the model and doing inferences.
