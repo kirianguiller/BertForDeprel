@@ -1,3 +1,9 @@
+# https://en.wikipedia.org/wiki/Edmonds%27_algorithm
+# Chu-Liu/Edmond's algorithm finds the minimum spanning tree of a directed graph in O(N^3) (I think) time.
+# We assign scores between all tokens using our BiAffine NN model, and then
+# use Chu-Liu/Edmond's algorithm to find the dependency parse with the best overall score.
+# Source is probably Stanza: https://github.com/stanfordnlp/stanza/blob/v1.1.1/stanza/models/common/chuliu_edmonds.py
+
 from typing import List, Tuple
 import numpy as np
 from numpy.typing import NDArray
