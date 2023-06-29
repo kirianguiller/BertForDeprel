@@ -28,7 +28,7 @@ class BertForDeprel(Module):
         self.model_params = model_params
         self.pretrain_model_params = pretrain_model_params
 
-        self.__setup_language_model_layer(model_params["embedding_type"])
+        self.__init_language_model_layer(model_params["embedding_type"])
         llm_hidden_size = self.llm_layer.config.hidden_size #expected to get embedding size of bert custom model
 
         n_uposs = len(model_params["annotation_schema"]["uposs"])
@@ -47,7 +47,7 @@ class BertForDeprel(Module):
 
         self._set_criterions_and_optimizer()
 
-    def __setup_language_model_layer(self, embedding_type):
+    def __init_language_model_layer(self, embedding_type):
         # TODO: user gets to choose the type here, so it's wrong to assume XLMRobertaModel
         self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(embedding_type)
         adapter_config = PfeifferConfig(reduction_factor=4, non_linearity="gelu")
