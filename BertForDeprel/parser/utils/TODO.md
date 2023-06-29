@@ -6,6 +6,7 @@
 * Add calls to torch.compile and see if it speeds up
 * Progress bar for batches in training epochs
 * Fix out-of-filehandles error
+* Epoch timing data should be saved in history file
 * Generate architecture diagram
 * Document how to treat training data during fine-tune. Do I just train on the new data, or do I train on the new data + the old data?
 * What is adapter_config_type? Can I remove it?
@@ -21,10 +22,26 @@
     - plenty more configs to try...
     - PfeifferInvConfig() instead of Pfeiffer
     - UniPELTConfig() instead of Pfeiffer
-
+* Try different initialization for BiAffineTranKit parameter:
+    - self.pairwise_weight.data.zero_() -> try he normal or xavier uniform
+* Port functionality from Trankit/UDPipe:
+    - paragraph segmentation
+    - sentence segmentation
+    - tokenization
+    - multi-word token expansion
+* Add multi-word expression detection (need a data set for this)
+    - or other stuff in the UD/SUD spoken corpora annotation guidelines paper from Kahane et al.
+        - Could probably do data augmentations to generate disfluencies, corrections, re-wordings, un-finished sentences, co-constructions, etc. with correct tags
+* Lemmatizer: try Unicode denormalization of the input, normalization of the output (when can't be normalized, use a different script) to make data less sparse
+    - could also try romanize/de-romanize, for e.g. syllabaries
+* Lemmatizer: try a seq2seq model
+    - reported elsewhere as state-of-the-art (Trankit, Stanza, and https://github.com/jmnybl/universal-lemmatizer/ use it), but the older one here seems to out-perform it with just 10 epochs on EN-GUM, at least locally.
+* grok all evaluation metrics output
+    - do we want to add any more? https://trankit.readthedocs.io/en/latest/performance.html
 * explain this warning:
 ```
 Some weights of the model checkpoint at xlm-roberta-large were not used when initializing XLMRobertaModel: ['lm_head.dense.bias', 'lm_head.layer_norm.weight', 'lm_head.dense.weight', 'lm_head.layer_norm.bias', 'lm_head.decoder.weight', 'lm_head.bias']
 - This IS expected if you are initializing XLMRobertaModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
 - This IS NOT expected if you are initializing XLMRobertaModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
 ```
+* Try using the Chu-Liu/Edmond's available from PyPi: https://github.com/ufal/chu_liu_edmonds (just curious if it would be plug-n-play for us; not sure if we have a bottleneck there but it is C++ so it might be faster)
