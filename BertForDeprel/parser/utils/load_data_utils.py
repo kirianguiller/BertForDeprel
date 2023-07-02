@@ -139,13 +139,16 @@ class ConlluDataset(Dataset):
         idx_convertor = [0]
         tokens_len = [1]
 
-        for token in sequence["treeJson"]["nodesJson"].values():
-            if type(token["ID"]) != str:
+        for input_token in sequence["treeJson"]["nodesJson"].values():
+            if type(input_token["ID"]) != str:
                 continue
-            form = token["FORM"]
+            form = input_token["FORM"]
+            # Note that we are simply ignoring un-recognized parts of the form; if all parts are unrecognized,
+            # then we replace with UNK. TODO: is this desired?
             token_ids = self.tokenizer.encode(form, add_special_tokens=False)
             if len(token_ids) == 0:
-                raise Exception(f"The token {token['ID']} of sentence {sequence['metaJson']['sent_id']} is not present in the tokenizer vocabulary, resulting in a 0-length token_ids vector")
+                print(f"WARNING: Input token {input_token['ID']} ('{form}') of sentence {sequence['metaJson']['sent_id']} is not present in the tokenizer vocabulary; using UNK instead.")
+                token_ids = [self.tokenizer.unk_token_id]
             idx_convertor.append(len(sequence_ids))
             tokens_len.append(len(token_ids))
             subword_start = [1] + [0] * (len(token_ids) - 1)
