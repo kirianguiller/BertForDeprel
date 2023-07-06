@@ -126,7 +126,7 @@ def apply_lemma_rule(form: str, lemma_rule: str) -> str:
     return lemma
 
 # TODO: allow_copy should be moved into model params
-def gen_lemma_script(form: str, lemma: str, allow_copy=True) -> str:
+def gen_lemma_script(form: str, lemma: str, allow_copy=False) -> str:
     lemma_script = "none"
 
     if lemma != "":

@@ -102,12 +102,12 @@ class BertForDeprel(Module):
 
             preds = self.forward(seq_ids, attn_masks)
 
-            loss_batch = compute_loss_head(preds["heads"], heads_true, self.criterion)
-            loss_batch += compute_loss_deprel(preds["deprels"], deprels_true, heads_true.clone(), self.criterion)
-            loss_batch += compute_loss_poss(preds["uposs"], uposs_true, self.criterion)
-            loss_batch += compute_loss_poss(preds["xposs"], xposs_true, self.criterion)
-            loss_batch += compute_loss_poss(preds["feats"], feats_true, self.criterion)
-            loss_batch += compute_loss_poss(preds["lemma_scripts"], lemma_scripts_true, self.criterion)
+            loss_batch = compute_loss_head(preds.heads, heads_true, self.criterion)
+            loss_batch += compute_loss_deprel(preds.deprels, deprels_true, heads_true.clone(), self.criterion)
+            loss_batch += compute_loss_poss(preds.uposs, uposs_true, self.criterion)
+            loss_batch += compute_loss_poss(preds.xposs, xposs_true, self.criterion)
+            loss_batch += compute_loss_poss(preds.feats, feats_true, self.criterion)
+            loss_batch += compute_loss_poss(preds.lemma_scripts, lemma_scripts_true, self.criterion)
 
             loss_batch.backward()
             self.optimizer.step()
@@ -157,12 +157,12 @@ class BertForDeprel(Module):
 
                 model_output = self.forward(seq_ids, attn_masks)
 
-                heads_pred = model_output["heads"].detach()
-                deprels_pred = model_output["deprels"].detach()
-                uposs_pred = model_output["uposs"].detach()
-                xposs_pred = model_output["xposs"].detach()
-                feats_pred = model_output["feats"].detach()
-                lemma_scripts_pred = model_output["lemma_scripts"].detach()
+                heads_pred = model_output.heads.detach()
+                deprels_pred = model_output.deprels.detach()
+                uposs_pred = model_output.uposs.detach()
+                xposs_pred = model_output.xposs.detach()
+                feats_pred = model_output.feats.detach()
+                lemma_scripts_pred = model_output.lemma_scripts.detach()
 
                 chuliu_heads_pred = heads_true.clone()
                 for i_vector, (heads_pred_vector, subwords_start_vector, idx_convertor_vector) in enumerate(zip(heads_pred, subwords_start, idx_convertor)):

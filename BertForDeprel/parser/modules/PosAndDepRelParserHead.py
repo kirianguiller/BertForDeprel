@@ -36,11 +36,11 @@ class PosAndDeprelParserHead(Module):
         heads = arc_scores.squeeze(3)
         deprels = deprel_scores.permute(0, 3, 2, 1)
 
-        return {
-            "uposs": uposs,
-            "xposs": xposs,
-            "feats": feats,
-            "lemma_scripts": lemma_scripts,
-            "deprels": deprels,
-            "heads": heads,
-        }
+        return BertForDeprelOutput(
+            uposs=uposs,
+            xposs=xposs,
+            feats=feats,
+            lemma_scripts=lemma_scripts,
+            deprels=deprels,
+            heads=heads,
+        )

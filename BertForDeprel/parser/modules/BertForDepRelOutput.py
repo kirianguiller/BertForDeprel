@@ -1,10 +1,9 @@
+from dataclasses import dataclass
 import torch
 
 
-from typing import TypedDict
-
-
-class BertForDeprelOutput(TypedDict):
+@dataclass
+class BertForDeprelOutput:
     uposs: torch.Tensor
     xposs: torch.Tensor
     feats: torch.Tensor
