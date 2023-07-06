@@ -1,3 +1,4 @@
+# Shallow bilinear attention as described in https://arxiv.org/abs/1611.01734
 import torch
 from torch import nn
 

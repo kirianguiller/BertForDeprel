@@ -1,4 +1,4 @@
-from .BiAffineTrankit import BiAffineTrankit
+from .BiAffineTrankit import FixedClassDeepBiAffineClassifier
 from .BertForDepRelOutput import BertForDeprelOutput
 
 
@@ -12,9 +12,9 @@ class PosAndDeprelParserHead(Module):
         # Arc and label
         self.down_dim = llm_output_size // 4
         self.down_projection = Linear(llm_output_size, self.down_dim)
-        self.arc = BiAffineTrankit(self.down_dim, self.down_dim,
+        self.arc = FixedClassDeepBiAffineClassifier(self.down_dim, self.down_dim,
                                        self.down_dim, 1)
-        self.deprel = BiAffineTrankit(self.down_dim, self.down_dim,
+        self.deprel = FixedClassDeepBiAffineClassifier(self.down_dim, self.down_dim,
                                     self.down_dim, n_deprels)
 
         # Label POS
@@ -30,6 +30,7 @@ class PosAndDeprelParserHead(Module):
         feats = self.feats_ffn(x)
         lemma_scripts = self.lemma_scripts_ffn(x)
         down_projection_embedding = self.down_projection(x) # torch.Size([16, 28, 256])
+        # Predicting binary relations among all words, so x and y are the same arg
         arc_scores = self.arc(down_projection_embedding, down_projection_embedding) # torch.Size([16, 28, 28, 1])
         deprel_scores = self.deprel(down_projection_embedding, down_projection_embedding) # torch.Size([16, 28, 28, 40])
         heads = arc_scores.squeeze(3)

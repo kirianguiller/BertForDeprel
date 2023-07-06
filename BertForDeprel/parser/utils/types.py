@@ -38,6 +38,8 @@ class ModelParams_T(TypedDict):
     # n_current_epoch: int
     # current_epoch_results: EpochResults_T
 
+    allow_lemma_char_copy: bool
+
 
 def get_empty_current_epoch_results() -> EpochResults_T:
     return {
@@ -73,5 +75,6 @@ def get_default_model_params() -> ModelParams_T:
         # "embedding_cached_path": "",
         # "n_current_epoch": 0,
         # "current_epoch_results": get_empty_current_epoch_results(),
+        "allow_lemma_char_copy": False,
     }
     return params

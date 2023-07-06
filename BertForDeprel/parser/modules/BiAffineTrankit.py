@@ -1,10 +1,29 @@
+# Implementation from https://github.com/nlp-uoregon/trankit/blob/master/trankit/models/base_models.py
 import torch
 from torch import nn
 
 
-class BiAffineTrankit(nn.Module):
+def _mlp(in_dimension, out_dimension):
+    """Using an MLP on the LLM outputs creates what the authors call a "deep bilinear attention mechanism";
+    See equations 4, 5 and 6 for an example (MLP equations for fixed class classifier not shown in the paper
+    explicitly, but the idea is the same)."""
+    return nn.Sequential(
+        nn.Linear(in_dimension, out_dimension),
+        nn.ReLU(),
+        nn.Dropout(0.5)
+    )
+
+class FixedClassDeepBiAffineClassifier(nn.Module):
     '''
-    implemented based on the paper https://arxiv.org/abs/1611.01734
+    Based on equation 3 from Dozat and Manning, 2016: Deep Biafine Attention for Neural Dependency Parsing
+    (https://arxiv.org/abs/1611.01734).
+    Note that the fixed class classifier is more general than the variable class classifier, and can be used
+    for both arc scoring and arc labeling. This is arguably more powerful than what's presented in the paper;
+    equation 2 (the variable class biaffine classifier) models the probability of words i and j entering a
+    head-dependent relationship as well as the prior probability of word i having dependents, but it doesn't
+    model the prior probability of word j having a governing head, which could be important for finding the
+    root node. The bias term in equation 3 is redundant in the arc scoring context, since we always have arcs
+    and don't need a prior probability on their existence.
     '''
 
     def __init__(self, in_dim1, in_dim2, hidden_dim, output_dim):
@@ -14,17 +33,9 @@ class BiAffineTrankit(nn.Module):
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
 
-        self.ffn1 = nn.Sequential(
-            nn.Linear(in_dim1, hidden_dim),
-            nn.ReLU(),
-            nn.Dropout(0.5)
-        )
-        self.ffn2 = nn.Sequential(
-            nn.Linear(in_dim2, hidden_dim),
-            nn.ReLU(),
-            nn.Dropout(0.5)
-        )
-        # pairwise interactions
+        self.ffn1 = _mlp(in_dim1, hidden_dim)
+        self.ffn2 = _mlp(in_dim2, hidden_dim)
+        # Weights for the biaffine scorer; +1 for the biases
         self.pairwise_weight = nn.Parameter(torch.Tensor(in_dim1 + 1, in_dim2 + 1, output_dim))
         self.pairwise_weight.data.zero_()
 

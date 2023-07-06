@@ -9,8 +9,8 @@ from torch import nn
 from torch.utils.data import DataLoader, random_split
 
 from ..cmds.cmd import CMD, SubparsersType
-from ..utils.load_data_utils import ConlluDataset
 from ..modules.BertForDepRel import BertForDeprel
+from ..utils.load_data_utils import ConlluDataset
 from ..utils.types import ModelParams_T
 from ..utils.scores_and_losses_utils import update_history
 from ..utils.annotation_schema_utils import get_annotation_schema_from_input_folder, compute_annotation_schema, is_annotation_schema_empty

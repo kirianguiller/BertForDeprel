@@ -20,6 +20,7 @@ class SequenceInput_T(TypedDict):
 
 class SequenceOutput_T(TypedDict):
     uposs: List[int]
+    xposs: List[int]
     heads: List[int]
     deprels: List[int]
     feats: List[int]
@@ -144,7 +145,7 @@ class ConlluDataset(Dataset):
                 continue
             form = input_token["FORM"]
             # Note that we are simply ignoring un-recognized parts of the form; if all parts are unrecognized,
-            # then we replace with UNK. TODO: is this desired?
+            # then we replace with UNK. TODO: we need add_special_tokens to be False, but we still need UNK tokens
             token_ids = self.tokenizer.encode(form, add_special_tokens=False)
             if len(token_ids) == 0:
                 print(f"WARNING: Input token {input_token['ID']} ('{form}') of sentence {sequence['metaJson']['sent_id']} is not present in the tokenizer vocabulary; using UNK instead.")

@@ -10,7 +10,7 @@ yields fewer unique rules for a given language.
 """
 
 
-def min_edit_script(source: str, target: str, allow_copy=False) -> str:
+def __min_edit_script(source: str, target: str, allow_copy=False) -> str:
     """
     Returns the minimum edit script to transform the source to the target using
     the Levenshtein algorithm. The returned script is a sequence of operations:
@@ -35,7 +35,7 @@ def min_edit_script(source: str, target: str, allow_copy=False) -> str:
     return a[-1][-1][1]
 
 
-def gen_lemma_rule(form: str, lemma: str, allow_copy=False) -> str:
+def __gen_lemma_rule(form: str, lemma: str, allow_copy=False) -> str:
     """
     Generates a lemma rule to transform the source to the target
     """
@@ -65,8 +65,8 @@ def gen_lemma_rule(form: str, lemma: str, allow_copy=False) -> str:
         rule += "a" + lemma
     else:
         rule += "d{}¦{}".format(
-            min_edit_script(form[:best_form], lemma[:best_lemma], allow_copy),
-            min_edit_script(form[best_form + best:], lemma[best_lemma + best:], allow_copy),
+            __min_edit_script(form[:best_form], lemma[:best_lemma], allow_copy),
+            __min_edit_script(form[best_form + best:], lemma[best_lemma + best:], allow_copy),
         )
     return rule
 
@@ -125,11 +125,11 @@ def apply_lemma_rule(form: str, lemma_rule: str) -> str:
 
     return lemma
 
-
-def gen_lemma_script(form: str, lemma: str) -> str:
+# TODO: allow_copy should be moved into model params
+def gen_lemma_script(form: str, lemma: str, allow_copy=True) -> str:
     lemma_script = "none"
 
     if lemma != "":
-        lemma_script = gen_lemma_rule(form, lemma)
+        lemma_script = __gen_lemma_rule(form, lemma, allow_copy)
 
     return lemma_script
