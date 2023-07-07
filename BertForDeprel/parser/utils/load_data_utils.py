@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Any, Tuple, TypedDict, Literal
+from typing import Dict, List, Any, Optional, Tuple, TypedDict, Literal
 
 from conllup.conllup import sentenceJson_T, _featuresConllToJson, _featuresJsonToConll, readConlluFile
 
@@ -29,19 +29,9 @@ class SequenceOutput_T(TypedDict):
 class Sequence_T(TypedDict):
     idx: int
     sentence_json: sentenceJson_T
-    # SequenceInput_T
-    seq_ids: List[int]
-    attn_masks: List[int]
-    subwords_start: List[int]
-    idx_convertor: List[int]
-    tokens_len: List[int]
-    # SequenceOutput_T
-    uposs: List[int]
-    xposs: List[int]
-    heads: List[int]
-    deprels: List[int]
-    feats: List[int]
-    lemma_scripts: List[int]
+    input_data: SequenceInput_T
+    # only present during training
+    output_data: Optional[SequenceOutput_T]
 
 
 class SequenceBatch_T(TypedDict):
@@ -95,12 +85,11 @@ class ConlluDataset(Dataset):
         self.sequences: List[Sequence_T] = []
         valid_sentence_counter = 0
         for sentence_json in sentences_json:
-            sequence = self._get_processed(sentence_json)
+            sequence = self._get_processed(sentence_json, valid_sentence_counter)
             # TODO: fix magic number with a parameter
-            if len(sequence["seq_ids"]) > 511:
-                print("Discarding sentence", len(sequence["seq_ids"]))
+            if len(sequence["input_data"]["seq_ids"]) > 511:
+                print("Discarding sentence", len(sequence["input_data"]["seq_ids"]))
                 continue
-            sequence.update({"idx": valid_sentence_counter, "sentence_json": sentence_json})
             self.sequences.append(sequence)
             valid_sentence_counter += 1
 
@@ -221,23 +210,27 @@ class ConlluDataset(Dataset):
         # lemma_scripts = self._trunc(lemma_scripts)
         return {"uposs": uposs, "xposs": xposs, "heads": heads, "deprels": deprels, "feats": feats, "lemma_scripts": lemma_scripts}
 
-    def _get_processed(self, sentence_json: sentenceJson_T) -> Sequence_T:
-        processed_sequence = self._get_input(sentence_json)
-
+    def _get_processed(self, sentence_json: sentenceJson_T, idx: int) -> Sequence_T:
+        input_data = self._get_input(sentence_json)
+        output_data = None
         if self.run_mode == "train":
-            sequence_output = self._get_output(
-                sentence_json, processed_sequence["tokens_len"]
-            )
-            processed_sequence.update(sequence_output)
+            output_data = self._get_output(sentence_json, input_data["tokens_len"])
+
+        processed_sequence: Sequence_T = {
+            "idx": idx,
+            "sentence_json": sentence_json,
+            "input_data": input_data,
+            "output_data": output_data,
+        }
 
         return processed_sequence
 
     def collate_fn(self, sentences: List[Sequence_T]) -> SequenceBatch_T:
-        max_sentence_length = max([len(sentence["seq_ids"]) for sentence in sentences])
-        seq_ids_batch        = tensor([self._pad_list(sentence["seq_ids"],  0, max_sentence_length) for sentence in sentences])
-        subwords_start_batch = tensor([self._pad_list(sentence["subwords_start"], -1, max_sentence_length) for sentence in sentences])
-        attn_masks_batch     = tensor([self._pad_list(sentence["attn_masks"],  0, max_sentence_length) for sentence in sentences])
-        idx_convertor_batch  = tensor([self._pad_list(sentence["idx_convertor"], -1, max_sentence_length) for sentence in sentences])
+        max_sentence_length = max([len(sentence["input_data"]["seq_ids"]) for sentence in sentences])
+        seq_ids_batch        = tensor([self._pad_list(sentence["input_data"]["seq_ids"],  0, max_sentence_length) for sentence in sentences])
+        subwords_start_batch = tensor([self._pad_list(sentence["input_data"]["subwords_start"], -1, max_sentence_length) for sentence in sentences])
+        attn_masks_batch     = tensor([self._pad_list(sentence["input_data"]["attn_masks"],  0, max_sentence_length) for sentence in sentences])
+        idx_convertor_batch  = tensor([self._pad_list(sentence["input_data"]["idx_convertor"], -1, max_sentence_length) for sentence in sentences])
         idx_batch            = tensor([sentence["idx"] for sentence in sentences])
         collated_batch = {
             "idx": idx_batch,
@@ -247,12 +240,12 @@ class ConlluDataset(Dataset):
             "idx_convertor": idx_convertor_batch,
         }
         if self.run_mode == "train":
-            uposs_batch     = tensor([self._pad_list(sentence["uposs"], -1, max_sentence_length) for sentence in sentences])
-            xposs_batch     = tensor([self._pad_list(sentence["xposs"], -1, max_sentence_length) for sentence in sentences])
-            heads_batch     = tensor([self._pad_list(sentence["heads"], -1, max_sentence_length) for sentence in sentences])
-            deprels_batch   = tensor([self._pad_list(sentence["deprels"], -1, max_sentence_length) for sentence in sentences])
-            feats_batch   = tensor([self._pad_list(sentence["feats"], -1, max_sentence_length) for sentence in sentences])
-            lemma_scripts_batch   = tensor([self._pad_list(sentence["lemma_scripts"], -1, max_sentence_length) for sentence in sentences])
+            uposs_batch     = tensor([self._pad_list(sentence["output_data"]["uposs"], -1, max_sentence_length) for sentence in sentences])
+            xposs_batch     = tensor([self._pad_list(sentence["output_data"]["xposs"], -1, max_sentence_length) for sentence in sentences])
+            heads_batch     = tensor([self._pad_list(sentence["output_data"]["heads"], -1, max_sentence_length) for sentence in sentences])
+            deprels_batch   = tensor([self._pad_list(sentence["output_data"]["deprels"], -1, max_sentence_length) for sentence in sentences])
+            feats_batch   = tensor([self._pad_list(sentence["output_data"]["feats"], -1, max_sentence_length) for sentence in sentences])
+            lemma_scripts_batch   = tensor([self._pad_list(sentence["output_data"]["lemma_scripts"], -1, max_sentence_length) for sentence in sentences])
             collated_batch.update({"uposs": uposs_batch,
                                      "xposs": xposs_batch,
                                      "heads": heads_batch,
