@@ -96,6 +96,7 @@ class ConlluDataset(Dataset):
         valid_sentence_counter = 0
         for sentence_json in sentences_json:
             sequence = self._get_processed(sentence_json)
+            # TODO: fix magic number with a parameter
             if len(sequence["seq_ids"]) > 511:
                 print("Discarding sentence", len(sequence["seq_ids"]))
                 continue
