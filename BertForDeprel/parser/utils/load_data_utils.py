@@ -49,13 +49,13 @@ class SequenceBatch_T(TypedDict):
     subwords_start: Tensor
     idx_convertor: Tensor
     tokens_len: Tensor
-    # SequenceOutput_T
-    uposs: Tensor
-    xposs: Tensor
-    heads: Tensor
-    deprels: Tensor
-    feats: Tensor
-    lemma_scripts: Tensor
+    # only present during training
+    uposs: Optional[Tensor]
+    xposs: Optional[Tensor]
+    heads: Optional[Tensor]
+    deprels: Optional[Tensor]
+    feats: Optional[Tensor]
+    lemma_scripts: Optional[Tensor]
 
 class ConlluDataset(Dataset):
     def __init__(self, path_file_or_folder: str, model_params: ModelParams_T, run_mode: Literal["train", "predict"], compute_annotation_schema_if_not_found = False):
@@ -252,6 +252,12 @@ class ConlluDataset(Dataset):
             "subwords_start": subwords_start_batch,
             "attn_masks": attn_masks_batch,
             "idx_convertor": idx_convertor_batch,
+            "uposs_batch": None,
+            "xposs_batch": None,
+            "heads_batch": None,
+            "deprels_batch": None,
+            "feats_batch": None,
+            "lemma_scripts_batch": None,
         }
         if self.run_mode == "train":
             uposs_batch     = tensor([self._pad_list(sentence.output_data.uposs, -1, max_sentence_length) for sentence in sentences])
