@@ -27,7 +27,7 @@ class SequenceOutput_T(TypedDict):
     lemma_scripts: List[int]
 
 class Sequence_T(TypedDict):
-    idx: List[int]
+    idx: int
     sentence_json: sentenceJson_T
     # SequenceInput_T
     seq_ids: List[int]
@@ -221,7 +221,7 @@ class ConlluDataset(Dataset):
         # lemma_scripts = self._trunc(lemma_scripts)
         return {"uposs": uposs, "xposs": xposs, "heads": heads, "deprels": deprels, "feats": feats, "lemma_scripts": lemma_scripts}
 
-    def _get_processed(self, sentence_json: sentenceJson_T):
+    def _get_processed(self, sentence_json: sentenceJson_T) -> Sequence_T:
         processed_sequence = self._get_input(sentence_json)
 
         if self.run_mode == "train":
