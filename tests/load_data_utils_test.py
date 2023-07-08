@@ -19,7 +19,8 @@ model_params_test: ModelParams_T = {
     "batch_size": 4,
     "maxlen": 512,
     "embedding_type": "bert-base-uncased",
-    "embedding_cached_path": str(PATH_TEST_MODELS_FOLDER),
+    "allow_lemma_char_copy": False,
+    # "embedding_cached_path": str(PATH_TEST_MODELS_FOLDER),
 }
 
 
@@ -182,5 +183,5 @@ def test_add_prediction_to_sentence_json_keep_all():
 
 
 def test_get_contrained_dependency_for_chuliu():
-    dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "test", compute_annotation_schema_if_not_found=True)
-    assert dataset.get_contrained_dependency_for_chuliu(1) == [(1, 2), (2, 0), (3, 4), (4, 2), (5, 4)]
+    dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "predict", compute_annotation_schema_if_not_found=True)
+    assert dataset.get_constrained_dependency_for_chuliu(1) == [(1, 2), (2, 0), (3, 4), (4, 2), (5, 4)]

@@ -6,12 +6,14 @@ from conllup.conllup import sentenceJson_T, _featuresConllToJson, _featuresJsonT
 
 from torch.utils.data import Dataset
 from torch import tensor, Tensor
-from transformers import AutoTokenizer, RobertaTokenizer
+from transformers import AutoTokenizer, RobertaTokenizer # type: ignore (TODO: why can't PyLance find these?)
 
 from .types import ModelParams_T
 from .annotation_schema_utils import compute_annotation_schema, get_path_of_conllus_from_folder_path, is_annotation_schema_empty, NONE_VOCAB
 from .lemma_script_utils import apply_lemma_rule, gen_lemma_script
 
+# Next: change typing so that input and output inherit from one base class, then refactor so that we always
+# change methods so that we know if we're passing around input or output data (collate_fn, for example)
 
 @dataclass
 class SequenceInput_T:
@@ -317,7 +319,7 @@ class ConlluDataset(Dataset):
         return predicted_sentence_json
 
 
-    def get_contrained_dependency_for_chuliu(self, idx: int) -> List[Tuple]:
+    def get_constrained_dependency_for_chuliu(self, idx: int) -> List[Tuple]:
         forced_relations: List[Tuple] = []
 
         sentence_json: sentenceJson_T = self.sequences[idx].sentence_json

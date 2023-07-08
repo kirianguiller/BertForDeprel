@@ -17,7 +17,7 @@ from ..utils.types import ModelParams_T
 import torch.mps
 from torch.nn import CrossEntropyLoss, Module
 from torch.optim import AdamW
-from transformers import AutoModel, XLMRobertaModel
+from transformers import AutoModel, XLMRobertaModel # type: ignore (TODO: why can't PyLance find these?)
 from transformers.adapters import PfeifferConfig
 from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAttentions
 

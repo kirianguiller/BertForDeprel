@@ -6,7 +6,7 @@ from timeit import default_timer as timer
 
 import numpy as np
 import torch
-from scipy.sparse.csgraph import minimum_spanning_tree
+from scipy.sparse.csgraph import minimum_spanning_tree # type: ignore (TODO: why can't PyLance find this?)
 from torch import nn
 from torch.utils.data import DataLoader
 
@@ -167,7 +167,7 @@ class Predict(CMD):
 
                         forced_relations: List[Tuple] = []
                         if args.keep_heads == "EXISTING":
-                            forced_relations = pred_dataset.get_contrained_dependency_for_chuliu(n_sentence)
+                            forced_relations = pred_dataset.get_constrained_dependency_for_chuliu(n_sentence)
 
                         chuliu_heads_vector = chuliu_edmonds_one_root_with_constrains(
                             np.transpose(heads_pred_np, (1, 0)), forced_relations

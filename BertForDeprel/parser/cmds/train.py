@@ -120,7 +120,7 @@ class Train(CMD):
         else:
             train_size = int(len(dataset) * args.split_ratio)
             test_size = len(dataset) - train_size
-            train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+            train_dataset, test_dataset = random_split(dataset=dataset, lengths=[train_size, test_size])
 
         params_train = {
             "batch_size": model_params["batch_size"],
@@ -168,7 +168,7 @@ class Train(CMD):
         epochs_no_improve = 0
         n_epoch = 0
 
-        results = model.eval_epoch(test_loader, args.device)
+        results = model.eval_epoch(test_loader, args.device) # type: ignore (https://github.com/pytorch/pytorch/issues/90827)
         results["n_sentences_train"] = len(train_dataset)
         results["n_sentences_test"] = len(test_dataset)
         results["epoch"] = n_epoch_start
@@ -182,8 +182,8 @@ class Train(CMD):
         path_scores_best = os.path.join(model_params["model_folder_path"], "scores.best.json")
         for n_epoch in range(n_epoch_start + 1, model_params["max_epoch"] + 1):
             print("\n-----   Epoch {}   -----".format(n_epoch))
-            model.train_epoch(train_loader, args.device)
-            results = model.eval_epoch(test_loader, args.device)
+            model.train_epoch(train_loader, args.device) # type: ignore (https://github.com/pytorch/pytorch/issues/90827)
+            results = model.eval_epoch(test_loader, args.device) # type: ignore (https://github.com/pytorch/pytorch/issues/90827)
             results["n_sentences_train"] = len(train_dataset)
             results["n_sentences_test"] = len(test_dataset)
             results["epoch"] = n_epoch
@@ -205,7 +205,7 @@ class Train(CMD):
                     best_LAS = LAS_epoch
                     print("best epoch (on LAS) so far, saving model...")
 
-                model.save_model(n_epoch)
+                model.save_model(n_epoch) # type: ignore (https://github.com/pytorch/pytorch/issues/90827)
                 with open(path_scores_best, "w") as outfile:
                     outfile.write(json.dumps(results, indent=4))
                 best_epoch_results = results
