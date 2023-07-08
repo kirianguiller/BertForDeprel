@@ -10,7 +10,7 @@ from typing import Optional
 from .BertForDepRelOutput import BertForDeprelOutput
 from .PosAndDepRelParserHead import PosAndDeprelParserHead
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
-from ..utils.load_data_utils import SequenceBatch_T
+from ..utils.load_data_utils import SequencePredictionBatch_T, SequenceTrainingBatch_T
 from ..utils.scores_and_losses_utils import compute_LAS, compute_LAS_chuliu, compute_acc_deprel, compute_acc_head, compute_acc_upos, compute_loss_deprel, compute_loss_head, compute_loss_poss
 from ..utils.types import ModelParams_T
 
@@ -87,16 +87,16 @@ class BertForDeprel(Module):
         processed_sentence_counter = 0
         total_number_batch = len(loader)
         print_every = max(1, total_number_batch // 8) # so we print only around 8 times per epochs
-        batch: SequenceBatch_T
+        batch: SequenceTrainingBatch_T
         for batch_counter, batch in enumerate(loader):
-            seq_ids = batch["seq_ids"].to(device)
-            attn_masks = batch["attn_masks"].to(device)
-            heads_true = batch["heads"].to(device)
-            deprels_true = batch["deprels"].to(device)
-            uposs_true = batch["uposs"].to(device)
-            xposs_true = batch["xposs"].to(device)
-            feats_true = batch["feats"].to(device)
-            lemma_scripts_true = batch["lemma_scripts"].to(device)
+            seq_ids = batch.seq_ids.to(device)
+            attn_masks = batch.attn_masks.to(device)
+            heads_true = batch.heads.to(device)
+            deprels_true = batch.deprels.to(device)
+            uposs_true = batch.uposs.to(device)
+            xposs_true = batch.xposs.to(device)
+            feats_true = batch.feats.to(device)
+            lemma_scripts_true = batch.lemma_scripts.to(device)
 
             self.optimizer.zero_grad()
 
@@ -142,18 +142,18 @@ class BertForDeprel(Module):
             total_number_batch = len(loader)
             print_every = max(1, total_number_batch // 4) # so we print only around 8 times per epochs
 
-            batch: SequenceBatch_T
+            batch: SequenceTrainingBatch_T
             for batch_counter, batch in enumerate(loader):
-                seq_ids = batch["seq_ids"].to(device)
-                attn_masks = batch["attn_masks"].to(device)
-                subwords_start = batch["subwords_start"].to(device)
-                idx_convertor = batch["idx_convertor"].to(device)
-                heads_true = batch["heads"].to(device)
-                deprels_true = batch["deprels"].to(device)
-                uposs_true = batch["uposs"].to(device)
-                xposs_true = batch["xposs"].to(device)
-                feats_true = batch["feats"].to(device)
-                lemma_scripts_true = batch["lemma_scripts"].to(device)
+                seq_ids = batch.seq_ids.to(device)
+                attn_masks = batch.attn_masks.to(device)
+                subwords_start = batch.subwords_start.to(device)
+                idx_convertor = batch.idx_convertor.to(device)
+                heads_true = batch.heads.to(device)
+                deprels_true = batch.deprels.to(device)
+                uposs_true = batch.uposs.to(device)
+                xposs_true = batch.xposs.to(device)
+                feats_true = batch.feats.to(device)
+                lemma_scripts_true = batch.lemma_scripts.to(device)
 
                 model_output = self.forward(seq_ids, attn_masks)
 

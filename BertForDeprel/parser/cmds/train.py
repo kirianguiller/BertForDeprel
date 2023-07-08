@@ -111,7 +111,8 @@ class Train(CMD):
                 assert Exception("The pretrained model and the new model have same full path. It's not allowed as it would result in erasing the pretrained model")
 
         dataset = ConlluDataset(args.ftrain, model_params, args.mode, compute_annotation_schema_if_not_found=True)
-
+        test_dataset: ConlluDataset
+        train_dataset: ConlluDataset
         # prepare test dataset
         if args.ftest:
             train_dataset = dataset
@@ -120,7 +121,7 @@ class Train(CMD):
         else:
             train_size = int(len(dataset) * args.split_ratio)
             test_size = len(dataset) - train_size
-            train_dataset, test_dataset = random_split(dataset=dataset, lengths=[train_size, test_size])
+            train_dataset, test_dataset = random_split(dataset=dataset, lengths=[train_size, test_size]) # type: ignore (https://github.com/pytorch/pytorch/issues/90827)
 
         params_train = {
             "batch_size": model_params["batch_size"],
@@ -129,7 +130,7 @@ class Train(CMD):
         }
 
         train_loader = DataLoader(
-            train_dataset, collate_fn=dataset.collate_fn, **params_train
+            train_dataset, collate_fn=dataset.collate_fn_train, **params_train
         )
 
         params_test = {
@@ -140,7 +141,7 @@ class Train(CMD):
         if args.batch_size_eval:
             params_test["batch_size"] = args.batch_size_eval
         test_loader = DataLoader(
-            test_dataset, collate_fn=dataset.collate_fn, **params_test
+            test_dataset, collate_fn=dataset.collate_fn_train, **params_test
         )
 
         print(

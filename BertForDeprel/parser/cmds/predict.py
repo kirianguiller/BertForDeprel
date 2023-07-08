@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 from ..cmds.cmd import CMD, SubparsersType
 from ..utils.annotation_schema_utils import get_path_of_conllus_from_folder_path
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constrains
-from ..utils.load_data_utils import ConlluDataset, SequenceBatch_T
+from ..utils.load_data_utils import ConlluDataset, SequencePredictionBatch_T
 from ..modules.BertForDepRel import BertForDeprel
 from ..utils.scores_and_losses_utils import deprel_aligner_with_head
 from ..utils.types import ModelParams_T
@@ -114,21 +114,21 @@ class Predict(CMD):
                 "batch_size": model_params["batch_size"],
                 "num_workers": args.num_workers,
             }
-            pred_loader = DataLoader(pred_dataset, collate_fn=pred_dataset.collate_fn, shuffle=False, **params)
+            pred_loader = DataLoader(pred_dataset, collate_fn=pred_dataset.collate_fn_predict, shuffle=False, **params)
             print(
                 f"{'Loaded '} {len(pred_dataset):5} sentences ({len(pred_loader):3} batches)"
             )
             start = timer()
             predicted_sentences_json: List[sentenceJson_T] = []
             parsed_sentence_counter = 0
-            batch: SequenceBatch_T
+            batch: SequencePredictionBatch_T
             with torch.no_grad():
                 for batch in pred_loader:
-                    seq_ids_batch = batch["seq_ids"].to(args.device)
-                    attn_masks_batch = batch["attn_masks"].to(args.device)
-                    subwords_start_batch = batch["subwords_start"]
-                    idx_convertor_batch = batch["idx_convertor"]
-                    idx_batch = batch["idx"]
+                    seq_ids_batch = batch.seq_ids.to(args.device)
+                    attn_masks_batch = batch.attn_masks.to(args.device)
+                    subwords_start_batch = batch.subwords_start
+                    idx_convertor_batch = batch.idx_convertor
+                    idx_batch = batch.idx
 
                     preds = model.forward(seq_ids_batch, attn_masks_batch)
                     heads_pred_batch = preds["heads"].detach()

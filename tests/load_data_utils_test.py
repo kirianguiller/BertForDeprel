@@ -62,10 +62,10 @@ def test_train_output():
     assert dataset[0]["deprels"] == [-1, 2, 8, 4, 6, 9, 10, 1, 10, 1, -1, 7, 1, 4, 1]
 
 
-def test_collate_fn():
+def test_collate_train_fn():
     dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "train", compute_annotation_schema_if_not_found=True)
-    batch = dataset.collate_fn([dataset[0], dataset[1]])
-    assert torch.equal(batch["deprels"], torch.tensor([[-1,  2,  8,  4,  6,  9, 10,  1, 10,  1, -1,  7,  1,  4,  1, -1],
+    batch = dataset.collate_fn_train([dataset[0], dataset[1]])
+    assert torch.equal(batch.deprels, torch.tensor([[-1,  2,  8,  4,  6,  9, 10,  1, 10,  1, -1,  7,  1,  4,  1, -1],
                                                        [-1,  2,  8,  3,  9,  5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]]))
 
 def test_add_prediction_to_sentence_json_keep_none():
