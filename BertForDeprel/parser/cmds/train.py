@@ -113,12 +113,12 @@ class Train(CMD):
         dataset = ConlluDataset(args.ftrain, model_params, args.mode, compute_annotation_schema_if_not_found=True)
         test_dataset: ConlluDataset
         train_dataset: ConlluDataset
-        # prepare test dataset
         if args.ftest:
+            print(f"Using {args.ftrain} for training and {args.ftest} for testing")
             train_dataset = dataset
             test_dataset = ConlluDataset(args.ftest, model_params, args.mode)
-
         else:
+            print(f"Splitting {args.ftrain} into train and test sets with ratio {args.split_ratio}")
             train_size = int(len(dataset) * args.split_ratio)
             test_size = len(dataset) - train_size
             train_dataset, test_dataset = random_split(dataset=dataset, lengths=[train_size, test_size]) # type: ignore (https://github.com/pytorch/pytorch/issues/90827)

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import os
-from typing import Dict, List, Any, Optional, Tuple, TypedDict, Literal, Union
+from typing import Dict, List, Any, Tuple, TypeVar, Literal
 
 from conllup.conllup import sentenceJson_T, _featuresConllToJson, _featuresJsonToConll, readConlluFile
 
@@ -12,19 +12,20 @@ from .types import ModelParams_T
 from .annotation_schema_utils import compute_annotation_schema, get_path_of_conllus_from_folder_path, is_annotation_schema_empty, NONE_VOCAB
 from .lemma_script_utils import apply_lemma_rule, gen_lemma_script
 
-# Next: change typing so that input and output inherit from one base class, then refactor to remove final linting errors
 
 @dataclass
-class SequenceInput_T:
+class SequencePrediction_T:
+    idx: int
+    sentence_json: sentenceJson_T
     seq_ids: List[int]
     attn_masks: List[int]
     subwords_start: List[int]
     idx_convertor: List[int]
     tokens_len: List[int]
 
+Sequence_T = TypeVar('Sequence_T', bound=SequencePrediction_T)
 
-@dataclass
-class SequenceOutput_T:
+class SequenceTraining_T(SequencePrediction_T):
     uposs: List[int]
     xposs: List[int]
     heads: List[int]
@@ -32,14 +33,14 @@ class SequenceOutput_T:
     feats: List[int]
     lemma_scripts: List[int]
 
-
-@dataclass
-class Sequence_T:
-    idx: int
-    sentence_json: sentenceJson_T
-    input_data: SequenceInput_T
-    # only present during training
-    output_data: Optional[SequenceOutput_T]
+    def __init__(self, pred_data: SequencePrediction_T, uposs: List[int], xposs: List[int], heads: List[int], deprels: List[int], feats: List[int], lemma_scripts: List[int]):
+        super(SequenceTraining_T, self).__init__(**pred_data.__dict__)
+        self.uposs = uposs
+        self.xposs = xposs
+        self.heads = heads
+        self.deprels = deprels
+        self.feats = feats
+        self.lemma_scripts = lemma_scripts
 
 
 @dataclass
@@ -102,13 +103,13 @@ class ConlluDataset(Dataset):
         for path in paths:
             sentences_json += readConlluFile(path, keep_empty_trees=False)
 
-        self.sequences: List[Sequence_T] = []
+        self.sequences: (List[SequencePrediction_T] | List[SequenceTraining_T]) = []
         valid_sentence_counter = 0
         for sentence_json in sentences_json:
             sequence = self._get_processed(sentence_json, valid_sentence_counter)
             # TODO: fix magic number with a parameter
-            if len(sequence.input_data.seq_ids) > 511:
-                print("Discarding sentence", len(sequence.input_data.seq_ids))
+            if len(sequence.seq_ids) > 511:
+                print("Discarding sentence", len(sequence.seq_ids))
                 continue
             self.sequences.append(sequence)
             valid_sentence_counter += 1
@@ -144,7 +145,7 @@ class ConlluDataset(Dataset):
         #     tensor = tensor[: self.model_params["maxlen"] - 1]
         return tensor
 
-    def _get_input(self, sequence: sentenceJson_T) -> SequenceInput_T:
+    def _get_input(self, sequence: sentenceJson_T, idx: int) -> SequencePrediction_T:
         sequence_ids = [self.CLS_token_id]
         subwords_start = [-1]
         idx_convertor = [0]
@@ -176,7 +177,9 @@ class ConlluDataset(Dataset):
         subwords_start = subwords_start
         idx_convertor = idx_convertor
         attn_masks = [int(token_id > 0) for token_id in sequence_ids]
-        return SequenceInput_T(
+        return SequencePrediction_T(
+            idx=idx,
+            sentence_json=sequence,
             seq_ids=sequence_ids,
             attn_masks=attn_masks,
             subwords_start=subwords_start,
@@ -184,7 +187,7 @@ class ConlluDataset(Dataset):
             tokens_len=tokens_len,
         )
 
-    def _get_output(self, sequence: sentenceJson_T, tokens_len) -> SequenceOutput_T:
+    def _get_output(self, sequence: sentenceJson_T, input: SequencePrediction_T) -> SequenceTraining_T:
         uposs = [-1]
         xposs = [-1]
         heads = [-1]
@@ -198,14 +201,14 @@ class ConlluDataset(Dataset):
                 skipped_tokens += 1
                 continue
 
-            token_len = tokens_len[n_token + 1 - skipped_tokens]
+            token_len = input.tokens_len[n_token + 1 - skipped_tokens]
 
             upos = [get_index(token["UPOS"], self.upos2i)] + [-1] * (token_len - 1)
             xpos = [get_index(token["XPOS"], self.xpos2i)] + [-1] * (token_len - 1)
             feat = [get_index(_featuresJsonToConll(token["FEATS"]), self.feat2i)] + [-1] * (token_len - 1)
             lemma_script = [get_index(gen_lemma_script(token["FORM"], token["LEMMA"]), self.lem2i)] + [-1] * (token_len - 1)
 
-            head = [sum(tokens_len[: token["HEAD"]])] + [-1] * (token_len - 1)
+            head = [sum(input.tokens_len[: token["HEAD"]])] + [-1] * (token_len - 1)
             deprel = token["DEPREL"]
 
             deprel = [get_index(deprel, self.dep2i)] + [-1] * (
@@ -228,7 +231,8 @@ class ConlluDataset(Dataset):
         # uposs = self._trunc(uposs)
         # feats = self._trunc(feats)
         # lemma_scripts = self._trunc(lemma_scripts)
-        return SequenceOutput_T(
+        return SequenceTraining_T(
+            pred_data=input,
             uposs=uposs,
             xposs=xposs,
             heads=heads,
@@ -237,27 +241,19 @@ class ConlluDataset(Dataset):
             lemma_scripts=lemma_scripts
         )
 
-    def _get_processed(self, sentence_json: sentenceJson_T, idx: int) -> Sequence_T:
-        input_data = self._get_input(sentence_json)
-        output_data = None
+    def _get_processed(self, sentence_json: sentenceJson_T, idx: int) -> (SequencePrediction_T | SequenceTraining_T):
+        pred_data = self._get_input(sentence_json, idx)
         if self.run_mode == "train":
-            output_data = self._get_output(sentence_json, input_data.tokens_len)
+            return self._get_output(sentence_json, pred_data)
 
-        processed_sequence = Sequence_T(
-            idx=idx,
-            sentence_json=sentence_json,
-            input_data=input_data,
-            output_data=output_data,
-        )
-
-        return processed_sequence
+        return pred_data
 
     def collate_fn_predict(self, sentences: List[Sequence_T]) -> SequencePredictionBatch_T:
-        max_sentence_length = max([len(sentence.input_data.seq_ids) for sentence in sentences])
-        seq_ids_batch        = tensor([self._pad_list(sentence.input_data.seq_ids,  0, max_sentence_length) for sentence in sentences])
-        subwords_start_batch = tensor([self._pad_list(sentence.input_data.subwords_start, -1, max_sentence_length) for sentence in sentences])
-        attn_masks_batch     = tensor([self._pad_list(sentence.input_data.attn_masks,  0, max_sentence_length) for sentence in sentences])
-        idx_convertor_batch  = tensor([self._pad_list(sentence.input_data.idx_convertor, -1, max_sentence_length) for sentence in sentences])
+        max_sentence_length = max([len(sentence.seq_ids) for sentence in sentences])
+        seq_ids_batch        = tensor([self._pad_list(sentence.seq_ids,  0, max_sentence_length) for sentence in sentences])
+        subwords_start_batch = tensor([self._pad_list(sentence.subwords_start, -1, max_sentence_length) for sentence in sentences])
+        attn_masks_batch     = tensor([self._pad_list(sentence.attn_masks,  0, max_sentence_length) for sentence in sentences])
+        idx_convertor_batch  = tensor([self._pad_list(sentence.idx_convertor, -1, max_sentence_length) for sentence in sentences])
         idx_batch            = tensor([sentence.idx for sentence in sentences])
         return SequencePredictionBatch_T(
             idx=idx_batch,
@@ -268,16 +264,16 @@ class ConlluDataset(Dataset):
             max_sentence_length=max_sentence_length,
         )
 
-    def collate_fn_train(self, sentences: List[Sequence_T]) -> SequenceTrainingBatch_T:
+    def collate_fn_train(self, sentences: List[SequenceTraining_T]) -> SequenceTrainingBatch_T:
         batch_prediction_data = self.collate_fn_predict(sentences)
         max_sentence_length = batch_prediction_data.max_sentence_length
 
-        uposs_batch     = tensor([self._pad_list(sentence.output_data.uposs, -1, max_sentence_length) for sentence in sentences])
-        xposs_batch     = tensor([self._pad_list(sentence.output_data.xposs, -1, max_sentence_length) for sentence in sentences])
-        heads_batch     = tensor([self._pad_list(sentence.output_data.heads, -1, max_sentence_length) for sentence in sentences])
-        deprels_batch   = tensor([self._pad_list(sentence.output_data.deprels, -1, max_sentence_length) for sentence in sentences])
-        feats_batch   = tensor([self._pad_list(sentence.output_data.feats, -1, max_sentence_length) for sentence in sentences])
-        lemma_scripts_batch   = tensor([self._pad_list(sentence.output_data.lemma_scripts, -1, max_sentence_length) for sentence in sentences])
+        uposs_batch     = tensor([self._pad_list(sentence.uposs, -1, max_sentence_length) for sentence in sentences])
+        xposs_batch     = tensor([self._pad_list(sentence.xposs, -1, max_sentence_length) for sentence in sentences])
+        heads_batch     = tensor([self._pad_list(sentence.heads, -1, max_sentence_length) for sentence in sentences])
+        deprels_batch   = tensor([self._pad_list(sentence.deprels, -1, max_sentence_length) for sentence in sentences])
+        feats_batch   = tensor([self._pad_list(sentence.feats, -1, max_sentence_length) for sentence in sentences])
+        lemma_scripts_batch   = tensor([self._pad_list(sentence.lemma_scripts, -1, max_sentence_length) for sentence in sentences])
 
         return SequenceTrainingBatch_T(
             batch_prediction_data,
