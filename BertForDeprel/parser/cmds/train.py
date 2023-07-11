@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, random_split
 from ..cmds.cmd import CMD, SubparsersType
 from ..modules.BertForDepRel import BertForDeprel
 from ..utils.load_data_utils import ConlluDataset
-from ..utils.types import ModelParams_T
+from ..utils.types import DataclassJSONEncoder, ModelParams_T
 from ..utils.scores_and_losses_utils import update_history
 from ..utils.annotation_schema_utils import get_annotation_schema_from_input_folder, compute_annotation_schema, is_annotation_schema_empty
 
@@ -191,7 +191,7 @@ class Train(CMD):
 
             history.append(results)
             with open(path_scores_history, "w") as outfile:
-                outfile.write(json.dumps(history, indent=4))
+                outfile.write(json.dumps(history, indent=4, cls=DataclassJSONEncoder))
 
             # history = update_history(history, results, n_epoch, args)
             loss_epoch = results["loss_epoch"]
@@ -208,7 +208,7 @@ class Train(CMD):
 
                 model.save_model(n_epoch) # type: ignore (https://github.com/pytorch/pytorch/issues/90827)
                 with open(path_scores_best, "w") as outfile:
-                    outfile.write(json.dumps(results, indent=4))
+                    outfile.write(json.dumps(results, indent=4, cls=DataclassJSONEncoder))
                 best_epoch_results = results
 
             else:

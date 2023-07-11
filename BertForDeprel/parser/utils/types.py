@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+import dataclasses
+import json
 from typing import List
 
 
@@ -82,3 +84,11 @@ def get_default_model_params() -> ModelParams_T:
        allow_lemma_char_copy=False,
     )
     return params
+
+
+class DataclassJSONEncoder(json.JSONEncoder):
+    """JSON encoder for data that may include dataclasses."""
+    def default(self, o):
+        if dataclasses.is_dataclass(o):
+            return dataclasses.asdict(o)
+        return super().default(o)

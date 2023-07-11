@@ -12,7 +12,7 @@ from .PosAndDepRelParserHead import PosAndDeprelParserHead
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
 from ..utils.load_data_utils import SequencePredictionBatch_T, SequenceTrainingBatch_T
 from ..utils.scores_and_losses_utils import compute_LAS, compute_LAS_chuliu, compute_acc_deprel, compute_acc_head, compute_acc_upos, compute_loss_deprel, compute_loss_head, compute_loss_poss
-from ..utils.types import ModelParams_T
+from ..utils.types import DataclassJSONEncoder, ModelParams_T
 
 import torch.mps
 from torch.nn import CrossEntropyLoss, Module
@@ -298,7 +298,7 @@ class BertForDeprel(Module):
             )
         )
         with open(config_path, "w") as outfile:
-            outfile.write(json.dumps(self.model_params, ensure_ascii=False, indent=4))
+            outfile.write(json.dumps(self.model_params, ensure_ascii=False, indent=4, cls=DataclassJSONEncoder))
 
     def load_pretrained(self, overwrite_pretrain_classifiers=False):
         params = self.pretrain_model_params or self.model_params

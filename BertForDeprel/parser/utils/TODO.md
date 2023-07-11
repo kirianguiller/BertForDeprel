@@ -1,5 +1,8 @@
 # TODO's
 
+Next: Output prediction accuracy when the input file is annotated already. Verify that performance matches expectations.
+Then: build Flask server
+
 * Try CANINE embeddings, which would probably remove many OOV's
 * Overall grok with documentation, adding paper links, fixing typos, etc.
 * Support CUR_DIR variable for the directory containing the config file
@@ -9,8 +12,6 @@
 * What is adapter_config_type? Can I remove it?
 * Add example using UD data
 * Clarify that conf file for prediction should be the one generated in the model directory, not the one that was used during training
-* Output prediction accuracy when the input file is annotated already
-    - it's unclear to me that prediction actually occurred... the file just looks like a copy of the original. Seems to just be adding = signs at the end of one of the columns and #newpar indicators.
 * How to resume training on one paused with CMD-C?
 * Run arg to turn on allow_copy in lemma prediction
 * Clarify how to train with partially annotated data
