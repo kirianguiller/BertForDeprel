@@ -5,17 +5,6 @@ from typing import List
 
 
 @dataclass
-class EpochResults_T:
-    LAS: float
-    LAS_chuliu: float
-    acc_deprel: float
-    acc_pos: float
-    loss_head: float
-    loss_deprel: float
-    loss_total: float
-
-
-@dataclass
 class AnnotationSchema_T:
     deprels: List[str] = field(default_factory=list)
     uposs: List[str] = field(default_factory=list)
@@ -52,19 +41,6 @@ class ModelParams_T:
     # Maximum length of an input sequence; the default value is the default from xlm-roberta-large.
     # Using larger values could result in doubling or quadrupling the memory usage.
     max_position_embeddings: int = 512
-
-
-def get_empty_current_epoch_results():
-    return EpochResults_T(
-        LAS=-1,
-        LAS_chuliu=-1,
-        acc_deprel=-1,
-        acc_pos=-1,
-        loss_head=-1,
-        loss_deprel=-1,
-        loss_total=-1,
-    )
-
 
 
 class DataclassJSONEncoder(json.JSONEncoder):
