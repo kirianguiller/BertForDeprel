@@ -111,7 +111,7 @@ class Predict(CMD):
             pred_dataset = ConlluDataset(path, model_params, args.mode)
 
             params = {
-                "batch_size": model_params["batch_size"],
+                "batch_size": model_params.batch_size,
                 "num_workers": args.num_workers,
             }
             pred_loader = DataLoader(pred_dataset, collate_fn=pred_dataset.collate_fn_predict, shuffle=False, **params)

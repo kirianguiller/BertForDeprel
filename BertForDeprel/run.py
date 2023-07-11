@@ -45,7 +45,8 @@ if __name__ == "__main__":
         if os.path.isfile(args.conf):
             with open(args.conf, "r") as infile:
                 custom_model_params = json.loads(infile.read())
-                model_params.update(custom_model_params)
+                # TODO: check if the config file is valid before updating the model_params
+                model_params.__dict__.update(custom_model_params)
         else:
             raise Exception(f"You provided a --conf parameter but no config was found in `{args.conf}`")
 
@@ -56,7 +57,7 @@ if __name__ == "__main__":
 
 
     if args.batch_size:
-        model_params["batch_size"] = args.batch_size
+        model_params.batch_size = args.batch_size
 
 
     print(f"Set the seed for generating random numbers to {args.seed}")

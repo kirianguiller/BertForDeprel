@@ -11,17 +11,17 @@ PATH_TEST_DATA_FOLDER = Path(__file__).parent / "data"
 PATH_TEST_MODELS_FOLDER = Path(__file__).parent / "models"
 PATH_TEST_CONLLU = str(PATH_TEST_DATA_FOLDER / "english.conllu")
 
-model_params_test: ModelParams_T = {
-    "model_folder_path": str(PATH_TEST_MODELS_FOLDER),
-    "annotation_schema": get_empty_annotation_schema(),
-    "max_epoch": 5,
-    "patience": 3,
-    "batch_size": 4,
-    "maxlen": 512,
-    "embedding_type": "bert-base-uncased",
-    "allow_lemma_char_copy": False,
-    # "embedding_cached_path": str(PATH_TEST_MODELS_FOLDER),
-}
+model_params_test = ModelParams_T(
+    model_folder_path=str(PATH_TEST_MODELS_FOLDER),
+    annotation_schema=get_empty_annotation_schema(),
+    max_epoch=5,
+    patience=3,
+    batch_size=4,
+    maxlen=512,
+    embedding_type="bert-base-uncased",
+    allow_lemma_char_copy=False,
+    # embedding_cached_path=str(PATH_TEST_MODELS_FOLDER),
+)
 
 
 def test_health():
@@ -33,14 +33,14 @@ def test_is_there_test_conllu():
 
 
 def test_create_instance_dataset():
-    dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test.copy(), "train",
+    dataset = ConlluDataset(PATH_TEST_CONLLU, ModelParams_T(**model_params_test.__dict__), "train",
                             compute_annotation_schema_if_not_found=True)
     assert len(dataset.sequences) == 2
 
 
 def test_raise_error_if_no_annotation_schema():
     with pytest.raises(Exception):
-        dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test.copy(), "train")
+        dataset = ConlluDataset(PATH_TEST_CONLLU, ModelParams_T(**model_params_test.__dict__), "train")
 
 
 def test_predict_output():

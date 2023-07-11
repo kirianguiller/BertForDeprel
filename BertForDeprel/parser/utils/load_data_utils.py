@@ -13,6 +13,7 @@ from .annotation_schema_utils import compute_annotation_schema, get_path_of_conl
 from .lemma_script_utils import apply_lemma_rule, gen_lemma_script
 
 
+# Sequence classes are for one input sentence
 @dataclass
 class SequencePrediction_T:
     idx: int
@@ -42,7 +43,7 @@ class SequenceTraining_T(SequencePrediction_T):
         self.feats = feats
         self.lemma_scripts = lemma_scripts
 
-
+# batch classes are for entire datasets of sentences
 @dataclass
 class SequencePredictionBatch_T:
     idx: Tensor
@@ -74,26 +75,26 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
 class ConlluDataset(Dataset):
     def __init__(self, path_file_or_folder: str, model_params: ModelParams_T, run_mode: Literal["train", "predict"], compute_annotation_schema_if_not_found = False):
         paths = get_path_of_conllus_from_folder_path(path_file_or_folder)
-        if is_annotation_schema_empty(model_params["annotation_schema"]):
+        if is_annotation_schema_empty(model_params.annotation_schema):
             if compute_annotation_schema_if_not_found == True:
-                model_params["annotation_schema"] = compute_annotation_schema(*paths)
+                model_params.annotation_schema = compute_annotation_schema(*paths)
             else:
                 raise Exception("No annotation schema found in `model_params` while `compute_annotation_schema_if_not_found` is set to False")
 
         self.model_params = model_params
         os.environ["TOKENIZERS_PARALLELISM"] = "true"
-        self.tokenizer: RobertaTokenizer = AutoTokenizer.from_pretrained(model_params["embedding_type"])
+        self.tokenizer: RobertaTokenizer = AutoTokenizer.from_pretrained(model_params.embedding_type)
 
         self.run_mode = run_mode
 
         self.CLS_token_id = self.tokenizer.cls_token_id
         self.SEP_token_id = self.tokenizer.sep_token_id
 
-        self.dep2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["deprels"])
-        self.upos2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["uposs"])
-        self.xpos2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["xposs"])
-        self.feat2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["feats"])
-        self.lem2i, _ = self._compute_labels2i(self.model_params["annotation_schema"]["lemma_scripts"])
+        self.dep2i, _ = self._compute_labels2i(self.model_params.annotation_schema["deprels"])
+        self.upos2i, _ = self._compute_labels2i(self.model_params.annotation_schema["uposs"])
+        self.xpos2i, _ = self._compute_labels2i(self.model_params.annotation_schema["xposs"])
+        self.feat2i, _ = self._compute_labels2i(self.model_params.annotation_schema["feats"])
+        self.lem2i, _ = self._compute_labels2i(self.model_params.annotation_schema["lemma_scripts"])
 
         self._load_conll(*paths)
 
@@ -103,12 +104,12 @@ class ConlluDataset(Dataset):
         for path in paths:
             sentences_json += readConlluFile(path, keep_empty_trees=False)
 
-        self.sequences: (List[SequencePrediction_T] | List[SequenceTraining_T]) = []
+        self.sequences: List[SequencePrediction_T] = []
         valid_sentence_counter = 0
         for sentence_json in sentences_json:
             sequence = self._get_processed(sentence_json, valid_sentence_counter)
-            # TODO: fix magic number with a parameter
-            if len(sequence.seq_ids) > 511:
+            # TODO: why is there a minus 1 here?
+            if len(sequence.seq_ids) > self.model_params.maxlen - 1:
                 print("Discarding sentence", len(sequence.seq_ids))
                 continue
             self.sequences.append(sequence)
@@ -140,10 +141,6 @@ class ConlluDataset(Dataset):
 
         return l + [padding_value] * (maxlen - len(l))
 
-    def _trunc(self, tensor):
-        # if len(tensor) >= self.model_params["maxlen"]:
-        #     tensor = tensor[: self.model_params["maxlen"] - 1]
-        return tensor
 
     def _get_input(self, sequence: sentenceJson_T, idx: int) -> SequencePrediction_T:
         sequence_ids = [self.CLS_token_id]
@@ -241,7 +238,7 @@ class ConlluDataset(Dataset):
             lemma_scripts=lemma_scripts
         )
 
-    def _get_processed(self, sentence_json: sentenceJson_T, idx: int) -> (SequencePrediction_T | SequenceTraining_T):
+    def _get_processed(self, sentence_json: sentenceJson_T, idx: int) -> SequencePrediction_T:
         pred_data = self._get_input(sentence_json, idx)
         if self.run_mode == "train":
             return self._get_output(sentence_json, pred_data)
@@ -303,7 +300,7 @@ class ConlluDataset(Dataset):
                                         ):
         predicted_sentence_json: sentenceJson_T = self.sequences[idx]["sentence_json"].copy()
         tokens = list(predicted_sentence_json["treeJson"]["nodesJson"].values())
-        annotation_schema = self.model_params["annotation_schema"]
+        annotation_schema = self.model_params.annotation_schema
         for n_token, token in enumerate(tokens):
             if keep_upos=="NONE" or (keep_upos=="EXISTING" and token["UPOS"] == "_"):
                 token["UPOS"] = annotation_schema["uposs"][uposs_preds[n_token]]

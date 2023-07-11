@@ -28,14 +28,14 @@ class BertForDeprel(Module):
         self.model_params = model_params
         self.pretrain_model_params = pretrain_model_params
 
-        self.__init_language_model_layer(model_params["embedding_type"])
+        self.__init_language_model_layer(model_params.embedding_type)
         llm_hidden_size = self.llm_layer.config.hidden_size #expected to get embedding size of bert custom model
 
-        n_uposs = len(model_params["annotation_schema"]["uposs"])
-        n_xposs = len(model_params["annotation_schema"]["xposs"])
-        n_deprels = len(model_params["annotation_schema"]["deprels"])
-        n_feats = len(model_params["annotation_schema"]["feats"])
-        n_lemma_scripts = len(model_params["annotation_schema"]["lemma_scripts"])
+        n_uposs = len(model_params.annotation_schema["uposs"])
+        n_xposs = len(model_params.annotation_schema["xposs"])
+        n_deprels = len(model_params.annotation_schema["deprels"])
+        n_feats = len(model_params.annotation_schema["feats"])
+        n_lemma_scripts = len(model_params.annotation_schema["lemma_scripts"])
         self.tagger_layer = PosAndDeprelParserHead(n_uposs, n_deprels, n_feats, n_lemma_scripts, n_xposs, llm_hidden_size)
 
         if self.pretrain_model_params:
@@ -288,8 +288,8 @@ class BertForDeprel(Module):
             if k in trainable_weight_names:
                 state["tagger"][k] = v
 
-        ckpt_fpath = os.path.join(self.model_params["model_folder_path"], "model.pt")
-        config_path = os.path.join(self.model_params["model_folder_path"], "config.json")
+        ckpt_fpath = os.path.join(self.model_params.model_folder_path, "model.pt")
+        config_path = os.path.join(self.model_params.model_folder_path, "config.json")
         torch.save(state, ckpt_fpath)
         print(
             "Saving adapter weights to ... {} ({:.2f} MB) (conf path : {})".format(
@@ -302,7 +302,7 @@ class BertForDeprel(Module):
 
     def load_pretrained(self, overwrite_pretrain_classifiers=False):
         params = self.pretrain_model_params or self.model_params
-        ckpt_fpath = os.path.join(params["model_folder_path"], "model" + ".pt")
+        ckpt_fpath = os.path.join(params.model_folder_path, "model" + ".pt")
         checkpoint_state = torch.load(ckpt_fpath)
 
         tagger_pretrained_dict = self.tagger_layer.state_dict()
