@@ -90,11 +90,11 @@ class ConlluDataset(Dataset):
         self.CLS_token_id = self.tokenizer.cls_token_id
         self.SEP_token_id = self.tokenizer.sep_token_id
 
-        self.dep2i, _ = self._compute_labels2i(self.model_params.annotation_schema["deprels"])
-        self.upos2i, _ = self._compute_labels2i(self.model_params.annotation_schema["uposs"])
-        self.xpos2i, _ = self._compute_labels2i(self.model_params.annotation_schema["xposs"])
-        self.feat2i, _ = self._compute_labels2i(self.model_params.annotation_schema["feats"])
-        self.lem2i, _ = self._compute_labels2i(self.model_params.annotation_schema["lemma_scripts"])
+        self.dep2i, _ = self._compute_labels2i(self.model_params.annotation_schema.deprels)
+        self.upos2i, _ = self._compute_labels2i(self.model_params.annotation_schema.uposs)
+        self.xpos2i, _ = self._compute_labels2i(self.model_params.annotation_schema.xposs)
+        self.feat2i, _ = self._compute_labels2i(self.model_params.annotation_schema.feats)
+        self.lem2i, _ = self._compute_labels2i(self.model_params.annotation_schema.lemma_scripts)
 
         self._load_conll(*paths)
 
@@ -303,22 +303,22 @@ class ConlluDataset(Dataset):
         annotation_schema = self.model_params.annotation_schema
         for n_token, token in enumerate(tokens):
             if keep_upos=="NONE" or (keep_upos=="EXISTING" and token["UPOS"] == "_"):
-                token["UPOS"] = annotation_schema["uposs"][uposs_preds[n_token]]
+                token["UPOS"] = annotation_schema.uposs[uposs_preds[n_token]]
 
             if keep_xpos == "NONE" or (keep_xpos=="EXISTING" and token["XPOS"] == "_"):
-                token["XPOS"] = annotation_schema["xposs"][xposs_preds[n_token]]
+                token["XPOS"] = annotation_schema.xposs[xposs_preds[n_token]]
 
             if keep_heads == "NONE" or (keep_heads == "EXISTING" and token["HEAD"] == -1): # this one is special as for keep_heads == "EXISTING", we already handled the case earlier in the code
                 token["HEAD"] = chuliu_heads[n_token]
 
             if keep_deprels == "NONE" or (keep_deprels=='EXISTING' and token["DEPREL"] == "_"):
-                token["DEPREL"] = annotation_schema["deprels"][deprels_pred_chulius[n_token]]
+                token["DEPREL"] = annotation_schema.deprels[deprels_pred_chulius[n_token]]
 
             if keep_feats == "NONE" or (keep_feats=="EXISTING" and token["FEATS"] == {}):
-                token["FEATS"] = _featuresConllToJson(annotation_schema["feats"][feats_preds[n_token]])
+                token["FEATS"] = _featuresConllToJson(annotation_schema.feats[feats_preds[n_token]])
 
             if keep_lemmas == "NONE" or (keep_lemmas=="EXISTING" and token["LEMMA"] == "_"):
-                lemma_script = annotation_schema["lemma_scripts"][lemma_scripts_preds[n_token]]
+                lemma_script = annotation_schema.lemma_scripts[lemma_scripts_preds[n_token]]
                 token["LEMMA"] = apply_lemma_rule(token["FORM"], lemma_script)
         return predicted_sentence_json
 

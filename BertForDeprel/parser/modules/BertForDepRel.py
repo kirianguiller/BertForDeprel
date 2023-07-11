@@ -31,11 +31,11 @@ class BertForDeprel(Module):
         self.__init_language_model_layer(model_params.embedding_type)
         llm_hidden_size = self.llm_layer.config.hidden_size #expected to get embedding size of bert custom model
 
-        n_uposs = len(model_params.annotation_schema["uposs"])
-        n_xposs = len(model_params.annotation_schema["xposs"])
-        n_deprels = len(model_params.annotation_schema["deprels"])
-        n_feats = len(model_params.annotation_schema["feats"])
-        n_lemma_scripts = len(model_params.annotation_schema["lemma_scripts"])
+        n_uposs = len(model_params.annotation_schema.uposs)
+        n_xposs = len(model_params.annotation_schema.xposs)
+        n_deprels = len(model_params.annotation_schema.deprels)
+        n_feats = len(model_params.annotation_schema.feats)
+        n_lemma_scripts = len(model_params.annotation_schema.lemma_scripts)
         self.tagger_layer = PosAndDeprelParserHead(n_uposs, n_deprels, n_feats, n_lemma_scripts, n_xposs, llm_hidden_size)
 
         if self.pretrain_model_params:

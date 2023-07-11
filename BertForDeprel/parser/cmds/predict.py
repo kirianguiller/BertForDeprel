@@ -131,12 +131,12 @@ class Predict(CMD):
                     idx_batch = batch.idx
 
                     preds = model.forward(seq_ids_batch, attn_masks_batch)
-                    heads_pred_batch = preds["heads"].detach()
-                    deprels_pred_batch = preds["deprels"].detach()
-                    uposs_pred_batch = preds["uposs"].detach()
-                    xposs_pred_batch = preds["xposs"].detach()
-                    feats_pred_batch = preds["feats"].detach()
-                    lemma_scripts_pred_batch = preds["lemma_scripts"].detach()
+                    heads_pred_batch = preds.heads.detach()
+                    deprels_pred_batch = preds.deprels.detach()
+                    uposs_pred_batch = preds.uposs.detach()
+                    xposs_pred_batch = preds.xposs.detach()
+                    feats_pred_batch = preds.feats.detach()
+                    lemma_scripts_pred_batch = preds.lemma_scripts.detach()
 
                     time_from_start = 0
                     parsing_speed = 0

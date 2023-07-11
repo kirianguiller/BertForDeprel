@@ -13,7 +13,6 @@
     - it's unclear to me that prediction actually occurred... the file just looks like a copy of the original. Seems to just be adding = signs at the end of one of the columns and #newpar indicators.
 * How to resume training on one paused with CMD-C?
 * Run arg to turn on allow_copy in lemma prediction
-* annoying have to use [""] everywhere. Move from dicts to to named fields (dataclasses, not TypeDict for ModelParams_T, for example)
 * Clarify how to train with partially annotated data
     - only marked morphology, only marked lemmas, etc.
 * Add a flag to output the predictions in conllu format

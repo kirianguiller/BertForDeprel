@@ -1,7 +1,9 @@
 from dataclasses import dataclass
-from typing import TypedDict, List
+from typing import List
 
-class EpochResults_T(TypedDict):
+
+@dataclass
+class EpochResults_T:
     LAS: float
     LAS_chuliu: float
     acc_deprel: float
@@ -11,7 +13,8 @@ class EpochResults_T(TypedDict):
     loss_total: float
 
 
-class AnnotationSchema_T(TypedDict):
+@dataclass
+class AnnotationSchema_T:
     deprels: List[str]
     uposs: List[str]
     xposs: List[str]
@@ -42,26 +45,26 @@ class ModelParams_T:
     allow_lemma_char_copy: bool
 
 
-def get_empty_current_epoch_results() -> EpochResults_T:
-    return {
-        "LAS": -1,
-        "LAS_chuliu": -1,
-        "acc_deprel": -1,
-        "acc_pos": -1,
-        "loss_head": -1,
-        "loss_deprel": -1,
-        "loss_total": -1,
-    }
+def get_empty_current_epoch_results():
+    return EpochResults_T(
+        LAS=-1,
+        LAS_chuliu=-1,
+        acc_deprel=-1,
+        acc_pos=-1,
+        loss_head=-1,
+        loss_deprel=-1,
+        loss_total=-1,
+    )
 
 
-def get_empty_annotation_schema() -> AnnotationSchema_T:
-    return {
-        "deprels": [],
-        "uposs": [],
-        "xposs": [],
-        "feats": [],
-        "lemma_scripts": [],
-    }
+def get_empty_annotation_schema():
+    return AnnotationSchema_T(
+        deprels=[],
+        uposs=[],
+        xposs=[],
+        feats=[],
+        lemma_scripts=[],
+    )
 
 
 def get_default_model_params() -> ModelParams_T:
