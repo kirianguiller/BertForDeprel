@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 import torch
 
-from BertForDeprel.parser.utils.load_data_utils import ConlluDataset
-from BertForDeprel.parser.utils.types import ModelParams_T, get_empty_annotation_schema
+from BertForDeprel.parser.utils.load_data_utils import ConlluDataset, PartialPredictionConfig
+from BertForDeprel.parser.utils.types import ModelParams_T
 
 PATH_TEST_DATA_FOLDER = Path(__file__).parent / "data"
 PATH_TEST_MODELS_FOLDER = Path(__file__).parent / "models"
@@ -13,14 +13,11 @@ PATH_TEST_CONLLU = str(PATH_TEST_DATA_FOLDER / "english.conllu")
 
 model_params_test = ModelParams_T(
     model_folder_path=str(PATH_TEST_MODELS_FOLDER),
-    annotation_schema=get_empty_annotation_schema(),
     max_epoch=5,
     patience=3,
     batch_size=4,
-    maxlen=512,
+    max_position_embeddings=512,
     embedding_type="bert-base-uncased",
-    allow_lemma_char_copy=False,
-    # embedding_cached_path=str(PATH_TEST_MODELS_FOLDER),
 )
 
 
@@ -72,7 +69,7 @@ def test_add_prediction_to_sentence_json_keep_none():
     dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "train", compute_annotation_schema_if_not_found=True)
 
     # Check for keep_* = NONE
-    predicted_sentence_json_none =  dataset.add_prediction_to_sentence_json(
+    predicted_sentence_json_none =  dataset.construct_sentence_prediction(
         1,
         uposs_preds=[2,3,4,2,5],
         xposs_preds=[0,0,0,0,0],
@@ -80,12 +77,7 @@ def test_add_prediction_to_sentence_json_keep_none():
         deprels_pred_chulius=[5,2,3,4,3],
         feats_preds=[2,3,4,2,5],
         lemma_scripts_preds=[5,2,3,4,3],
-        keep_upos="NONE",
-        keep_xpos="NONE",
-        keep_deprels="NONE",
-        keep_feats="NONE",
-        keep_heads="NONE",
-        keep_lemmas="NONE",
+        partial_pred_config=PartialPredictionConfig()
         )
     assert predicted_sentence_json_none["treeJson"]["nodesJson"]["1"]["HEAD"] == 1
     assert predicted_sentence_json_none["treeJson"]["nodesJson"]["2"]["HEAD"] == 2
@@ -110,7 +102,7 @@ def test_add_prediction_to_sentence_json_keep_existing():
     dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "train", compute_annotation_schema_if_not_found=True)
 
     # Check for keep_* = EXISTING
-    predicted_sentence_json_existing =  dataset.add_prediction_to_sentence_json(
+    predicted_sentence_json_existing =  dataset.construct_sentence_prediction(
         1,
         uposs_preds=[2,3,4,2,5],
         xposs_preds=[0,0,0,0,0],
@@ -118,12 +110,14 @@ def test_add_prediction_to_sentence_json_keep_existing():
         deprels_pred_chulius=[5,2,3,4,3],
         feats_preds=[2,3,4,2,5],
         lemma_scripts_preds=[5,2,3,4,3],
-        keep_upos="EXISTING",
-        keep_xpos="EXISTING",
-        keep_deprels="EXISTING",
-        keep_feats="EXISTING",
-        keep_heads="EXISTING",
-        keep_lemmas="EXISTING",
+        partial_pred_config=PartialPredictionConfig(
+                keep_upos="EXISTING",
+                keep_xpos="EXISTING",
+                keep_deprels="EXISTING",
+                keep_feats="EXISTING",
+                keep_heads="EXISTING",
+                keep_lemmas="EXISTING",
+            )
         )
     assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["1"]["HEAD"] == 2
     assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["2"]["HEAD"] == 0
@@ -148,7 +142,7 @@ def test_add_prediction_to_sentence_json_keep_all():
     dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "train", compute_annotation_schema_if_not_found=True)
 
     # Check for keep_* = ALL
-    predicted_sentence_json_all =  dataset.add_prediction_to_sentence_json(
+    predicted_sentence_json_all =  dataset.construct_sentence_prediction(
         1,
         uposs_preds=[2,3,4,2,5],
         xposs_preds=[0,0,0,0,0],
@@ -156,12 +150,14 @@ def test_add_prediction_to_sentence_json_keep_all():
         deprels_pred_chulius=[5,2,3,4,3],
         feats_preds=[2,3,4,2,5],
         lemma_scripts_preds=[5,2,3,4,3],
-        keep_upos="ALL",
-        keep_xpos="ALL",
-        keep_deprels="ALL",
-        keep_feats="ALL",
-        keep_heads="ALL",
-        keep_lemmas="ALL",
+        partial_pred_config=PartialPredictionConfig(
+                keep_upos="ALL",
+                keep_xpos="ALL",
+                keep_deprels="ALL",
+                keep_feats="ALL",
+                keep_heads="ALL",
+                keep_lemmas="ALL",
+            )
         )
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["1"]["HEAD"] == 2
     assert predicted_sentence_json_all["treeJson"]["nodesJson"]["2"]["HEAD"] == 0

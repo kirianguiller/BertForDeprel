@@ -6,14 +6,14 @@ from conllup.conllup import sentenceJson_T, _featuresConllToJson, _featuresJsonT
 
 from torch.utils.data import Dataset
 from torch import tensor, Tensor
-from transformers import AutoTokenizer, RobertaTokenizer # type: ignore (TODO: why can't PyLance find these?)
+from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from .types import ModelParams_T
 from .annotation_schema_utils import compute_annotation_schema, get_path_of_conllus_from_folder_path, is_annotation_schema_empty, NONE_VOCAB
 from .lemma_script_utils import apply_lemma_rule, gen_lemma_script
 
 
-# Sequence classes are for one input sentence
+# A sequence contains the tokens from a single parse
 @dataclass
 class SequencePrediction_T:
     idx: int
@@ -43,7 +43,7 @@ class SequenceTraining_T(SequencePrediction_T):
         self.feats = feats
         self.lemma_scripts = lemma_scripts
 
-# batch classes are for entire datasets of sentences
+# batch classes are for entire datasets of parses
 @dataclass
 class SequencePredictionBatch_T:
     idx: Tensor
@@ -72,6 +72,20 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
         self.feats = feats
         self.lemma_scripts = lemma_scripts
 
+
+CopyOption = Literal["NONE", "EXISTING", "ALL"]
+
+
+@dataclass
+class PartialPredictionConfig:
+    keep_upos: CopyOption="NONE"
+    keep_xpos: CopyOption="NONE"
+    keep_heads: CopyOption="NONE"
+    keep_deprels: CopyOption="NONE"
+    keep_feats: CopyOption="NONE"
+    keep_lemmas: CopyOption="NONE"
+
+
 class ConlluDataset(Dataset):
     def __init__(self, path_file_or_folder: str, model_params: ModelParams_T, run_mode: Literal["train", "predict"], compute_annotation_schema_if_not_found = False):
         paths = get_path_of_conllus_from_folder_path(path_file_or_folder)
@@ -83,12 +97,21 @@ class ConlluDataset(Dataset):
 
         self.model_params = model_params
         os.environ["TOKENIZERS_PARALLELISM"] = "true"
-        self.tokenizer: RobertaTokenizer = AutoTokenizer.from_pretrained(model_params.embedding_type)
+        self.tokenizer: (PreTrainedTokenizer | PreTrainedTokenizerFast) = AutoTokenizer.from_pretrained(model_params.embedding_type)
 
         self.run_mode = run_mode
 
+        if self.tokenizer.cls_token_id == None:
+            raise Exception("CLS token not found in tokenizer")
         self.CLS_token_id = self.tokenizer.cls_token_id
+
+        if self.tokenizer.sep_token_id == None:
+            raise Exception("SEP token not found in tokenizer")
         self.SEP_token_id = self.tokenizer.sep_token_id
+
+        if self.tokenizer.unk_token_id == None:
+            raise Exception("UNK token not found in tokenizer")
+        self.UNK_token_id = self.tokenizer.unk_token_id
 
         self.dep2i, _ = self._compute_labels2i(self.model_params.annotation_schema.deprels)
         self.upos2i, _ = self._compute_labels2i(self.model_params.annotation_schema.uposs)
@@ -108,8 +131,8 @@ class ConlluDataset(Dataset):
         valid_sentence_counter = 0
         for sentence_json in sentences_json:
             sequence = self._get_processed(sentence_json, valid_sentence_counter)
-            # TODO: why is there a minus 1 here?
-            if len(sequence.seq_ids) > self.model_params.maxlen - 1:
+            # We save one spot for SEP_token_id
+            if len(sequence.seq_ids) > self.model_params.max_position_embeddings - 1:
                 print("Discarding sentence", len(sequence.seq_ids))
                 continue
             self.sequences.append(sequence)
@@ -157,7 +180,7 @@ class ConlluDataset(Dataset):
             token_ids = self.tokenizer.encode(form, add_special_tokens=False)
             if len(token_ids) == 0:
                 print(f"WARNING: Input token {input_token['ID']} ('{form}') of sentence {sequence['metaJson']['sent_id']} is not present in the tokenizer vocabulary; using UNK instead.")
-                token_ids = [self.tokenizer.unk_token_id]
+                token_ids = [self.UNK_token_id]
             idx_convertor.append(len(sequence_ids))
             tokens_len.append(len(token_ids))
             subword_start = [1] + [0] * (len(token_ids) - 1)
@@ -282,8 +305,7 @@ class ConlluDataset(Dataset):
             lemma_scripts=lemma_scripts_batch,
         )
 
-
-    def add_prediction_to_sentence_json(self,
+    def construct_sentence_prediction(self,
                                         idx,
                                         uposs_preds: List[int]=[],
                                         xposs_preds: List[int]=[],
@@ -291,36 +313,36 @@ class ConlluDataset(Dataset):
                                         deprels_pred_chulius: List[int]=[],
                                         feats_preds: List[int]=[],
                                         lemma_scripts_preds: List[int]=[],
-                                        keep_upos: Literal["NONE", "EXISTING", "ALL"]="NONE",
-                                        keep_xpos: Literal["NONE", "EXISTING", "ALL"]="NONE",
-                                        keep_heads: Literal["NONE", "EXISTING", "ALL"]="NONE",
-                                        keep_deprels: Literal["NONE", "EXISTING", "ALL"]="NONE",
-                                        keep_feats: Literal["NONE", "EXISTING", "ALL"]="NONE",
-                                        keep_lemmas: Literal["NONE", "EXISTING", "ALL"]="NONE",
-                                        ):
-        predicted_sentence_json: sentenceJson_T = self.sequences[idx].sentence_json.copy()
-        tokens = list(predicted_sentence_json["treeJson"]["nodesJson"].values())
+                                        partial_pred_config = PartialPredictionConfig(),
+                                        ) -> sentenceJson_T:
+        """Constructs the final sentence structure prediction by overwriting the model's predictions with
+        the input data where specified. The metadata is copied as well, since it is not predicted."""
+        predicted_sentence: sentenceJson_T = self.sequences[idx].sentence_json.copy()
+        tokens = list(predicted_sentence["treeJson"]["nodesJson"].values())
         annotation_schema = self.model_params.annotation_schema
+
+        # For each of the predicted fields, we overwrite the value copied from the input with the predicted value
+        # if configured to do so.
         for n_token, token in enumerate(tokens):
-            if keep_upos=="NONE" or (keep_upos=="EXISTING" and token["UPOS"] == "_"):
+            if partial_pred_config.keep_upos=="NONE" or (partial_pred_config.keep_upos=="EXISTING" and token["UPOS"] == "_"):
                 token["UPOS"] = annotation_schema.uposs[uposs_preds[n_token]]
 
-            if keep_xpos == "NONE" or (keep_xpos=="EXISTING" and token["XPOS"] == "_"):
+            if partial_pred_config.keep_xpos == "NONE" or (partial_pred_config.keep_xpos=="EXISTING" and token["XPOS"] == "_"):
                 token["XPOS"] = annotation_schema.xposs[xposs_preds[n_token]]
 
-            if keep_heads == "NONE" or (keep_heads == "EXISTING" and token["HEAD"] == -1): # this one is special as for keep_heads == "EXISTING", we already handled the case earlier in the code
+            if partial_pred_config.keep_heads == "NONE" or (partial_pred_config.keep_heads == "EXISTING" and token["HEAD"] == -1): # this one is special as for keep_heads == "EXISTING", we already handled the case earlier in the code
                 token["HEAD"] = chuliu_heads[n_token]
 
-            if keep_deprels == "NONE" or (keep_deprels=='EXISTING' and token["DEPREL"] == "_"):
+            if partial_pred_config.keep_deprels == "NONE" or (partial_pred_config.keep_deprels=='EXISTING' and token["DEPREL"] == "_"):
                 token["DEPREL"] = annotation_schema.deprels[deprels_pred_chulius[n_token]]
 
-            if keep_feats == "NONE" or (keep_feats=="EXISTING" and token["FEATS"] == {}):
+            if partial_pred_config.keep_feats == "NONE" or (partial_pred_config.keep_feats=="EXISTING" and token["FEATS"] == {}):
                 token["FEATS"] = _featuresConllToJson(annotation_schema.feats[feats_preds[n_token]])
 
-            if keep_lemmas == "NONE" or (keep_lemmas=="EXISTING" and token["LEMMA"] == "_"):
+            if partial_pred_config.keep_lemmas == "NONE" or (partial_pred_config.keep_lemmas=="EXISTING" and token["LEMMA"] == "_"):
                 lemma_script = annotation_schema.lemma_scripts[lemma_scripts_preds[n_token]]
                 token["LEMMA"] = apply_lemma_rule(token["FORM"], lemma_script)
-        return predicted_sentence_json
+        return predicted_sentence
 
 
     def get_constrained_dependency_for_chuliu(self, idx: int) -> List[Tuple]:

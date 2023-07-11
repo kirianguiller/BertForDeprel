@@ -46,50 +46,38 @@ For predicting, you need to provide the `--conf` parameter, which is the path to
 python /home/BertForDeprel/BertForDeprel/run.py train --conf /home/models/my_parser.config.json   --inpath /home/parsing_project/to_predict/ --outpath /home/parsing_project/predicted/
 ```
 
-## All Command line parameters :
+## Command line parameters
+
 ### shared
-`--conf` `-c` : path to config json file (for training, it's optional if both `--model_folder_path` and `model_name` are provided)
 
-`--batch_size`: numbers of sample per batches (high incidence on total speed)
+* `--conf` `-c` : path to config json file (for training, it's optional if both `--model_folder_path` and `model_name` are provided)
+* `--batch_size`: numbers of sample per batches (high incidence on total speed)
+* `--num_workers`: numbers of workers for preparing dataset (low incidence on total speed)
+* `--seed` `-s` : random seed (default = 42)
 
-`--num_workers`: numbers of workers for preparing dataset (low incidence on total speed)
-
-`--seed` `-s` : random seed (default = 42)
-
+The directory to store and load pretrained models is set via the environment variable `TORCH_HOME`.
 
 ### train
-`--model_folder_path` `-f` path to parent folder of the model : optional if `--conf` is already provided
 
-`--embedding_type`  `-e` : type of embedding (default : `xlm-roberta-large`)
-
-`--max_epoch` : maximum number of epochs (early stopping can shorten this number)
-
-`--patience` : number of epochs without improve required to stop the training (early stopping)
-
-`--ftrain` : path to train file or folder (files need .conllu extension)
-
-`--ftest` : path to train file or folder (files need .conllu extension) (not required. If not provided, see `--split_ratio` )
-
-`--split_ratio` : Ratio for splitting ftrain dataset in train and test dataset (default : 0.8)
-
-
-`--path_annotation_schema`: path to an annotation schema (json format)
-
-`--path_folder_compute_annotation_schema` provide a path to a folder containing various conllu, so the annotation schema is computed on these conllus before starting the training on --ftrain
-
-`--conf_pretrain` : path to pretrain model config, used for finetuning a pretrained BertForDeprel model
-`--overwrite_pretrain_classifiers`: erase pretraines classifier heads and recompute annotation schema
+* `--model_folder_path` `-f` path to parent folder of the model : optional if `--conf` is already provided
+* `--embedding_type`  `-e` : type of embedding (default : `xlm-roberta-large`)
+* `--max_epoch` : maximum number of epochs (early stopping can shorten this number)
+* `--patience` : number of epochs without improve required to stop the training (early stopping)
+* `--ftrain` : path to train file or folder (files need .conllu extension)
+* `--ftest` : path to train file or folder (files need .conllu extension) (not required. If not provided, see `--split_ratio` )
+* `--split_ratio` : Ratio for splitting ftrain dataset in train and test dataset (default : 0.8)
+* `--path_annotation_schema`: path to an annotation schema (json format)
+* `--path_folder_compute_annotation_schema` provide a path to a folder containing various conllu, so the annotation schema is computed on these conllus before starting the training on --ftrain
+* `--conf_pretrain` : path to pretrain model config, used for finetuning a pretrained BertForDeprel model
+* `--overwrite_pretrain_classifiers`: erase pretraines classifier heads and recompute annotation schema
 
 ### predict
-`--inpath` `-i` : path to the file or the folder containing the files to predict
 
-`--outpath` `-o` : path to the folder that will contain the predicted files
-
-`--suffix` : optional (default = "") , suffix that will be added to the name of the predicted files (before the file extension)
-
-`--overwrite` : whether or not to overwrite outputted predicted conllu if already existing
-
-`--write_preds_in_misc` : whether or not to write prediction in the conllu MISC column instead than in the corresponding column for upos deprel and head
+* `--inpath` `-i` : path to the file or the folder containing the files to predict
+* `--outpath` `-o` : path to the folder that will contain the predicted files
+* `--suffix` : optional (default = "") , suffix that will be added to the name of the predicted files (before the file extension)
+* `--overwrite` : whether or not to overwrite outputted predicted conllu if already existing
+* `--write_preds_in_misc` : whether or not to write prediction in the conllu MISC column instead than in the corresponding column for upos deprel and head
 
 
 ## Prepare Dataset

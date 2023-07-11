@@ -53,8 +53,10 @@ class BertForDeprel(Module):
         adapter_config = PfeifferConfig(reduction_factor=4, non_linearity="gelu")
         adapter_name = "Pfeiffer_gelu"
         self.llm_layer.add_adapter(adapter_name, config=adapter_config)
+        # TODO: this should only be set when the mode is "train";
         self.llm_layer.train_adapter([adapter_name])
         self.llm_layer.set_active_adapters([adapter_name])
+        self.llm_layer.config.max_position_embeddings = self.model_params.max_position_embeddings
 
     def _set_criterions_and_optimizer(self):
         self.criterion = CrossEntropyLoss(ignore_index=-1)
@@ -318,7 +320,7 @@ class BertForDeprel(Module):
                 "feats_ffn.weight",
                 "feats_ffn.bias",
                 ]:
-                print(f"Overwritting pretrained layer {layer_name}")
+                print(f"Overwriting pretrained layer {layer_name}")
                 continue
             tagger_pretrained_dict[layer_name] = weights
         self.tagger_layer.load_state_dict(tagger_pretrained_dict)
@@ -331,7 +333,7 @@ class BertForDeprel(Module):
         self.llm_layer.load_state_dict(llm_pretrained_dict)
         return
 
-### To reactivate if probleme in the loading of the model states
+### To reactivate if problem in the loading of the model states
 # loaded_state_dict = OrderedDict()
 # for k, v in checkpoint["state_dict"].items():
 #     name = k.replace("module.", "")

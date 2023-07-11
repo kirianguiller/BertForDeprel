@@ -102,7 +102,8 @@ class Train(CMD):
             # - the new model doesnt erase the old one (root_path_folder + model_name are different)
             # - the new model has same architecture as old one
             with open(args.conf_pretrain, "r") as infile:
-                pretrain_model_params_: ModelParams_T = json.loads(infile.read())
+                # TODO: validate json before loading
+                pretrain_model_params_ = ModelParams_T(**json.loads(infile.read()))
                 if args.overwrite_pretrain_classifiers == False:
                     model_params.annotation_schema = pretrain_model_params_.annotation_schema
                 pretrain_model_params = pretrain_model_params_

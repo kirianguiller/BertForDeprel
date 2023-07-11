@@ -1,4 +1,4 @@
-from argparse import _SubParsersAction, ArgumentParser
+from argparse import ArgumentParser
 import os
 from typing import List, Tuple
 from conllup.conllup import writeConlluFile, sentenceJson_T
@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 from ..cmds.cmd import CMD, SubparsersType
 from ..utils.annotation_schema_utils import get_path_of_conllus_from_folder_path
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constrains
-from ..utils.load_data_utils import ConlluDataset, SequencePredictionBatch_T
+from ..utils.load_data_utils import ConlluDataset, PartialPredictionConfig, SequencePredictionBatch_T
 from ..modules.BertForDepRel import BertForDeprel
 from ..utils.scores_and_losses_utils import deprel_aligner_with_head
 from ..utils.types import ModelParams_T
@@ -104,6 +104,15 @@ class Predict(CMD):
                     print(f"file '{path_result_file}' already exist and overwrite!=False, skipping ...\n")
                     continue
 
+            partial_pred_config = PartialPredictionConfig(
+                keep_upos=args.keep_upos,
+                keep_xpos=args.keep_xpos,
+                keep_feats=args.keep_feats,
+                keep_deprels=args.keep_deprels,
+                keep_heads=args.keep_heads,
+                keep_lemmas=args.keep_lemmas
+                )
+
             print(args.inpath)
 
             print(f"Loading dataset from {args.inpath}...")
@@ -119,7 +128,7 @@ class Predict(CMD):
                 f"{'Loaded '} {len(pred_dataset):5} sentences ({len(pred_loader):3} batches)"
             )
             start = timer()
-            predicted_sentences_json: List[sentenceJson_T] = []
+            predicted_sentences: List[sentenceJson_T] = []
             parsed_sentence_counter = 0
             batch: SequencePredictionBatch_T
             with torch.no_grad():
@@ -204,7 +213,7 @@ class Predict(CMD):
                             subwords_start == 1
                         ].tolist()
 
-                        predicted_sentence_json = pred_dataset.add_prediction_to_sentence_json(
+                        predicted_sentence = pred_dataset.construct_sentence_prediction(
                             n_sentence,
                             uposs_pred_list,
                             xposs_pred_list,
@@ -212,14 +221,9 @@ class Predict(CMD):
                             deprels_pred_chuliu_list,
                             feats_pred_list,
                             lemma_scripts_pred_list,
-                            keep_upos=args.keep_upos,
-                            keep_xpos=args.keep_xpos,
-                            keep_feats=args.keep_feats,
-                            keep_deprels=args.keep_deprels,
-                            keep_heads=args.keep_heads,
-                            keep_lemmas=args.keep_lemmas,
+                            partial_pred_config=partial_pred_config
                         )
-                        predicted_sentences_json.append(predicted_sentence_json)
+                        predicted_sentences.append(predicted_sentence)
                         parsed_sentence_counter += 1
                         time_from_start = timer() - start
                         parsing_speed = int(round(((parsed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
@@ -229,7 +233,7 @@ class Predict(CMD):
                         end="\r",
                     )
 
-            writeConlluFile(path_result_file, predicted_sentences_json, overwrite=args.overwrite)
+            writeConlluFile(path_result_file, predicted_sentences, overwrite=args.overwrite)
 
             print(f"Finished predicting `{path_result_file}, wrote {parsed_sentence_counter} sents in {round(timer() - start, 2)} secs`")
 

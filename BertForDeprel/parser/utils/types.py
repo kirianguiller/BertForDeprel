@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import dataclasses
 import json
 from typing import List
@@ -17,34 +17,41 @@ class EpochResults_T:
 
 @dataclass
 class AnnotationSchema_T:
-    deprels: List[str]
-    uposs: List[str]
-    xposs: List[str]
-    feats: List[str]
-    lemma_scripts: List[str]
-
+    deprels: List[str] = field(default_factory=list)
+    uposs: List[str] = field(default_factory=list)
+    xposs: List[str] = field(default_factory=list)
+    feats: List[str] = field(default_factory=list)
+    lemma_scripts: List[str] = field(default_factory=list)
 
 @dataclass
 class ModelParams_T:
     # Shared
-    model_folder_path: str
-    annotation_schema: AnnotationSchema_T
+    # TODO: what behavior does an empty path lead to?
+    model_folder_path: str = ""
+    # TODO: what behavior does an empty schema lead to?
+    annotation_schema: AnnotationSchema_T = field(default_factory=AnnotationSchema_T)
 
-    # Next training params (only relevent if one want to train a model or retrain/finetune)
-    max_epoch: int
-    patience: int
-    batch_size: int
-    maxlen: int
-
-    # Embedding (xlm-roberta-large / bert-multilingual-base-uncased ...)
-    embedding_type: str
-    # embedding_cached_path: str
+    # Training params
+    # In our experiments, most of the models based on UD data converged in 10-15 epochs
+    max_epoch: int = 15
+    # How many epochs with no performance improvement before training is ended early
+    patience: int = 3
+    # How many sentences to process in each batch
+    batch_size: int = 16
 
     # Finetuned training meta params
     # n_current_epoch: int
     # current_epoch_results: EpochResults_T
 
-    allow_lemma_char_copy: bool
+    # Allows a copy command in the lemma scripts. In the UDPipe paper, they tried both with and
+    # without this option and kept the one that yielded fewer unique scripts.
+    allow_lemma_char_copy: bool = False
+
+    # Pre-trained embeddings to download from 🤗 (xlm-roberta-large / bert-multilingual-base-uncased ...)
+    embedding_type: str = "xlm-roberta-large"
+    # Maximum length of an input sequence; the default value is the default from xlm-roberta-large.
+    # Using larger values could result in doubling or quadrupling the memory usage.
+    max_position_embeddings: int = 512
 
 
 def get_empty_current_epoch_results():
@@ -58,32 +65,6 @@ def get_empty_current_epoch_results():
         loss_total=-1,
     )
 
-
-def get_empty_annotation_schema():
-    return AnnotationSchema_T(
-        deprels=[],
-        uposs=[],
-        xposs=[],
-        feats=[],
-        lemma_scripts=[],
-    )
-
-
-def get_default_model_params() -> ModelParams_T:
-    params = ModelParams_T(
-       model_folder_path="",
-       annotation_schema=get_empty_annotation_schema(),
-       max_epoch=30,
-       patience=100,
-       batch_size=8,
-       maxlen=512,
-       embedding_type="xlm-roberta-large",
-        # embedding_cached_path="",
-        # n_current_epoch=0,
-        # current_epoch_results=get_empty_current_epoch_results(),
-       allow_lemma_char_copy=False,
-    )
-    return params
 
 
 class DataclassJSONEncoder(json.JSONEncoder):

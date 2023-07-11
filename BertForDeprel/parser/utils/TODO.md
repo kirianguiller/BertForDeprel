@@ -2,7 +2,11 @@
 
 Next: Output prediction accuracy when the input file is annotated already. Verify that performance matches expectations.
 Then: build Flask server
+    - prediction is currently hardcoded to read from and write to conllu files
+    - need to load model in an init method and use it for subsequent requests
+    -
 
+* train_adapter is always called! This might be activating some dropouts or similar, which would be detrimental to performance.
 * Try CANINE embeddings, which would probably remove many OOV's
 * Overall grok with documentation, adding paper links, fixing typos, etc.
 * Support CUR_DIR variable for the directory containing the config file
