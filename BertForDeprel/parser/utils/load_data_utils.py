@@ -298,7 +298,7 @@ class ConlluDataset(Dataset):
                                         keep_feats: Literal["NONE", "EXISTING", "ALL"]="NONE",
                                         keep_lemmas: Literal["NONE", "EXISTING", "ALL"]="NONE",
                                         ):
-        predicted_sentence_json: sentenceJson_T = self.sequences[idx]["sentence_json"].copy()
+        predicted_sentence_json: sentenceJson_T = self.sequences[idx].sentence_json.copy()
         tokens = list(predicted_sentence_json["treeJson"]["nodesJson"].values())
         annotation_schema = self.model_params.annotation_schema
         for n_token, token in enumerate(tokens):

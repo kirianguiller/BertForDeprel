@@ -45,13 +45,13 @@ def compute_annotation_schema(*paths):
     feats = sorted(set(feats))
     lemma_scripts = sorted(set(lemma_scripts))
 
-    annotation_schema: AnnotationSchema_T = {
-        "deprels": deprels,
-        "uposs": uposs,
-        "xposs": xposs,
-        "feats": feats,
-        "lemma_scripts": lemma_scripts
-    }
+    annotation_schema = AnnotationSchema_T(
+        deprels=deprels,
+        uposs=uposs,
+        xposs=xposs,
+        feats=feats,
+        lemma_scripts=lemma_scripts
+    )
     return annotation_schema
 
 def get_path_of_conllus_from_folder_path(path_folder: str):
@@ -75,4 +75,4 @@ def get_annotation_schema_from_input_folder(path_folder: str):
 
 
 def is_annotation_schema_empty(annotation_schema: AnnotationSchema_T):
-    return (len(annotation_schema["uposs"]) == 0) or len(annotation_schema["deprels"]) == 0
+    return (len(annotation_schema.uposs) == 0) or len(annotation_schema.deprels) == 0
