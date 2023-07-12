@@ -100,31 +100,22 @@ class Predict(CMD):
         return chuliu_heads_list, deprels_pred_chuliu
 
     def __prediction_iterator(self, batch: SequencePredictionBatch_T, preds: BertForDeprelOutput, pred_dataset: ConlluDataset, partial_pred_config: PartialPredictionConfig, device: str):
-        # TODO: we already sent this data to device previously. Is this duplicating work? Can we fix that?
+        # TODO: we already sent this data to the device previously. Is this duplicating work? Can we fix that?
         seq_ids_batch = batch.seq_ids.to(device)
 
         subwords_start_batch = batch.subwords_start
         idx_convertor_batch = batch.idx_convertor
         idx_batch = batch.idx
 
-        # TODO: shouldn't these just be pre-detached?
-        heads_pred_batch = preds.heads.detach()
-        deprels_pred_batch = preds.deprels.detach()
-        uposs_pred_batch = preds.uposs.detach()
-        xposs_pred_batch = preds.xposs.detach()
-        feats_pred_batch = preds.feats.detach()
-        lemma_scripts_pred_batch = preds.lemma_scripts.detach()
-
         for sentence_in_batch_counter in range(seq_ids_batch.size()[0]):
-            # next: consolidate this with a custom iterator
             subwords_start = subwords_start_batch[sentence_in_batch_counter]
             idx_convertor = idx_convertor_batch[sentence_in_batch_counter]
-            heads_pred = heads_pred_batch[sentence_in_batch_counter].clone()
-            deprels_pred = deprels_pred_batch[sentence_in_batch_counter].clone()
-            uposs_pred = uposs_pred_batch[sentence_in_batch_counter].clone()
-            xposs_pred = xposs_pred_batch[sentence_in_batch_counter].clone()
-            feats_pred = feats_pred_batch[sentence_in_batch_counter].clone()
-            lemma_scripts_pred = lemma_scripts_pred_batch[sentence_in_batch_counter].clone()
+            heads_pred = preds.heads[sentence_in_batch_counter].clone()
+            deprels_pred = preds.deprels[sentence_in_batch_counter].clone()
+            uposs_pred = preds.uposs[sentence_in_batch_counter].clone()
+            xposs_pred = preds.xposs[sentence_in_batch_counter].clone()
+            feats_pred =  preds.feats[sentence_in_batch_counter].clone()
+            lemma_scripts_pred = preds.lemma_scripts[sentence_in_batch_counter].clone()
 
             sentence_idx = idx_batch[sentence_in_batch_counter]
             n_sentence = int(sentence_idx)
@@ -243,7 +234,7 @@ class Predict(CMD):
                 for batch in pred_loader:
                     seq_ids_batch = batch.seq_ids.to(args.device)
                     attn_masks_batch = batch.attn_masks.to(args.device)
-                    preds = model.forward(seq_ids_batch, attn_masks_batch)
+                    preds = model.forward(seq_ids_batch, attn_masks_batch).detach()
 
                     time_from_start = 0
                     parsing_speed = 0
