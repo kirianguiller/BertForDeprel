@@ -7,7 +7,7 @@ import torch
 
 from typing import Literal, Optional
 
-from .BertForDepRelOutput import BertForDeprelOutput
+from .BertForDepRelOutput import BertForDeprelBatchOutput
 from .PosAndDepRelParserHead import PosAndDeprelParserHead
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
 from ..utils.load_data_utils import SequencePredictionBatch_T, SequenceTrainingBatch_T
@@ -67,7 +67,7 @@ class BertForDeprel(Module):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
 
-    def forward(self, seq, attn_masks) -> BertForDeprelOutput:
+    def forward(self, seq, attn_masks) -> BertForDeprelBatchOutput:
         '''
         Inputs:
             -seq : Tensor of shape [B, T] containing token ids of sequences

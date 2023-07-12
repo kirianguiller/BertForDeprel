@@ -1,5 +1,5 @@
 from .BiAffineTrankit import FixedClassDeepBiAffineClassifier
-from .BertForDepRelOutput import BertForDeprelOutput
+from .BertForDepRelOutput import BertForDeprelBatchOutput
 
 
 from torch.nn import Linear, Module
@@ -24,7 +24,7 @@ class PosAndDeprelParserHead(Module):
         self.lemma_scripts_ffn = Linear(llm_output_size, n_lemma_scripts)
 
 
-    def forward(self, x) -> BertForDeprelOutput:
+    def forward(self, x) -> BertForDeprelBatchOutput:
         uposs = self.uposs_ffn(x)
         xposs = self.xposs_ffn(x)
         feats = self.feats_ffn(x)
@@ -36,7 +36,7 @@ class PosAndDeprelParserHead(Module):
         heads = arc_scores.squeeze(3)
         deprels = deprel_scores.permute(0, 3, 2, 1)
 
-        return BertForDeprelOutput(
+        return BertForDeprelBatchOutput(
             uposs=uposs,
             xposs=xposs,
             feats=feats,
