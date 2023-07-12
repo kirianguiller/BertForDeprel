@@ -7,13 +7,13 @@ from timeit import default_timer as timer
 import numpy as np
 import torch
 from scipy.sparse.csgraph import minimum_spanning_tree # type: ignore (TODO: why can't PyLance find this?)
-from torch import nn
+from torch import Tensor, nn
 from torch.utils.data import DataLoader
 
 from ..cmds.cmd import CMD, SubparsersType
 from ..utils.annotation_schema_utils import get_path_of_conllus_from_folder_path
-from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constrains
-from ..utils.load_data_utils import ConlluDataset, PartialPredictionConfig, SequencePredictionBatch_T
+from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
+from ..utils.load_data_utils import ConlluDataset, CopyOption, PartialPredictionConfig, SequencePredictionBatch_T
 from ..modules.BertForDepRel import BertForDeprel
 from ..utils.scores_and_losses_utils import deprel_aligner_with_head
 from ..utils.types import ModelParams_T
@@ -62,6 +62,40 @@ class Predict(CMD):
         )
 
         return subparser
+
+    def __get_constrained_dependencies(self, heads_pred, deprels_pred, subwords_start, keep_heads: CopyOption, pred_dataset: ConlluDataset, n_sentence: int, idx_convertor: Tensor, device: str):
+        head_true_like = heads_pred.max(dim=0).indices
+        chuliu_heads_pred = head_true_like.clone().cpu().numpy()
+        chuliu_heads_list: List[int] = []
+
+        subwords_start_with_root = subwords_start.clone()
+        subwords_start_with_root[0] = True
+        heads_pred_np = heads_pred[
+            :, subwords_start_with_root == 1
+        ][subwords_start_with_root == 1]
+
+        heads_pred_np = heads_pred_np.cpu().numpy()
+
+        forced_relations: List[Tuple] = []
+        if keep_heads == "EXISTING":
+            forced_relations = pred_dataset.get_constrained_dependency_for_chuliu(n_sentence)
+
+        chuliu_heads_vector = chuliu_edmonds_one_root_with_constraints(
+            np.transpose(heads_pred_np, (1, 0)), forced_relations
+        )[1:]
+        for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
+            chuliu_heads_pred[
+                idx_convertor[i_token + 1]
+            ] = idx_convertor[chuliu_head_pred]
+            chuliu_heads_list.append(int(chuliu_head_pred))
+
+        chuliu_heads_pred = torch.tensor(chuliu_heads_pred).to(device)
+
+        deprels_pred_chuliu = deprel_aligner_with_head(
+            deprels_pred.unsqueeze(0), chuliu_heads_pred.unsqueeze(0)
+        ).squeeze(0)
+
+        return chuliu_heads_list, deprels_pred_chuliu
 
     def __call__(self, args, model_params: ModelParams_T):
         super(Predict, self).__call__(args, model_params)
@@ -135,11 +169,12 @@ class Predict(CMD):
                 for batch in pred_loader:
                     seq_ids_batch = batch.seq_ids.to(args.device)
                     attn_masks_batch = batch.attn_masks.to(args.device)
+                    preds = model.forward(seq_ids_batch, attn_masks_batch)
+
                     subwords_start_batch = batch.subwords_start
                     idx_convertor_batch = batch.idx_convertor
                     idx_batch = batch.idx
 
-                    preds = model.forward(seq_ids_batch, attn_masks_batch)
                     heads_pred_batch = preds.heads.detach()
                     deprels_pred_batch = preds.deprels.detach()
                     uposs_pred_batch = preds.uposs.detach()
@@ -150,6 +185,7 @@ class Predict(CMD):
                     time_from_start = 0
                     parsing_speed = 0
                     for sentence_in_batch_counter in range(seq_ids_batch.size()[0]):
+                        # next: consolidate this with a custom iterator
                         subwords_start = subwords_start_batch[sentence_in_batch_counter]
                         idx_convertor = idx_convertor_batch[sentence_in_batch_counter]
                         heads_pred = heads_pred_batch[sentence_in_batch_counter].clone()
@@ -158,40 +194,19 @@ class Predict(CMD):
                         xposs_pred = xposs_pred_batch[sentence_in_batch_counter].clone()
                         feats_pred = feats_pred_batch[sentence_in_batch_counter].clone()
                         lemma_scripts_pred = lemma_scripts_pred_batch[sentence_in_batch_counter].clone()
-                        sentence_idx = idx_batch[sentence_in_batch_counter]
 
+                        sentence_idx = idx_batch[sentence_in_batch_counter]
                         n_sentence = int(sentence_idx)
 
-                        head_true_like = heads_pred.max(dim=0).indices
-                        chuliu_heads_pred = head_true_like.clone().cpu().numpy()
-                        chuliu_heads_list = []
-
-                        subwords_start_with_root = subwords_start.clone()
-                        subwords_start_with_root[0] = True
-                        heads_pred_np = heads_pred[
-                            :, subwords_start_with_root == 1
-                        ][subwords_start_with_root == 1]
-
-                        heads_pred_np = heads_pred_np.cpu().numpy()
-
-                        forced_relations: List[Tuple] = []
-                        if args.keep_heads == "EXISTING":
-                            forced_relations = pred_dataset.get_constrained_dependency_for_chuliu(n_sentence)
-
-                        chuliu_heads_vector = chuliu_edmonds_one_root_with_constrains(
-                            np.transpose(heads_pred_np, (1, 0)), forced_relations
-                        )[1:]
-                        for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
-                            chuliu_heads_pred[
-                                idx_convertor[i_token + 1]
-                            ] = idx_convertor[chuliu_head_pred]
-                            chuliu_heads_list.append(int(chuliu_head_pred))
-
-                        chuliu_heads_pred = torch.tensor(chuliu_heads_pred).to(args.device)
-
-                        deprels_pred_chuliu = deprel_aligner_with_head(
-                            deprels_pred.unsqueeze(0), chuliu_heads_pred.unsqueeze(0)
-                        ).squeeze(0)
+                        (chuliu_heads_list, deprels_pred_chuliu) = self.__get_constrained_dependencies(
+                            heads_pred=heads_pred,
+                            deprels_pred=deprels_pred,
+                            subwords_start=subwords_start,
+                            pred_dataset=pred_dataset,
+                            keep_heads=args.keep_heads,
+                            n_sentence=n_sentence,
+                            idx_convertor=idx_convertor,
+                            device=args.device,)
 
                         deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[
                             subwords_start == 1
@@ -213,6 +228,7 @@ class Predict(CMD):
                             subwords_start == 1
                         ].tolist()
 
+
                         predicted_sentence = pred_dataset.construct_sentence_prediction(
                             n_sentence,
                             uposs_pred_list,
@@ -224,6 +240,7 @@ class Predict(CMD):
                             partial_pred_config=partial_pred_config
                         )
                         predicted_sentences.append(predicted_sentence)
+
                         parsed_sentence_counter += 1
                         time_from_start = timer() - start
                         parsing_speed = int(round(((parsed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)

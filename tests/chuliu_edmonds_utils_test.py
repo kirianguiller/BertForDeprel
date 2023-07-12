@@ -1,4 +1,4 @@
-from BertForDeprel.parser.utils.chuliu_edmonds_utils import chuliu_edmonds, chuliu_edmonds_one_root, chuliu_edmonds_one_root_with_constrains
+from BertForDeprel.parser.utils.chuliu_edmonds_utils import chuliu_edmonds, chuliu_edmonds_one_root, chuliu_edmonds_one_root_with_constraints
 import numpy as np
 
 
@@ -17,10 +17,10 @@ def test_chuliu_edmonds_one_root():
     assert chuliu_edmonds_one_root(mock_coefs_array).tolist() == [0, 2, 0, 2, 3, 3]
 
 def test_chuliu_edmonds_one_root_with_constrains():
-    assert chuliu_edmonds_one_root_with_constrains(mock_coefs_array).tolist() == [0, 2, 0, 2, 3, 3]
-    assert chuliu_edmonds_one_root_with_constrains(mock_coefs_array, []).tolist() == [0, 2, 0, 2, 3, 3]
-    assert chuliu_edmonds_one_root_with_constrains(mock_coefs_array, [(4, 5)]).tolist() == [0, 2, 0, 2, 5, 3]
-    assert chuliu_edmonds_one_root_with_constrains(mock_coefs_array, [(1, 0)]).tolist() == [0, 0, 1, 2, 3, 3]
-    assert chuliu_edmonds_one_root_with_constrains(mock_coefs_array, [(3, 0)]).tolist() == [0, 2, 3, 0, 3, 3]
-    assert chuliu_edmonds_one_root_with_constrains(mock_coefs_array, [(4, 1), (4, 5)]).tolist() == [0, 2, 0, 2, 1, 3]
-    assert chuliu_edmonds_one_root_with_constrains(mock_coefs_array, [(5, 1), (5, 4)]).tolist() == [0, 2, 0, 2, 3, 4]
+    assert chuliu_edmonds_one_root_with_constraints(mock_coefs_array).tolist() == [0, 2, 0, 2, 3, 3]
+    assert chuliu_edmonds_one_root_with_constraints(mock_coefs_array, []).tolist() == [0, 2, 0, 2, 3, 3]
+    assert chuliu_edmonds_one_root_with_constraints(mock_coefs_array, [(4, 5)]).tolist() == [0, 2, 0, 2, 5, 3]
+    assert chuliu_edmonds_one_root_with_constraints(mock_coefs_array, [(1, 0)]).tolist() == [0, 0, 1, 2, 3, 3]
+    assert chuliu_edmonds_one_root_with_constraints(mock_coefs_array, [(3, 0)]).tolist() == [0, 2, 3, 0, 3, 3]
+    assert chuliu_edmonds_one_root_with_constraints(mock_coefs_array, [(4, 1), (4, 5)]).tolist() == [0, 2, 0, 2, 1, 3]
+    assert chuliu_edmonds_one_root_with_constraints(mock_coefs_array, [(5, 1), (5, 4)]).tolist() == [0, 2, 0, 2, 3, 4]

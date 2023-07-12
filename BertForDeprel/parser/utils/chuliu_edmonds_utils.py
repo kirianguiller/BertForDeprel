@@ -171,9 +171,9 @@ def chuliu_edmonds_one_root(scores: NDArray):
     return best_tree
 
 
-def chuliu_edmonds_one_root_with_constrains(scores: NDArray, forced_relations: List[Tuple] = []):
+def chuliu_edmonds_one_root_with_constraints(scores: NDArray, forced_relations: List[Tuple] = []):
     """
-    forced_relations: List[Tuple] : List of (i, j) tuples, the i-eme index will be forced to be dependant of j-eme token
+    forced_relations: List[Tuple] : List of (i, j) tuples, the ith index will be forced to be dependent on jth token
     """
     if len(forced_relations):
         scores = scores.copy()
