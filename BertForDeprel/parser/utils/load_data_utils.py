@@ -47,7 +47,9 @@ class SequenceTraining_T(SequencePrediction_T):
 @dataclass
 class SequencePredictionBatch_T:
     idx: Tensor
+    # Tensor of shape [batch_size, max_seq_length] containing token ids of sequences
     seq_ids: Tensor
+    # Tensor of shape [batch_size, max_seq_length] containing attention masks to be used to avoid contribution of PAD tokens
     attn_masks: Tensor
     subwords_start: Tensor
     idx_convertor: Tensor

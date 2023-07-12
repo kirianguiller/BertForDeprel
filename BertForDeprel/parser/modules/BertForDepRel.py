@@ -5,7 +5,7 @@ from timeit import default_timer as timer
 import torch
 
 
-from typing import Optional
+from typing import Literal, Optional
 
 from .BertForDepRelOutput import BertForDeprelOutput
 from .PosAndDepRelParserHead import PosAndDeprelParserHead
@@ -71,7 +71,8 @@ class BertForDeprel(Module):
         '''
         Inputs:
             -seq : Tensor of shape [B, T] containing token ids of sequences
-            -attn_masks : Tensor of shape [B, T] containing attention masks to be used to avoid contibution of PAD tokens
+            -attn_masks : Tensor of shape [B, T] containing attention masks to be used to avoid contribution of PAD tokens
+            -mode: if set to "predict", resulting tensors will be detached before returning
         '''
         #Feeding the input to BERT model to obtain contextualized representations
         bert_output = self.llm_layer.forward(seq, attention_mask=attn_masks, return_dict=False)

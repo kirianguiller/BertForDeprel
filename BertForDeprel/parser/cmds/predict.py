@@ -10,6 +10,8 @@ from scipy.sparse.csgraph import minimum_spanning_tree # type: ignore (TODO: why
 from torch import Tensor, nn
 from torch.utils.data import DataLoader
 
+from BertForDeprel.parser.modules.BertForDepRelOutput import BertForDeprelOutput
+
 from ..cmds.cmd import CMD, SubparsersType
 from ..utils.annotation_schema_utils import get_path_of_conllus_from_folder_path
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
@@ -97,6 +99,78 @@ class Predict(CMD):
 
         return chuliu_heads_list, deprels_pred_chuliu
 
+    def __prediction_iterator(self, batch: SequencePredictionBatch_T, preds: BertForDeprelOutput, pred_dataset: ConlluDataset, partial_pred_config: PartialPredictionConfig, device: str):
+        # TODO: we already sent this data to device previously. Is this duplicating work? Can we fix that?
+        seq_ids_batch = batch.seq_ids.to(device)
+
+        subwords_start_batch = batch.subwords_start
+        idx_convertor_batch = batch.idx_convertor
+        idx_batch = batch.idx
+
+        # TODO: shouldn't these just be pre-detached?
+        heads_pred_batch = preds.heads.detach()
+        deprels_pred_batch = preds.deprels.detach()
+        uposs_pred_batch = preds.uposs.detach()
+        xposs_pred_batch = preds.xposs.detach()
+        feats_pred_batch = preds.feats.detach()
+        lemma_scripts_pred_batch = preds.lemma_scripts.detach()
+
+        for sentence_in_batch_counter in range(seq_ids_batch.size()[0]):
+            # next: consolidate this with a custom iterator
+            subwords_start = subwords_start_batch[sentence_in_batch_counter]
+            idx_convertor = idx_convertor_batch[sentence_in_batch_counter]
+            heads_pred = heads_pred_batch[sentence_in_batch_counter].clone()
+            deprels_pred = deprels_pred_batch[sentence_in_batch_counter].clone()
+            uposs_pred = uposs_pred_batch[sentence_in_batch_counter].clone()
+            xposs_pred = xposs_pred_batch[sentence_in_batch_counter].clone()
+            feats_pred = feats_pred_batch[sentence_in_batch_counter].clone()
+            lemma_scripts_pred = lemma_scripts_pred_batch[sentence_in_batch_counter].clone()
+
+            sentence_idx = idx_batch[sentence_in_batch_counter]
+            n_sentence = int(sentence_idx)
+
+            (chuliu_heads_list, deprels_pred_chuliu) = self.__get_constrained_dependencies(
+                heads_pred=heads_pred,
+                deprels_pred=deprels_pred,
+                subwords_start=subwords_start,
+                pred_dataset=pred_dataset,
+                keep_heads=partial_pred_config.keep_heads,
+                n_sentence=n_sentence,
+                idx_convertor=idx_convertor,
+                device=device,)
+
+            deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[
+                subwords_start == 1
+            ].tolist()
+
+            uposs_pred_list = uposs_pred.max(dim=1).indices[
+                subwords_start == 1
+            ].tolist()
+
+            xposs_pred_list = xposs_pred.max(dim=1).indices[
+                subwords_start == 1
+            ].tolist()
+
+            feats_pred_list = feats_pred.max(dim=1).indices[
+                subwords_start == 1
+            ].tolist()
+
+            lemma_scripts_pred_list = lemma_scripts_pred.max(dim=1).indices[
+                subwords_start == 1
+            ].tolist()
+
+            yield pred_dataset.construct_sentence_prediction(
+                            n_sentence,
+                            uposs_pred_list,
+                            xposs_pred_list,
+                            chuliu_heads_list,
+                            deprels_pred_chuliu_list,
+                            feats_pred_list,
+                            lemma_scripts_pred_list,
+                            partial_pred_config=partial_pred_config
+                        )
+
+
     def __call__(self, args, model_params: ModelParams_T):
         super(Predict, self).__call__(args, model_params)
         if not args.conf:
@@ -113,6 +187,15 @@ class Predict(CMD):
 
         if not os.path.isdir(path_predicted_files):
             os.makedirs(path_predicted_files)
+
+        partial_pred_config = PartialPredictionConfig(
+            keep_upos=args.keep_upos,
+            keep_xpos=args.keep_xpos,
+            keep_feats=args.keep_feats,
+            keep_deprels=args.keep_deprels,
+            keep_heads=args.keep_heads,
+            keep_lemmas=args.keep_lemmas
+            )
 
         print(paths_pred)
 
@@ -138,15 +221,6 @@ class Predict(CMD):
                     print(f"file '{path_result_file}' already exist and overwrite!=False, skipping ...\n")
                     continue
 
-            partial_pred_config = PartialPredictionConfig(
-                keep_upos=args.keep_upos,
-                keep_xpos=args.keep_xpos,
-                keep_feats=args.keep_feats,
-                keep_deprels=args.keep_deprels,
-                keep_heads=args.keep_heads,
-                keep_lemmas=args.keep_lemmas
-                )
-
             print(args.inpath)
 
             print(f"Loading dataset from {args.inpath}...")
@@ -171,74 +245,9 @@ class Predict(CMD):
                     attn_masks_batch = batch.attn_masks.to(args.device)
                     preds = model.forward(seq_ids_batch, attn_masks_batch)
 
-                    subwords_start_batch = batch.subwords_start
-                    idx_convertor_batch = batch.idx_convertor
-                    idx_batch = batch.idx
-
-                    heads_pred_batch = preds.heads.detach()
-                    deprels_pred_batch = preds.deprels.detach()
-                    uposs_pred_batch = preds.uposs.detach()
-                    xposs_pred_batch = preds.xposs.detach()
-                    feats_pred_batch = preds.feats.detach()
-                    lemma_scripts_pred_batch = preds.lemma_scripts.detach()
-
                     time_from_start = 0
                     parsing_speed = 0
-                    for sentence_in_batch_counter in range(seq_ids_batch.size()[0]):
-                        # next: consolidate this with a custom iterator
-                        subwords_start = subwords_start_batch[sentence_in_batch_counter]
-                        idx_convertor = idx_convertor_batch[sentence_in_batch_counter]
-                        heads_pred = heads_pred_batch[sentence_in_batch_counter].clone()
-                        deprels_pred = deprels_pred_batch[sentence_in_batch_counter].clone()
-                        uposs_pred = uposs_pred_batch[sentence_in_batch_counter].clone()
-                        xposs_pred = xposs_pred_batch[sentence_in_batch_counter].clone()
-                        feats_pred = feats_pred_batch[sentence_in_batch_counter].clone()
-                        lemma_scripts_pred = lemma_scripts_pred_batch[sentence_in_batch_counter].clone()
-
-                        sentence_idx = idx_batch[sentence_in_batch_counter]
-                        n_sentence = int(sentence_idx)
-
-                        (chuliu_heads_list, deprels_pred_chuliu) = self.__get_constrained_dependencies(
-                            heads_pred=heads_pred,
-                            deprels_pred=deprels_pred,
-                            subwords_start=subwords_start,
-                            pred_dataset=pred_dataset,
-                            keep_heads=args.keep_heads,
-                            n_sentence=n_sentence,
-                            idx_convertor=idx_convertor,
-                            device=args.device,)
-
-                        deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[
-                            subwords_start == 1
-                        ].tolist()
-
-                        uposs_pred_list = uposs_pred.max(dim=1).indices[
-                            subwords_start == 1
-                        ].tolist()
-
-                        xposs_pred_list = xposs_pred.max(dim=1).indices[
-                            subwords_start == 1
-                        ].tolist()
-
-                        feats_pred_list = feats_pred.max(dim=1).indices[
-                            subwords_start == 1
-                        ].tolist()
-
-                        lemma_scripts_pred_list = lemma_scripts_pred.max(dim=1).indices[
-                            subwords_start == 1
-                        ].tolist()
-
-
-                        predicted_sentence = pred_dataset.construct_sentence_prediction(
-                            n_sentence,
-                            uposs_pred_list,
-                            xposs_pred_list,
-                            chuliu_heads_list,
-                            deprels_pred_chuliu_list,
-                            feats_pred_list,
-                            lemma_scripts_pred_list,
-                            partial_pred_config=partial_pred_config
-                        )
+                    for predicted_sentence in self.__prediction_iterator(batch, preds, pred_dataset, partial_pred_config, args.device):
                         predicted_sentences.append(predicted_sentence)
 
                         parsed_sentence_counter += 1
