@@ -65,6 +65,7 @@ class Predict(CMD):
 
         return subparser
 
+    # TODO: there must be some overlap between this and the model eval code
     def __get_constrained_dependencies(self, heads_pred, deprels_pred, subwords_start, keep_heads: CopyOption, pred_dataset: ConlluDataset, n_sentence: int, idx_convertor: Tensor, device: str):
         head_true_like = heads_pred.max(dim=0).indices
         chuliu_heads_pred = head_true_like.clone().cpu().numpy()
@@ -101,6 +102,7 @@ class Predict(CMD):
 
     def __prediction_iterator(self, batch: SequencePredictionBatch_T, preds: BertForDeprelBatchOutput, pred_dataset: ConlluDataset, partial_pred_config: PartialPredictionConfig, device: str):
         # TODO: we already sent this data to the device previously. Is this duplicating work? Can we fix that?
+        # perhaps encapsulate the two to() calls in the other method, then overwrite the original tensors (is that safe and okay?), then use that here in the batch object
         seq_ids_batch = batch.seq_ids.to(device)
 
         subwords_start_batch = batch.subwords_start
