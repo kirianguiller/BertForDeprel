@@ -74,6 +74,26 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
         self.feats = feats
         self.lemma_scripts = lemma_scripts
 
+    def backprop_tensors_to(self, device: str):
+        """Returns a new training batch with the tensors requiring backprop during training
+        sent to the specified device."""
+        return SequenceTrainingBatch_T(
+            pred_data=SequencePredictionBatch_T(
+                idx=self.idx,
+                seq_ids=self.seq_ids.to(device),
+                attn_masks=self.attn_masks.to(device),
+                subwords_start=self.subwords_start,
+                idx_convertor=self.idx_convertor,
+                max_sentence_length=self.max_sentence_length
+                ),
+            heads=self.heads.to(device),
+            deprels=self.deprels.to(device),
+            uposs=self.uposs.to(device),
+            xposs=self.xposs.to(device),
+            feats=self.feats.to(device),
+            lemma_scripts=self.lemma_scripts.to(device),
+        )
+
 
 CopyOption = Literal["NONE", "EXISTING", "ALL"]
 

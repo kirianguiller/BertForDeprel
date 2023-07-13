@@ -84,6 +84,15 @@ class BertForDeprel(Module):
         output = self.tagger_layer.forward(x)
         return output
 
+    def __compute_loss(self, batch: SequenceTrainingBatch_T, preds: BertForDeprelBatchOutput):
+        loss_batch = compute_loss_head(preds.heads, batch.heads, self.criterion)
+        loss_batch += compute_loss_deprel(preds.deprels, batch.deprels, batch.heads.clone(), self.criterion)
+        loss_batch += compute_loss_poss(preds.uposs, batch.uposs, self.criterion)
+        loss_batch += compute_loss_poss(preds.xposs, batch.xposs, self.criterion)
+        loss_batch += compute_loss_poss(preds.feats, batch.feats, self.criterion)
+        loss_batch += compute_loss_poss(preds.lemma_scripts, batch.lemma_scripts, self.criterion)
+        return loss_batch
+
 
     def train_epoch(self, loader, device):
         time_from_start = 0
@@ -95,30 +104,14 @@ class BertForDeprel(Module):
         print_every = max(1, total_number_batch // 8) # so we print only around 8 times per epochs
         batch: SequenceTrainingBatch_T
         for batch_counter, batch in enumerate(loader):
-            seq_ids = batch.seq_ids.to(device)
-            attn_masks = batch.attn_masks.to(device)
-            heads_true = batch.heads.to(device)
-            deprels_true = batch.deprels.to(device)
-            uposs_true = batch.uposs.to(device)
-            xposs_true = batch.xposs.to(device)
-            feats_true = batch.feats.to(device)
-            lemma_scripts_true = batch.lemma_scripts.to(device)
-
+            batch = batch.backprop_tensors_to(device)
             self.optimizer.zero_grad()
-
-            preds = self.forward(seq_ids, attn_masks)
-
-            loss_batch = compute_loss_head(preds.heads, heads_true, self.criterion)
-            loss_batch += compute_loss_deprel(preds.deprels, deprels_true, heads_true.clone(), self.criterion)
-            loss_batch += compute_loss_poss(preds.uposs, uposs_true, self.criterion)
-            loss_batch += compute_loss_poss(preds.xposs, xposs_true, self.criterion)
-            loss_batch += compute_loss_poss(preds.feats, feats_true, self.criterion)
-            loss_batch += compute_loss_poss(preds.lemma_scripts, lemma_scripts_true, self.criterion)
-
+            preds = self.forward(batch.seq_ids, batch.attn_masks)
+            loss_batch = self.__compute_loss(batch, preds)
             loss_batch.backward()
             self.optimizer.step()
 
-            processed_sentence_counter += seq_ids.size(0)
+            processed_sentence_counter += batch.seq_ids.size(0)
             time_from_start = timer() - start
             parsing_speed = int(round(((processed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
 
@@ -150,6 +143,7 @@ class BertForDeprel(Module):
 
             batch: SequenceTrainingBatch_T
             for batch_counter, batch in enumerate(loader):
+                # TODO: bundle this, re-using backprop_tensors_to logic
                 seq_ids = batch.seq_ids.to(device)
                 attn_masks = batch.attn_masks.to(device)
                 subwords_start = batch.subwords_start.to(device)
