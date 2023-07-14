@@ -5,12 +5,12 @@ from timeit import default_timer as timer
 import torch
 
 
-from typing import Literal, Optional
+from typing import Optional
 
 from .BertForDepRelOutput import BertForDeprelBatchOutput
 from .PosAndDepRelParserHead import PosAndDeprelParserHead
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
-from ..utils.load_data_utils import SequencePredictionBatch_T, SequenceTrainingBatch_T
+from ..utils.load_data_utils import SequenceTrainingBatch_T
 from ..utils.scores_and_losses_utils import compute_LAS, compute_LAS_chuliu, compute_acc_deprel, compute_acc_head, compute_acc_upos, compute_loss_deprel, compute_loss_head, compute_loss_poss
 from ..utils.types import DataclassJSONEncoder, ModelParams_T
 
@@ -19,7 +19,6 @@ from torch.nn import CrossEntropyLoss, Module
 from torch.optim import AdamW
 from transformers import AutoModel, XLMRobertaModel # type: ignore (TODO: why can't PyLance find these?)
 from transformers.adapters import PfeifferConfig
-from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAttentions
 
 
 class BertForDeprel(Module):
@@ -104,7 +103,7 @@ class BertForDeprel(Module):
         print_every = max(1, total_number_batch // 8) # so we print only around 8 times per epochs
         batch: SequenceTrainingBatch_T
         for batch_counter, batch in enumerate(loader):
-            batch = batch.backprop_tensors_to(device)
+            batch = batch.to(device)
             self.optimizer.zero_grad()
             preds = self.forward(batch.seq_ids, batch.attn_masks)
             loss_batch = self.__compute_loss(batch, preds)
@@ -143,22 +142,12 @@ class BertForDeprel(Module):
 
             batch: SequenceTrainingBatch_T
             for batch_counter, batch in enumerate(loader):
-                # TODO: bundle this, re-using backprop_tensors_to logic
-                seq_ids = batch.seq_ids.to(device)
-                attn_masks = batch.attn_masks.to(device)
-                subwords_start = batch.subwords_start.to(device)
-                idx_convertor = batch.idx_convertor.to(device)
-                heads_true = batch.heads.to(device)
-                deprels_true = batch.deprels.to(device)
-                uposs_true = batch.uposs.to(device)
-                xposs_true = batch.xposs.to(device)
-                feats_true = batch.feats.to(device)
-                lemma_scripts_true = batch.lemma_scripts.to(device)
+                batch = batch.to(device, is_eval=True)
 
-                model_output = self.forward(seq_ids, attn_masks).detach()
+                model_output = self.forward(batch.seq_ids, batch.attn_masks).detach()
 
-                chuliu_heads_pred = heads_true.clone()
-                for i_vector, (heads_pred_vector, subwords_start_vector, idx_convertor_vector) in enumerate(zip(model_output.heads, subwords_start, idx_convertor)):
+                chuliu_heads_pred = batch.heads.clone()
+                for i_vector, (heads_pred_vector, subwords_start_vector, idx_convertor_vector) in enumerate(zip(model_output.heads, batch.subwords_start, batch.idx_convertor)):
                     subwords_start_with_root = subwords_start_vector.clone()
                     subwords_start_with_root[0] = True
 
@@ -171,54 +160,54 @@ class BertForDeprel(Module):
                         chuliu_heads_pred[i_vector, idx_convertor_vector[i_token+1]] = idx_convertor_vector[chuliu_head_pred]
 
                 n_correct_LAS_batch, n_correct_LAS_batch, n_total_batch = \
-                    compute_LAS(model_output.heads, model_output.deprels, heads_true, deprels_true)
+                    compute_LAS(model_output.heads, model_output.deprels, batch.heads, batch.deprels)
                 n_correct_LAS_chuliu_batch, _, n_total_batch = \
-                    compute_LAS_chuliu(chuliu_heads_pred, model_output.deprels, heads_true, deprels_true)
+                    compute_LAS_chuliu(chuliu_heads_pred, model_output.deprels, batch.heads, batch.deprels)
                 n_correct_LAS_epoch += n_correct_LAS_batch
                 n_correct_LAS_chuliu_epoch += n_correct_LAS_chuliu_batch
                 n_total_epoch += n_total_batch
 
-                loss_head_batch = compute_loss_head(model_output.heads, heads_true, self.criterion)
-                good_head_batch, total_head_batch = compute_acc_head(model_output.heads, heads_true, eps=0)
+                loss_head_batch = compute_loss_head(model_output.heads, batch.heads, self.criterion)
+                good_head_batch, total_head_batch = compute_acc_head(model_output.heads, batch.heads, eps=0)
                 loss_head_epoch += loss_head_batch.item()
                 good_head_epoch += good_head_batch
                 total_head_epoch += total_head_batch
 
-                loss_deprel_batch = compute_loss_deprel(model_output.deprels, deprels_true, heads_true, self.criterion)
-                good_deprel_batch, total_deprel_batch = compute_acc_deprel(model_output.deprels, deprels_true, heads_true, eps=0)
+                loss_deprel_batch = compute_loss_deprel(model_output.deprels, batch.deprels, batch.heads, self.criterion)
+                good_deprel_batch, total_deprel_batch = compute_acc_deprel(model_output.deprels, batch.deprels, batch.heads, eps=0)
                 loss_deprel_epoch += loss_deprel_batch.item()
                 good_deprel_epoch += good_deprel_batch
                 total_deprel_epoch += total_deprel_batch
 
-                good_uposs_batch, total_uposs_batch = compute_acc_upos(model_output.uposs, uposs_true, eps=0)
+                good_uposs_batch, total_uposs_batch = compute_acc_upos(model_output.uposs, batch.uposs, eps=0)
                 good_uposs_epoch += good_uposs_batch
                 total_uposs_epoch += total_uposs_batch
 
-                good_xposs_batch, total_xposs_batch = compute_acc_upos(model_output.xposs, xposs_true, eps=0)
+                good_xposs_batch, total_xposs_batch = compute_acc_upos(model_output.xposs, batch.xposs, eps=0)
                 good_xposs_epoch += good_xposs_batch
                 total_xposs_epoch += total_xposs_batch
 
-                good_feats_batch, total_feats_batch = compute_acc_upos(model_output.feats, feats_true, eps=0)
+                good_feats_batch, total_feats_batch = compute_acc_upos(model_output.feats, batch.feats, eps=0)
                 good_feats_epoch += good_feats_batch
                 total_feats_epoch += total_feats_batch
 
-                good_lemma_scripts_batch, total_lemma_scripts_batch = compute_acc_upos(model_output.lemma_scripts, lemma_scripts_true, eps=0)
+                good_lemma_scripts_batch, total_lemma_scripts_batch = compute_acc_upos(model_output.lemma_scripts, batch.lemma_scripts, eps=0)
                 good_lemma_scripts_epoch += good_lemma_scripts_batch
                 total_lemma_scripts_epoch += total_lemma_scripts_batch
 
-                loss_uposs_batch = compute_loss_poss(model_output.uposs, uposs_true, self.criterion)
+                loss_uposs_batch = compute_loss_poss(model_output.uposs, batch.uposs, self.criterion)
                 loss_uposs_epoch += loss_uposs_batch
 
-                loss_xposs_batch = compute_loss_poss(model_output.xposs, xposs_true, self.criterion)
+                loss_xposs_batch = compute_loss_poss(model_output.xposs, batch.xposs, self.criterion)
                 loss_xposs_epoch += loss_xposs_batch
 
-                loss_feats_batch = compute_loss_poss(model_output.feats, feats_true, self.criterion)
+                loss_feats_batch = compute_loss_poss(model_output.feats, batch.feats, self.criterion)
                 loss_feats_epoch += loss_feats_batch
 
-                loss_lemma_scripts_batch = compute_loss_poss(model_output.lemma_scripts, lemma_scripts_true, self.criterion)
+                loss_lemma_scripts_batch = compute_loss_poss(model_output.lemma_scripts, batch.lemma_scripts, self.criterion)
                 loss_lemma_scripts_epoch += loss_lemma_scripts_batch
 
-                processed_sentence_counter += seq_ids.size(0)
+                processed_sentence_counter += batch.seq_ids.size(0)
                 time_from_start = timer() - start
                 parsing_speed = int(round(((processed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
 

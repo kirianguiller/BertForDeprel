@@ -74,16 +74,22 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
         self.feats = feats
         self.lemma_scripts = lemma_scripts
 
-    def backprop_tensors_to(self, device: str):
-        """Returns a new training batch with the tensors requiring backprop during training
-        sent to the specified device."""
+    def to(self, device: str, is_eval=False):
+        """Returns a new training batch with the tensors sent to the specified device. For use
+        during model training (is_eval=False) or evaluation (is_eval=True)."""
+        if is_eval:
+            subwords_start = self.subwords_start.to(device)
+            idx_converter = self.idx_convertor.to(device)
+        else:
+            subwords_start = self.subwords_start
+            idx_converter = self.idx_convertor
         return SequenceTrainingBatch_T(
             pred_data=SequencePredictionBatch_T(
                 idx=self.idx,
                 seq_ids=self.seq_ids.to(device),
                 attn_masks=self.attn_masks.to(device),
-                subwords_start=self.subwords_start,
-                idx_convertor=self.idx_convertor,
+                subwords_start=subwords_start,
+                idx_convertor=idx_converter,
                 max_sentence_length=self.max_sentence_length
                 ),
             heads=self.heads.to(device),
