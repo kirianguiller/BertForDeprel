@@ -159,7 +159,7 @@ class BertForDeprel(Module):
                     for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
                         chuliu_heads_pred[i_vector, idx_convertor_vector[i_token+1]] = idx_convertor_vector[chuliu_head_pred]
 
-                n_correct_LAS_batch, n_correct_LAS_batch, n_total_batch = \
+                n_correct_LAS_batch, n_total_batch = \
                     compute_LAS(model_output.heads, model_output.deprels, batch.heads, batch.deprels)
                 n_correct_LAS_chuliu_batch, _, n_total_batch = \
                     compute_LAS_chuliu(chuliu_heads_pred, model_output.deprels, batch.heads, batch.deprels)
