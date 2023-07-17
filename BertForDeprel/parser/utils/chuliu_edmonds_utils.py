@@ -52,7 +52,7 @@ def tarjan(tree):
     return cycles
 
 def chuliu_edmonds(scores):
-    """"""
+    """scores: NDArray : 2D array of scores, where scores[i, j] is the score of the ith token being dependent on the jth token"""
     np.fill_diagonal(scores, -float('inf')) # prevent self-loops
     scores[0] = -float('inf')
     scores[0,0] = 0
@@ -134,7 +134,9 @@ def chuliu_edmonds(scores):
 
 #===============================================================
 def chuliu_edmonds_one_root(scores: NDArray):
-    """"""
+    """
+    scores: NDArray : 2D array of scores, where scores[i, j] is the score of the ith token being dependent on the jth token
+    """
 
     scores = scores.astype(np.float64)
     tree = chuliu_edmonds(scores)
@@ -152,7 +154,8 @@ def chuliu_edmonds_one_root(scores: NDArray):
         return scores, root_score
     #-------------------------------------------------------------
 
-    best_score, best_tree = -np.inf, None # This is what's causing it to crash
+    best_score, best_tree = -np.inf, None # This is what's causing it to crash TODO: what?
+    _tree, _scores, tree_probs, tree_score = None, None, None, None
     for root in roots_to_try:
         _scores, root_score = set_root(scores, root)
         _tree = chuliu_edmonds(_scores)
@@ -173,6 +176,7 @@ def chuliu_edmonds_one_root(scores: NDArray):
 
 def chuliu_edmonds_one_root_with_constraints(scores: NDArray, forced_relations: List[Tuple] = []):
     """
+    scores: NDArray : 2D array of scores, where scores[i, j] is the score of the ith token being dependent on the jth token
     forced_relations: List[Tuple] : List of (i, j) tuples, the ith index will be forced to be dependent on jth token
     """
     if len(forced_relations):

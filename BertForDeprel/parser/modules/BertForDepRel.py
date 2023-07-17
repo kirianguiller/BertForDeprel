@@ -146,18 +146,20 @@ class BertForDeprel(Module):
 
                 model_output = self.forward(batch.seq_ids, batch.attn_masks).detach()
 
+                # TODO: move to separate method
                 chuliu_heads_pred = batch.heads.clone()
-                for i_vector, (heads_pred_vector, subwords_start_vector, idx_convertor_vector) in enumerate(zip(model_output.heads, batch.subwords_start, batch.idx_convertor)):
-                    subwords_start_with_root = subwords_start_vector.clone()
+                for i_sentence, (heads_pred_sentence, subwords_start_sentence, idx_convertor_sentence) in enumerate(zip(model_output.heads, batch.subwords_start, batch.idx_convertor)):
+                    subwords_start_with_root = subwords_start_sentence.clone()
+                    # TODO: why?
                     subwords_start_with_root[0] = True
 
-                    heads_pred_np = heads_pred_vector[:,subwords_start_with_root == 1][subwords_start_with_root == 1]
+                    heads_pred_np = heads_pred_sentence[:,subwords_start_with_root == 1][subwords_start_with_root == 1]
                     heads_pred_np = heads_pred_np.cpu().numpy()
 
                     chuliu_heads_vector = chuliu_edmonds_one_root(np.transpose(heads_pred_np, (1,0)))[1:]
 
                     for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
-                        chuliu_heads_pred[i_vector, idx_convertor_vector[i_token+1]] = idx_convertor_vector[chuliu_head_pred]
+                        chuliu_heads_pred[i_sentence, idx_convertor_sentence[i_token+1]] = idx_convertor_sentence[chuliu_head_pred]
 
                 n_correct_LAS_batch, n_total_batch = \
                     compute_LAS(model_output.heads, model_output.deprels, batch.heads, batch.deprels)

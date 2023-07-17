@@ -17,8 +17,10 @@ from .lemma_script_utils import apply_lemma_rule, gen_lemma_script
 @dataclass
 class SequencePrediction_T:
     idx: int
+    # the ConllU data for the sentence
     sentence_json: sentenceJson_T
-    seq_ids: List[int]
+    """The token ids of the sequence, prepended with a CLS token and appended with a SEP token."""
+    sequence_token_ids: List[int]
     attn_masks: List[int]
     subwords_start: List[int]
     idx_convertor: List[int]
@@ -141,6 +143,8 @@ class ConlluDataset(Dataset):
             raise Exception("UNK token not found in tokenizer")
         self.UNK_token_id = self.tokenizer.unk_token_id
 
+        print(f"Special tokens are {self.CLS_token_id} (CLS), {self.SEP_token_id} (SEP), {self.UNK_token_id} (UNK)")
+
         self.dep2i, _ = self._compute_labels2i(self.model_params.annotation_schema.deprels)
         self.upos2i, _ = self._compute_labels2i(self.model_params.annotation_schema.uposs)
         self.xpos2i, _ = self._compute_labels2i(self.model_params.annotation_schema.xposs)
@@ -159,9 +163,9 @@ class ConlluDataset(Dataset):
         valid_sentence_counter = 0
         for sentence_json in sentences_json:
             sequence = self._get_processed(sentence_json, valid_sentence_counter)
-            # We save one spot for SEP_token_id
-            if len(sequence.seq_ids) > self.model_params.max_position_embeddings - 1:
-                print("Discarding sentence", len(sequence.seq_ids))
+            # We save one spot each for CLS_token_id and SEP_token_id
+            if len(sequence.sequence_token_ids) > self.model_params.max_position_embeddings - 2:
+                print("Discarding sentence", len(sequence.sequence_token_ids))
                 continue
             self.sequences.append(sequence)
             valid_sentence_counter += 1
@@ -194,6 +198,7 @@ class ConlluDataset(Dataset):
 
 
     def _get_input(self, sequence: sentenceJson_T, idx: int) -> SequencePrediction_T:
+        # Next: move this creation into a builder class and document every resulting field. Want to know the shape and makeup of everything.
         sequence_ids = [self.CLS_token_id]
         subwords_start = [-1]
         idx_convertor = [0]
@@ -220,15 +225,11 @@ class ConlluDataset(Dataset):
         # idx_convertor = self._trunc(idx_convertor)
 
         sequence_ids = sequence_ids + [self.SEP_token_id]
-
-        sequence_ids = sequence_ids
-        subwords_start = subwords_start
-        idx_convertor = idx_convertor
         attn_masks = [int(token_id > 0) for token_id in sequence_ids]
         return SequencePrediction_T(
             idx=idx,
             sentence_json=sequence,
-            seq_ids=sequence_ids,
+            sequence_token_ids=sequence_ids,
             attn_masks=attn_masks,
             subwords_start=subwords_start,
             idx_convertor=idx_convertor,
@@ -297,8 +298,8 @@ class ConlluDataset(Dataset):
         return pred_data
 
     def collate_fn_predict(self, sentences: List[Sequence_T]) -> SequencePredictionBatch_T:
-        max_sentence_length = max([len(sentence.seq_ids) for sentence in sentences])
-        seq_ids_batch        = tensor([self._pad_list(sentence.seq_ids,  0, max_sentence_length) for sentence in sentences])
+        max_sentence_length = max([len(sentence.sequence_token_ids) for sentence in sentences])
+        seq_ids_batch        = tensor([self._pad_list(sentence.sequence_token_ids,  0, max_sentence_length) for sentence in sentences])
         subwords_start_batch = tensor([self._pad_list(sentence.subwords_start, -1, max_sentence_length) for sentence in sentences])
         attn_masks_batch     = tensor([self._pad_list(sentence.attn_masks,  0, max_sentence_length) for sentence in sentences])
         idx_convertor_batch  = tensor([self._pad_list(sentence.idx_convertor, -1, max_sentence_length) for sentence in sentences])
