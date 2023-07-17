@@ -143,7 +143,7 @@ class ConlluDataset(Dataset):
             raise Exception("UNK token not found in tokenizer")
         self.UNK_token_id = self.tokenizer.unk_token_id
 
-        print(f"Special tokens are {self.CLS_token_id} (CLS), {self.SEP_token_id} (SEP), {self.UNK_token_id} (UNK)")
+        print(f"Special tokens are {self.CLS_token_id} (CLS), {self.SEP_token_id} (SEP), {self.UNK_token_id} (UNK), {self.tokenizer.pad_token_id} (PAD)")
 
         self.dep2i, _ = self._compute_labels2i(self.model_params.annotation_schema.deprels)
         self.upos2i, _ = self._compute_labels2i(self.model_params.annotation_schema.uposs)
@@ -225,6 +225,11 @@ class ConlluDataset(Dataset):
         # idx_convertor = self._trunc(idx_convertor)
 
         sequence_ids = sequence_ids + [self.SEP_token_id]
+        # TODO: this is wrong, right? CLS token is 0, so > 0 masks the CLS token but not the SEP token, and we
+        # don't even have PAD tokens yet, so certainly not padding those; XLM-Roberta docs
+        # (https://github.com/kirianguiller/BertForDeprel/blob/master/BertForDeprel/parser/utils/load_data_utils.py#L164)
+        # say this is supposed to mask PAD tokens. But then, why wouldn't XLM-Roberta do that for you, since
+        # it knows the ID of the PAD token?
         attn_masks = [int(token_id > 0) for token_id in sequence_ids]
         return SequencePrediction_T(
             idx=idx,
