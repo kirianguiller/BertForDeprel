@@ -10,8 +10,8 @@ from scipy.sparse.csgraph import minimum_spanning_tree # type: ignore (TODO: why
 from torch import Tensor, nn
 from torch.utils.data import DataLoader
 
-from BertForDeprel.parser.modules.BertForDepRelOutput import BertForDeprelBatchOutput
 
+from parser.modules.BertForDepRelOutput import BertForDeprelBatchOutput
 from ..cmds.cmd import CMD, SubparsersType
 from ..utils.annotation_schema_utils import get_path_of_conllus_from_folder_path
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints

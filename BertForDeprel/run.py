@@ -4,11 +4,11 @@ import json
 from pathlib import Path
 import torch
 from typing import Dict
-from BertForDeprel.parser.utils.types import ModelParams_T
 
 from parser.cmds import Predict, Train
 from parser.cmds.cmd import CMD
 from parser.utils.gpu_utils import get_devices_configuration
+from parser.utils.types import ModelParams_T
 
 
 if __name__ == "__main__":
