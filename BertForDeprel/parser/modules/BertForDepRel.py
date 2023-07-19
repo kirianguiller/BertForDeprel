@@ -73,9 +73,9 @@ class BertForDeprel(Module):
             -attn_masks : Tensor of shape [B, T] containing attention masks to be used to avoid contribution of PAD tokens
             -mode: if set to "predict", resulting tensors will be detached before returning
         '''
-        #Feeding the input to BERT model to obtain contextualized representations
-        bert_output = self.llm_layer.forward(seq, attention_mask=attn_masks, return_dict=False)
-        # return_dict is False, so the return value will never be a tuple, but we do this to satisfy the type-checker
+        # Feeding the input to BERT model to obtain contextualized representations
+        bert_output = self.llm_layer.forward(seq, attention_mask=attn_masks, return_dict=True)
+        # return_dict is True, so the return value will never be a tuple, but we do this to satisfy the type-checker
         assert not isinstance(bert_output, tuple)
 
 

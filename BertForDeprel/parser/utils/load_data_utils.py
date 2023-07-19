@@ -143,6 +143,7 @@ class ConlluDataset(Dataset):
             raise Exception("UNK token not found in tokenizer")
         self.UNK_token_id = self.tokenizer.unk_token_id
 
+        # 0 (CLS), 2 (SEP), 3 (UNK), 1 (PAD)
         print(f"Special tokens are {self.CLS_token_id} (CLS), {self.SEP_token_id} (SEP), {self.UNK_token_id} (UNK), {self.tokenizer.pad_token_id} (PAD)")
 
         self.dep2i, _ = self._compute_labels2i(self.model_params.annotation_schema.deprels)
