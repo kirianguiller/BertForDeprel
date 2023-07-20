@@ -105,12 +105,12 @@ class BertForDeprel(Module):
         for batch_counter, batch in enumerate(loader):
             batch = batch.to(device)
             self.optimizer.zero_grad()
-            preds = self.forward(batch.seq_ids, batch.attn_masks)
+            preds = self.forward(batch.sequence_token_ids, batch.attn_masks)
             loss_batch = self.__compute_loss(batch, preds)
             loss_batch.backward()
             self.optimizer.step()
 
-            processed_sentence_counter += batch.seq_ids.size(0)
+            processed_sentence_counter += batch.sequence_token_ids.size(0)
             time_from_start = timer() - start
             parsing_speed = int(round(((processed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
 
@@ -144,11 +144,11 @@ class BertForDeprel(Module):
             for batch_counter, batch in enumerate(loader):
                 batch = batch.to(device, is_eval=True)
 
-                model_output = self.forward(batch.seq_ids, batch.attn_masks).detach()
+                model_output = self.forward(batch.sequence_token_ids, batch.attn_masks).detach()
 
                 # TODO: move to separate method
                 chuliu_heads_pred = batch.heads.clone()
-                for i_sentence, (heads_pred_sentence, subwords_start_sentence, idx_convertor_sentence) in enumerate(zip(model_output.heads, batch.subwords_start, batch.idx_convertor)):
+                for i_sentence, (heads_pred_sentence, subwords_start_sentence, idx_converter_sentence) in enumerate(zip(model_output.heads, batch.subwords_start, batch.idx_converter)):
                     subwords_start_with_root = subwords_start_sentence.clone()
                     # TODO: why?
                     subwords_start_with_root[0] = True
@@ -159,7 +159,7 @@ class BertForDeprel(Module):
                     chuliu_heads_vector = chuliu_edmonds_one_root(np.transpose(heads_pred_np, (1,0)))[1:]
 
                     for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
-                        chuliu_heads_pred[i_sentence, idx_convertor_sentence[i_token+1]] = idx_convertor_sentence[chuliu_head_pred]
+                        chuliu_heads_pred[i_sentence, idx_converter_sentence[i_token+1]] = idx_converter_sentence[chuliu_head_pred]
 
                 n_correct_LAS_batch, n_total_batch = \
                     compute_LAS(model_output.heads, model_output.deprels, batch.heads, batch.deprels)
@@ -209,7 +209,7 @@ class BertForDeprel(Module):
                 loss_lemma_scripts_batch = compute_loss_poss(model_output.lemma_scripts, batch.lemma_scripts, self.criterion)
                 loss_lemma_scripts_epoch += loss_lemma_scripts_batch
 
-                processed_sentence_counter += batch.seq_ids.size(0)
+                processed_sentence_counter += batch.sequence_token_ids.size(0)
                 time_from_start = timer() - start
                 parsing_speed = int(round(((processed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
 

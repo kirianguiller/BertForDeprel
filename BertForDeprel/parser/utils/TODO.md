@@ -4,10 +4,8 @@ Next: Output prediction accuracy when the input file is annotated already. Verif
 Then: build Flask server
     - prediction is currently hardcoded to read from and write to conllu files
     - need to load model in an init method and use it for subsequent requests
-    -
 
 * Try XLM-RoBERTa-XL, which is 2 years newer than xlm-roberta
-* What does is_decoder do? Do we need it?
 * train_adapter is always called! This might be activating some dropouts or similar, which would be detrimental to performance.
 * Try CANINE embeddings, which would probably remove many OOV's
 * Overall grok with documentation, adding paper links, fixing typos, etc.

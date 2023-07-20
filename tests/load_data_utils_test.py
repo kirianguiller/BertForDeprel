@@ -43,11 +43,10 @@ def test_raise_error_if_no_annotation_schema():
 def test_predict_output():
     dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "predict", compute_annotation_schema_if_not_found=True)
     assert dataset[0].idx == 0
-    assert dataset[0].seq_ids == [101, 2054, 2003, 1996, 5700, 3462, 2013, 3731, 2000, 1038, 9148, 2008, 4240, 1037,
+    assert dataset[0].sequence_token_ids == [101, 2054, 2003, 1996, 5700, 3462, 2013, 3731, 2000, 1038, 9148, 2008, 4240, 1037,
                                      19782, 102]
-    assert dataset[0].attn_masks == [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    assert dataset[0].idx_convertor == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14]
     assert dataset[0].subwords_start == [-1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1]
+    assert dataset[0].idx_converter == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14]
     assert dataset[0].tokens_len == [1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1]
 
 
@@ -64,6 +63,9 @@ def test_collate_train_fn():
     batch = dataset.collate_fn_train([dataset[0], dataset[1]])
     assert torch.equal(batch.deprels, torch.tensor([[-1,  2,  8,  4,  6,  9, 10,  1, 10,  1, -1,  7,  1,  4,  1, -1],
                                                        [-1,  2,  8,  3,  9,  5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]]))
+    assert torch.equal(batch.attn_masks,
+                       torch.tensor([[0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                                     [0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]]))
 
 def test_add_prediction_to_sentence_json_keep_none():
     dataset = ConlluDataset(PATH_TEST_CONLLU, model_params_test, "train", compute_annotation_schema_if_not_found=True)

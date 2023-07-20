@@ -12,7 +12,6 @@ from ..cmds.cmd import CMD, SubparsersType
 from ..modules.BertForDepRel import BertForDeprel
 from ..utils.load_data_utils import ConlluDataset
 from ..utils.types import DataclassJSONEncoder, ModelParams_T
-from ..utils.scores_and_losses_utils import update_history
 from ..utils.annotation_schema_utils import get_annotation_schema_from_input_folder, compute_annotation_schema, is_annotation_schema_empty
 
 class Train(CMD):

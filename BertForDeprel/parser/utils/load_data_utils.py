@@ -13,22 +13,37 @@ from .annotation_schema_utils import compute_annotation_schema, get_path_of_conl
 from .lemma_script_utils import apply_lemma_rule, gen_lemma_script
 
 
-# A sequence contains the tokens from a single parse
+DUMMY_ID = -1
+
+# Words and tokens are not the same! A word can be composed of multiple subword tokens.
+# In the classes below, we work with (smallest to largest) tokens and words contained
+# in sequences (or sentences) and batches of sequences. We'll use T for the number of
+# tokens in a sequence (including added special tokens), W for the number of words in
+# a sequence, and B for the number of sequences in a batch.
 @dataclass
 class SequencePrediction_T:
+    """Index in the dataset"""
     idx: int
-    # the ConllU data for the sentence
+    """the ConllU data for the sentence"""
     sentence_json: sentenceJson_T
-    """The token ids of the sequence, prepended with a CLS token and appended with a SEP token."""
+
+    """The token ids of the sequence, prepended with a CLS token and appended with a SEP token as required
+    by BERT models. Size is (T)."""
     sequence_token_ids: List[int]
-    attn_masks: List[int]
+    """1 if sequence token begins a new word, 0 otherwise. Size is (T)."""
     subwords_start: List[int]
-    idx_convertor: List[int]
+
+    """Maps word index + 1 to the index in the sequence_token_ids where the word begins. Size is (W)."""
+    idx_converter: List[int]
+    """The number of tokens in each input word. Size is (W)."""
     tokens_len: List[int]
 
 Sequence_T = TypeVar('Sequence_T', bound=SequencePrediction_T)
 
 class SequenceTraining_T(SequencePrediction_T):
+    """Each list is size (T) and gives the ID of the class label for the corresponding
+    token in the sequence, where tokens that do not begin a new word are given a dummy
+    class value."""
     uposs: List[int]
     xposs: List[int]
     heads: List[int]
@@ -48,18 +63,28 @@ class SequenceTraining_T(SequencePrediction_T):
 # batch classes are for entire datasets of parses
 @dataclass
 class SequencePredictionBatch_T:
+    """Except for attn_masks and max_sentence_legth, each field contains all of the tensors of the corresponding field in
+    SequencePrediction_T for each sequence in the batch. See that class for more details.
+    Sizes are then (B, T or W) for each batched field."""
     idx: Tensor
-    # Tensor of shape [batch_size, max_seq_length] containing token ids of sequences
-    seq_ids: Tensor
-    # Tensor of shape [batch_size, max_seq_length] containing attention masks to be used to avoid contribution of PAD tokens
+    sequence_token_ids: Tensor
+    # Tensor of shape [batch_size, max_seq_length] containing attention masks to be used to avoid contribution of PAD tokens.
+    # Size is (B, T). See https://huggingface.co/docs/transformers/glossary#attention-mask.
     attn_masks: Tensor
+
     subwords_start: Tensor
-    idx_convertor: Tensor
+    idx_converter: Tensor
+
+    # The maximum length of any sequence in the batch, determining the size of the tensors representing sequences
+    # (shorter sequences are padded).
     max_sentence_length: int
 
 
 @dataclass
 class SequenceTrainingBatch_T(SequencePredictionBatch_T):
+    """Each field contains all of the tensors of the corresponding field in
+    SequenceTraining_T for each sequence in the batch. See that class for more details.
+    Sizes are then (B, T) for each batched field."""
     uposs: Tensor
     xposs: Tensor
     heads: Tensor
@@ -81,17 +106,17 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
         during model training (is_eval=False) or evaluation (is_eval=True)."""
         if is_eval:
             subwords_start = self.subwords_start.to(device)
-            idx_converter = self.idx_convertor.to(device)
+            idx_converter = self.idx_converter.to(device)
         else:
             subwords_start = self.subwords_start
-            idx_converter = self.idx_convertor
+            idx_converter = self.idx_converter
         return SequenceTrainingBatch_T(
             pred_data=SequencePredictionBatch_T(
                 idx=self.idx,
-                seq_ids=self.seq_ids.to(device),
+                sequence_token_ids=self.sequence_token_ids.to(device),
                 attn_masks=self.attn_masks.to(device),
                 subwords_start=subwords_start,
-                idx_convertor=idx_converter,
+                idx_converter=idx_converter,
                 max_sentence_length=self.max_sentence_length
                 ),
             heads=self.heads.to(device),
@@ -142,6 +167,10 @@ class ConlluDataset(Dataset):
         if self.tokenizer.unk_token_id == None:
             raise Exception("UNK token not found in tokenizer")
         self.UNK_token_id = self.tokenizer.unk_token_id
+
+        if self.tokenizer.pad_token_id == None:
+            raise Exception("PAD token not found in tokenizer")
+        self.PAD_token_id = self.tokenizer.pad_token_id
 
         # 0 (CLS), 2 (SEP), 3 (UNK), 1 (PAD)
         print(f"Special tokens are {self.CLS_token_id} (CLS), {self.SEP_token_id} (SEP), {self.UNK_token_id} (UNK), {self.tokenizer.pad_token_id} (PAD)")
@@ -199,10 +228,10 @@ class ConlluDataset(Dataset):
 
 
     def _get_input(self, sequence: sentenceJson_T, idx: int) -> SequencePrediction_T:
-        # Next: move this creation into a builder class and document every resulting field. Want to know the shape and makeup of everything.
         sequence_ids = [self.CLS_token_id]
-        subwords_start = [-1]
-        idx_convertor = [0]
+        subwords_start = [DUMMY_ID]
+
+        idx_converter = [0]
         tokens_len = [1]
 
         for input_token in sequence["treeJson"]["nodesJson"].values():
@@ -215,40 +244,31 @@ class ConlluDataset(Dataset):
             if len(token_ids) == 0:
                 print(f"WARNING: Input token {input_token['ID']} ('{form}') of sentence {sequence['metaJson']['sent_id']} is not present in the tokenizer vocabulary; using UNK instead.")
                 token_ids = [self.UNK_token_id]
-            idx_convertor.append(len(sequence_ids))
+            idx_converter.append(len(sequence_ids))
             tokens_len.append(len(token_ids))
+
             subword_start = [1] + [0] * (len(token_ids) - 1)
             sequence_ids += token_ids
             subwords_start += subword_start
 
-        # sequence_ids = self._trunc(sequence_ids)
-        # subwords_start = self._trunc(subwords_start)
-        # idx_convertor = self._trunc(idx_convertor)
-
         sequence_ids = sequence_ids + [self.SEP_token_id]
-        # TODO: this is wrong, right? CLS token is 0, so > 0 masks the CLS token but not the SEP token, and we
-        # don't even have PAD tokens yet, so certainly not padding those; XLM-Roberta docs
-        # (https://github.com/kirianguiller/BertForDeprel/blob/master/BertForDeprel/parser/utils/load_data_utils.py#L164)
-        # say this is supposed to mask PAD tokens. But then, why wouldn't XLM-Roberta do that for you, since
-        # it knows the ID of the PAD token?
-        attn_masks = [int(token_id > 0) for token_id in sequence_ids]
         return SequencePrediction_T(
             idx=idx,
             sentence_json=sequence,
             sequence_token_ids=sequence_ids,
-            attn_masks=attn_masks,
             subwords_start=subwords_start,
-            idx_convertor=idx_convertor,
+            idx_converter=idx_converter,
             tokens_len=tokens_len,
         )
 
     def _get_output(self, sequence: sentenceJson_T, input: SequencePrediction_T) -> SequenceTraining_T:
-        uposs = [-1]
-        xposs = [-1]
-        heads = [-1]
-        feats = [-1]
-        lemma_scripts = [-1]
-        deprels = [-1]
+        # initialize with dummy values for the leading CLS token
+        uposs = [DUMMY_ID]
+        xposs = [DUMMY_ID]
+        heads = [DUMMY_ID]
+        feats = [DUMMY_ID]
+        lemma_scripts = [DUMMY_ID]
+        deprels = [DUMMY_ID]
         skipped_tokens = 0
 
         for n_token, token in enumerate(sequence["treeJson"]["nodesJson"].values()):
@@ -257,23 +277,22 @@ class ConlluDataset(Dataset):
                 continue
 
             token_len = input.tokens_len[n_token + 1 - skipped_tokens]
+            token_padding = [DUMMY_ID] * (token_len - 1)
 
-            upos = [get_index(token["UPOS"], self.upos2i)] + [-1] * (token_len - 1)
-            xpos = [get_index(token["XPOS"], self.xpos2i)] + [-1] * (token_len - 1)
-            feat = [get_index(_featuresJsonToConll(token["FEATS"]), self.feat2i)] + [-1] * (token_len - 1)
-            lemma_script = [get_index(gen_lemma_script(token["FORM"], token["LEMMA"]), self.lem2i)] + [-1] * (token_len - 1)
+            upos = [get_index(token["UPOS"], self.upos2i)] + token_padding
+            xpos = [get_index(token["XPOS"], self.xpos2i)] + token_padding
+            feat = [get_index(_featuresJsonToConll(token["FEATS"]), self.feat2i)] + token_padding
+            lemma_script = [get_index(gen_lemma_script(token["FORM"], token["LEMMA"]), self.lem2i)] + token_padding
 
-            head = [sum(input.tokens_len[: token["HEAD"]])] + [-1] * (token_len - 1)
+            head = [sum(input.tokens_len[: token["HEAD"]])] + token_padding
             deprel = token["DEPREL"]
 
-            deprel = [get_index(deprel, self.dep2i)] + [-1] * (
-                token_len - 1
-            )
+            deprel = [get_index(deprel, self.dep2i)] + token_padding
             # Example of what we have for a token of 2 subtokens
             # form = ["eat", "ing"]
-            # pos = [4, -1]
-            # head = [2, -1]
-            # lemma_script = [3424, -1]
+            # pos = [4, DUMMY_ID]
+            # head = [2, DUMMY_ID]
+            # lemma_script = [3424, DUMMY_ID]
             # token_len = 2
             uposs += upos
             xposs += xpos
@@ -281,11 +300,7 @@ class ConlluDataset(Dataset):
             deprels += deprel
             feats += feat
             lemma_scripts += lemma_script
-        # heads = self._trunc(heads)
-        # deprels = self._trunc(deprels)
-        # uposs = self._trunc(uposs)
-        # feats = self._trunc(feats)
-        # lemma_scripts = self._trunc(lemma_scripts)
+
         return SequenceTraining_T(
             pred_data=input,
             uposs=uposs,
@@ -304,18 +319,23 @@ class ConlluDataset(Dataset):
         return pred_data
 
     def collate_fn_predict(self, sentences: List[Sequence_T]) -> SequencePredictionBatch_T:
-        max_sentence_length = max([len(sentence.sequence_token_ids) for sentence in sentences])
-        seq_ids_batch        = tensor([self._pad_list(sentence.sequence_token_ids,  0, max_sentence_length) for sentence in sentences])
-        subwords_start_batch = tensor([self._pad_list(sentence.subwords_start, -1, max_sentence_length) for sentence in sentences])
-        attn_masks_batch     = tensor([self._pad_list(sentence.attn_masks,  0, max_sentence_length) for sentence in sentences])
-        idx_convertor_batch  = tensor([self._pad_list(sentence.idx_convertor, -1, max_sentence_length) for sentence in sentences])
+        # Add padding values so that the entire batch has the same length, then collect the
+        # field tensors for all sequences into a single tensor for each field.
+        max_sentence_length  = max([len(sentence.sequence_token_ids) for sentence in sentences])
+        subwords_start_batch = tensor([self._pad_list(sentence.subwords_start, DUMMY_ID, max_sentence_length) for sentence in sentences])
+        idx_converter_batch  = tensor([self._pad_list(sentence.idx_converter, DUMMY_ID, max_sentence_length) for sentence in sentences])
         idx_batch            = tensor([sentence.idx for sentence in sentences])
+        # The docs say to pad with the PAD token and just mask those, but for some reason we get better performance when
+        # we pad with CLS and mask those (including the leading CLS).
+        seq_ids_batch        = tensor([self._pad_list(sentence.sequence_token_ids, self.CLS_token_id, max_sentence_length) for sentence in sentences])
+        attn_masks           = (seq_ids_batch != self.CLS_token_id).long()
+
         return SequencePredictionBatch_T(
             idx=idx_batch,
-            seq_ids=seq_ids_batch,
+            sequence_token_ids=seq_ids_batch,
             subwords_start=subwords_start_batch,
-            attn_masks=attn_masks_batch,
-            idx_convertor=idx_convertor_batch,
+            attn_masks=attn_masks,
+            idx_converter=idx_converter_batch,
             max_sentence_length=max_sentence_length,
         )
 
@@ -323,12 +343,12 @@ class ConlluDataset(Dataset):
         batch_prediction_data = self.collate_fn_predict(sentences)
         max_sentence_length = batch_prediction_data.max_sentence_length
 
-        uposs_batch     = tensor([self._pad_list(sentence.uposs, -1, max_sentence_length) for sentence in sentences])
-        xposs_batch     = tensor([self._pad_list(sentence.xposs, -1, max_sentence_length) for sentence in sentences])
-        heads_batch     = tensor([self._pad_list(sentence.heads, -1, max_sentence_length) for sentence in sentences])
-        deprels_batch   = tensor([self._pad_list(sentence.deprels, -1, max_sentence_length) for sentence in sentences])
-        feats_batch   = tensor([self._pad_list(sentence.feats, -1, max_sentence_length) for sentence in sentences])
-        lemma_scripts_batch   = tensor([self._pad_list(sentence.lemma_scripts, -1, max_sentence_length) for sentence in sentences])
+        uposs_batch     = tensor([self._pad_list(sentence.uposs, DUMMY_ID, max_sentence_length) for sentence in sentences])
+        xposs_batch     = tensor([self._pad_list(sentence.xposs, DUMMY_ID, max_sentence_length) for sentence in sentences])
+        heads_batch     = tensor([self._pad_list(sentence.heads, DUMMY_ID, max_sentence_length) for sentence in sentences])
+        deprels_batch   = tensor([self._pad_list(sentence.deprels, DUMMY_ID, max_sentence_length) for sentence in sentences])
+        feats_batch   = tensor([self._pad_list(sentence.feats, DUMMY_ID, max_sentence_length) for sentence in sentences])
+        lemma_scripts_batch   = tensor([self._pad_list(sentence.lemma_scripts, DUMMY_ID, max_sentence_length) for sentence in sentences])
 
         return SequenceTrainingBatch_T(
             batch_prediction_data,
@@ -365,7 +385,7 @@ class ConlluDataset(Dataset):
             if partial_pred_config.keep_xpos == "NONE" or (partial_pred_config.keep_xpos=="EXISTING" and token["XPOS"] == "_"):
                 token["XPOS"] = annotation_schema.xposs[xposs_preds[n_token]]
 
-            if partial_pred_config.keep_heads == "NONE" or (partial_pred_config.keep_heads == "EXISTING" and token["HEAD"] == -1): # this one is special as for keep_heads == "EXISTING", we already handled the case earlier in the code
+            if partial_pred_config.keep_heads == "NONE" or (partial_pred_config.keep_heads == "EXISTING" and token["HEAD"] == DUMMY_ID): # this one is special as for keep_heads == "EXISTING", we already handled the case earlier in the code
                 token["HEAD"] = chuliu_heads[n_token]
 
             if partial_pred_config.keep_deprels == "NONE" or (partial_pred_config.keep_deprels=='EXISTING' and token["DEPREL"] == "_"):
@@ -391,8 +411,6 @@ class ConlluDataset(Dataset):
         return forced_relations
 
 
-
-
 def get_index(label: str, mapping: Dict[str, int]) -> int:
     """
     label: a string that represent the label whose integer is required
@@ -400,9 +418,9 @@ def get_index(label: str, mapping: Dict[str, int]) -> int:
 
     return : index (int)
     """
-    index = mapping.get(label, -1)
+    index = mapping.get(label, DUMMY_ID)
 
-    if index == -1:
+    if index == DUMMY_ID:
         index = mapping[NONE_VOCAB]
         print(
             f"LOG: label '{label}' was not found in the label2index mapping. Using the index for '{NONE_VOCAB}' instead."

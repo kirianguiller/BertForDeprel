@@ -66,7 +66,7 @@ class Predict(CMD):
         return subparser
 
     # TODO: there must be some overlap between this and the model eval code
-    def __get_constrained_dependencies(self, heads_pred, deprels_pred, subwords_start, keep_heads: CopyOption, pred_dataset: ConlluDataset, n_sentence: int, idx_convertor: Tensor, device: str):
+    def __get_constrained_dependencies(self, heads_pred, deprels_pred, subwords_start, keep_heads: CopyOption, pred_dataset: ConlluDataset, n_sentence: int, idx_converter: Tensor, device: str):
         head_true_like = heads_pred.max(dim=0).indices
         chuliu_heads_pred = head_true_like.clone().cpu().numpy()
         chuliu_heads_list: List[int] = []
@@ -88,8 +88,8 @@ class Predict(CMD):
         )[1:]
         for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
             chuliu_heads_pred[
-                idx_convertor[i_token + 1]
-            ] = idx_convertor[chuliu_head_pred]
+                idx_converter[i_token + 1]
+            ] = idx_converter[chuliu_head_pred]
             chuliu_heads_list.append(int(chuliu_head_pred))
 
         chuliu_heads_pred = torch.tensor(chuliu_heads_pred).to(device)
@@ -103,10 +103,10 @@ class Predict(CMD):
     def __prediction_iterator(self, batch: SequencePredictionBatch_T, preds: BertForDeprelBatchOutput, pred_dataset: ConlluDataset, partial_pred_config: PartialPredictionConfig, device: str):
         # TODO: we already sent this data to the device previously. Is this duplicating work? Can we fix that?
         # perhaps encapsulate the two to() calls in the other method, then overwrite the original tensors (is that safe and okay?), then use that here in the batch object
-        seq_ids_batch = batch.seq_ids.to(device)
+        seq_ids_batch = batch.sequence_token_ids.to(device)
 
         subwords_start_batch = batch.subwords_start
-        idx_convertor_batch = batch.idx_convertor
+        idx_converter_batch = batch.idx_converter
         idx_batch = batch.idx
 
         for sentence_in_batch_counter in range(seq_ids_batch.size()[0]):
@@ -114,7 +114,7 @@ class Predict(CMD):
             # these will then be containers for the raw model outputs, with methods for constructing the final predictions.
             # the overwrite logic should be done in a separate step, I think.
             subwords_start = subwords_start_batch[sentence_in_batch_counter]
-            idx_convertor = idx_convertor_batch[sentence_in_batch_counter]
+            idx_converter = idx_converter_batch[sentence_in_batch_counter]
             raw_sentence_preds = preds.distributions_for_sentence(sentence_in_batch_counter)
 
             sentence_idx = idx_batch[sentence_in_batch_counter]
@@ -127,7 +127,7 @@ class Predict(CMD):
                 pred_dataset=pred_dataset,
                 keep_heads=partial_pred_config.keep_heads,
                 n_sentence=n_sentence,
-                idx_convertor=idx_convertor,
+                idx_converter=idx_converter,
                 device=device,)
 
             deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[
@@ -232,7 +232,7 @@ class Predict(CMD):
             batch: SequencePredictionBatch_T
             with torch.no_grad():
                 for batch in pred_loader:
-                    seq_ids_batch = batch.seq_ids.to(args.device)
+                    seq_ids_batch = batch.sequence_token_ids.to(args.device)
                     attn_masks_batch = batch.attn_masks.to(args.device)
                     preds = model.forward(seq_ids_batch, attn_masks_batch).detach()
 
