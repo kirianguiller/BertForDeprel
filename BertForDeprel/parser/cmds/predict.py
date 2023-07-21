@@ -101,15 +101,11 @@ class Predict(CMD):
         return chuliu_heads_list, deprels_pred_chuliu
 
     def __prediction_iterator(self, batch: SequencePredictionBatch_T, preds: BertForDeprelBatchOutput, pred_dataset: ConlluDataset, partial_pred_config: PartialPredictionConfig, device: str):
-        # TODO: we already sent this data to the device previously. Is this duplicating work? Can we fix that?
-        # perhaps encapsulate the two to() calls in the other method, then overwrite the original tensors (is that safe and okay?), then use that here in the batch object
-        seq_ids_batch = batch.sequence_token_ids.to(device)
-
         subwords_start_batch = batch.subwords_start
         idx_converter_batch = batch.idx_converter
         idx_batch = batch.idx
 
-        for sentence_in_batch_counter in range(seq_ids_batch.size()[0]):
+        for sentence_in_batch_counter in range(batch.sequence_token_ids.size()[0]):
             # Next: push these two into the output classes so that the code farther below can be encapsulated in the output classes;
             # these will then be containers for the raw model outputs, with methods for constructing the final predictions.
             # the overwrite logic should be done in a separate step, I think.
@@ -232,9 +228,8 @@ class Predict(CMD):
             batch: SequencePredictionBatch_T
             with torch.no_grad():
                 for batch in pred_loader:
-                    seq_ids_batch = batch.sequence_token_ids.to(args.device)
-                    attn_masks_batch = batch.attn_masks.to(args.device)
-                    preds = model.forward(seq_ids_batch, attn_masks_batch).detach()
+                    batch = batch.to(args.device)
+                    preds = model.forward(batch.sequence_token_ids, batch.attn_masks).detach()
 
                     time_from_start = 0
                     parsing_speed = 0

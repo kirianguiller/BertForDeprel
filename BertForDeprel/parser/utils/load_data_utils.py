@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import os
-from typing import Dict, List, Any, Tuple, TypeVar, Literal
+from typing import Dict, List, Any, Self, Tuple, TypeVar, Literal
 
 from conllup.conllup import sentenceJson_T, _featuresConllToJson, _featuresJsonToConll, readConlluFile
 
@@ -79,6 +79,24 @@ class SequencePredictionBatch_T:
     # (shorter sequences are padded).
     max_sentence_length: int
 
+    def to(self, device: str, is_eval=False) -> Self:
+        """Returns a new training batch with the tensors sent to the specified device. For use
+        during model training or prediction (is_eval=False) or evaluation (is_eval=True)."""
+        if is_eval:
+            subwords_start = self.subwords_start.to(device)
+            idx_converter = self.idx_converter.to(device)
+        else:
+            subwords_start = self.subwords_start
+            idx_converter = self.idx_converter
+        return SequencePredictionBatch_T(
+            idx=self.idx,
+            sequence_token_ids=self.sequence_token_ids.to(device),
+            attn_masks=self.attn_masks.to(device),
+            subwords_start=subwords_start,
+            idx_converter=idx_converter,
+            max_sentence_length=self.max_sentence_length
+        )
+
 
 @dataclass
 class SequenceTrainingBatch_T(SequencePredictionBatch_T):
@@ -104,21 +122,8 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
     def to(self, device: str, is_eval=False):
         """Returns a new training batch with the tensors sent to the specified device. For use
         during model training (is_eval=False) or evaluation (is_eval=True)."""
-        if is_eval:
-            subwords_start = self.subwords_start.to(device)
-            idx_converter = self.idx_converter.to(device)
-        else:
-            subwords_start = self.subwords_start
-            idx_converter = self.idx_converter
         return SequenceTrainingBatch_T(
-            pred_data=SequencePredictionBatch_T(
-                idx=self.idx,
-                sequence_token_ids=self.sequence_token_ids.to(device),
-                attn_masks=self.attn_masks.to(device),
-                subwords_start=subwords_start,
-                idx_converter=idx_converter,
-                max_sentence_length=self.max_sentence_length
-                ),
+            pred_data=super().to(device, is_eval),
             heads=self.heads.to(device),
             deprels=self.deprels.to(device),
             uposs=self.uposs.to(device),
