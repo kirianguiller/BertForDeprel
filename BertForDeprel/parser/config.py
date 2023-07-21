@@ -8,7 +8,7 @@ from argparse import Namespace
 class Config(ConfigParser):
 
     def __init__(self, path):
-        super(Config, self).__init__()
+        super().__init__()
 
         self.read(path)
         self.namespace = Namespace()

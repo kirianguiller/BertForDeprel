@@ -52,7 +52,7 @@ class SequenceTraining_T(SequencePrediction_T):
     lemma_scripts: List[int]
 
     def __init__(self, pred_data: SequencePrediction_T, uposs: List[int], xposs: List[int], heads: List[int], deprels: List[int], feats: List[int], lemma_scripts: List[int]):
-        super(SequenceTraining_T, self).__init__(**pred_data.__dict__)
+        super().__init__(**pred_data.__dict__)
         self.uposs = uposs
         self.xposs = xposs
         self.heads = heads
@@ -111,7 +111,7 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
     lemma_scripts: Tensor
 
     def __init__(self, pred_data: SequencePredictionBatch_T, uposs: Tensor, xposs: Tensor, heads: Tensor, deprels: Tensor, feats: Tensor, lemma_scripts: Tensor):
-        super(SequenceTrainingBatch_T, self).__init__(**pred_data.__dict__)
+        super().__init__(**pred_data.__dict__)
         self.uposs = uposs
         self.xposs = xposs
         self.heads = heads

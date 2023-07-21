@@ -159,7 +159,7 @@ class Predict(CMD):
 
 
     def __call__(self, args, model_params: ModelParams_T):
-        super(Predict, self).__call__(args, model_params)
+        super().__call__(args, model_params)
         if not args.conf:
             raise Exception("Path to model xxx.config.json must be provided as --conf parameter")
         paths_pred = []

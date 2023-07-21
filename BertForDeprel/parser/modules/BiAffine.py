@@ -9,7 +9,7 @@ from math import prod
 class BiAffine(nn.Module):
     """Biaffine attention layer."""
     def __init__(self, input_dim, output_dim, bias_x=False, bias_y=False):
-        super(BiAffine, self).__init__()
+        super().__init__()
         self.bias_x = bias_x
         self.bias_y = bias_y
 
@@ -43,7 +43,7 @@ class BiAffine(nn.Module):
 class BiAffine2(nn.Module):
 
     def __init__(self, n_in, n_out=1, bias_x=True, bias_y=True):
-        super(BiAffine2, self).__init__()
+        super().__init__()
 
         self.n_in = n_in
         self.n_out = n_out

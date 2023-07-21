@@ -5,7 +5,7 @@ from math import prod
 class MLP(nn.Module):
     """Multi-layer perceptron with dropout."""
     def __init__(self, input_size, layer_size, depth, activation, dropout):
-        super(MLP, self).__init__()
+        super().__init__()
         self.layers = nn.Sequential()
         act_fn = getattr(nn, activation)
         for i in range(depth):

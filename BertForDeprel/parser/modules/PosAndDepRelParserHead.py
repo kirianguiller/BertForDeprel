@@ -8,7 +8,7 @@ from torch.nn import Linear, Module
 
 class PosAndDeprelParserHead(Module):
     def __init__(self, n_uposs: int, n_deprels: int, n_feats: int, n_lemma_scripts: int, n_xposs: int, llm_output_size: int):
-        super(PosAndDeprelParserHead, self).__init__()
+        super().__init__()
 
         # Arc and label
         self.down_dim = llm_output_size // 4

@@ -23,7 +23,7 @@ from transformers.adapters import PfeifferConfig
 
 class BertForDeprel(Module):
     def __init__(self, model_params: ModelParams_T, pretrain_model_params: Optional[ModelParams_T] = None, overwrite_pretrain_classifiers = True):
-        super(BertForDeprel, self).__init__()
+        super().__init__()
         self.model_params = model_params
         self.pretrain_model_params = pretrain_model_params
 

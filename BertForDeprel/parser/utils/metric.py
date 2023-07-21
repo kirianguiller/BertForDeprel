@@ -4,7 +4,7 @@
 class Metric(object):
 
     def __init__(self, eps=1e-5):
-        super(Metric, self).__init__()
+        super().__init__()
 
         self.eps = eps
         self.total = 0.0
