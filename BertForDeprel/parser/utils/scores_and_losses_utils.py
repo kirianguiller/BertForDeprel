@@ -4,6 +4,7 @@ from torch.nn import CrossEntropyLoss
 
 
 def deprel_aligner_with_head(deprels_pred: Tensor, heads_true: Tensor):
+    # TODO: what does this do?
     heads_true = heads_true.unsqueeze(1).unsqueeze(2)
     heads_true = heads_true.expand(-1, deprels_pred.size(1), -1, -1).clone()
     heads_true[heads_true< 0] = 0

@@ -86,9 +86,9 @@ class Predict(CMD):
         chuliu_heads_vector = chuliu_edmonds_one_root_with_constraints(
             np.transpose(heads_pred_np, (1, 0)), forced_relations
         )[1:]
-        for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
+        for i_dependent_word, chuliu_head_pred in enumerate(chuliu_heads_vector):
             chuliu_heads_pred[
-                idx_converter[i_token + 1]
+                idx_converter[i_dependent_word + 1]
             ] = idx_converter[chuliu_head_pred]
             chuliu_heads_list.append(int(chuliu_head_pred))
 
@@ -126,24 +126,27 @@ class Predict(CMD):
                 idx_converter=idx_converter,
                 device=device,)
 
+            # TODO: would it not be better if this were a boolean vector to begin with?
+            is_word_start = subwords_start == 1
+
             deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[
-                subwords_start == 1
+                is_word_start
             ].tolist()
 
             uposs_pred_list = raw_sentence_preds.uposs.max(dim=1).indices[
-                subwords_start == 1
+                is_word_start
             ].tolist()
 
             xposs_pred_list = raw_sentence_preds.xposs.max(dim=1).indices[
-                subwords_start == 1
+                is_word_start
             ].tolist()
 
             feats_pred_list = raw_sentence_preds.feats.max(dim=1).indices[
-                subwords_start == 1
+                is_word_start
             ].tolist()
 
             lemma_scripts_pred_list = raw_sentence_preds.lemma_scripts.max(dim=1).indices[
-                subwords_start == 1
+                is_word_start
             ].tolist()
 
             yield pred_dataset.construct_sentence_prediction(
