@@ -17,7 +17,7 @@ from ..utils.annotation_schema_utils import get_path_of_conllus_from_folder_path
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
 from ..utils.load_data_utils import ConlluDataset, CopyOption, PartialPredictionConfig, SequencePredictionBatch_T
 from ..modules.BertForDepRel import BertForDeprel
-from ..utils.scores_and_losses_utils import deprel_aligner_with_head
+from ..utils.scores_and_losses_utils import deprel_pred_for_heads
 from ..utils.types import ModelParams_T
 
 
@@ -94,7 +94,7 @@ class Predict(CMD):
 
         chuliu_heads_pred = torch.tensor(chuliu_heads_pred).to(device)
 
-        deprels_pred_chuliu = deprel_aligner_with_head(
+        deprels_pred_chuliu = deprel_pred_for_heads(
             deprels_pred.unsqueeze(0), chuliu_heads_pred.unsqueeze(0)
         ).squeeze(0)
 

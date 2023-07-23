@@ -289,6 +289,8 @@ class ConlluDataset(Dataset):
             feat = [get_index(_featuresJsonToConll(token["FEATS"]), self.feat2i)] + token_padding
             lemma_script = [get_index(gen_lemma_script(token["FORM"], token["LEMMA"]), self.lem2i)] + token_padding
 
+            # TODO: how does this work for the sentence root? Is that a -1 or a self-reference?
+            # Becomes 0 for the root token
             head = [sum(input.tokens_len[: token["HEAD"]])] + token_padding
             deprel = token["DEPREL"]
 

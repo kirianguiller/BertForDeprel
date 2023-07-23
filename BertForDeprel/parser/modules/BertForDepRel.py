@@ -11,7 +11,7 @@ from .BertForDepRelOutput import BertForDeprelBatchOutput
 from .PosAndDepRelParserHead import PosAndDeprelParserHead
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
 from ..utils.load_data_utils import SequenceTrainingBatch_T
-from ..utils.scores_and_losses_utils import compute_LAS, compute_LAS_chuliu, compute_acc_deprel, compute_acc_head, compute_acc_upos, compute_loss_deprel, compute_loss_head, compute_loss_poss
+from ..utils.scores_and_losses_utils import compute_LAS, compute_LAS_chuliu, compute_acc_deprel, compute_acc_head, compute_acc_class, compute_loss_deprel, compute_loss_head, compute_loss_class
 from ..utils.types import DataclassJSONEncoder, ModelParams_T
 
 import torch.mps
@@ -86,10 +86,10 @@ class BertForDeprel(Module):
     def __compute_loss(self, batch: SequenceTrainingBatch_T, preds: BertForDeprelBatchOutput):
         loss_batch = compute_loss_head(preds.heads, batch.heads, self.criterion)
         loss_batch += compute_loss_deprel(preds.deprels, batch.deprels, batch.heads.clone(), self.criterion)
-        loss_batch += compute_loss_poss(preds.uposs, batch.uposs, self.criterion)
-        loss_batch += compute_loss_poss(preds.xposs, batch.xposs, self.criterion)
-        loss_batch += compute_loss_poss(preds.feats, batch.feats, self.criterion)
-        loss_batch += compute_loss_poss(preds.lemma_scripts, batch.lemma_scripts, self.criterion)
+        loss_batch += compute_loss_class(preds.uposs, batch.uposs, self.criterion)
+        loss_batch += compute_loss_class(preds.xposs, batch.xposs, self.criterion)
+        loss_batch += compute_loss_class(preds.feats, batch.feats, self.criterion)
+        loss_batch += compute_loss_class(preds.lemma_scripts, batch.lemma_scripts, self.criterion)
         return loss_batch
 
 
@@ -181,32 +181,32 @@ class BertForDeprel(Module):
                 good_deprel_epoch += good_deprel_batch
                 total_deprel_epoch += total_deprel_batch
 
-                good_uposs_batch, total_uposs_batch = compute_acc_upos(model_output.uposs, batch.uposs, eps=0)
+                good_uposs_batch, total_uposs_batch = compute_acc_class(model_output.uposs, batch.uposs, eps=0)
                 good_uposs_epoch += good_uposs_batch
                 total_uposs_epoch += total_uposs_batch
 
-                good_xposs_batch, total_xposs_batch = compute_acc_upos(model_output.xposs, batch.xposs, eps=0)
+                good_xposs_batch, total_xposs_batch = compute_acc_class(model_output.xposs, batch.xposs, eps=0)
                 good_xposs_epoch += good_xposs_batch
                 total_xposs_epoch += total_xposs_batch
 
-                good_feats_batch, total_feats_batch = compute_acc_upos(model_output.feats, batch.feats, eps=0)
+                good_feats_batch, total_feats_batch = compute_acc_class(model_output.feats, batch.feats, eps=0)
                 good_feats_epoch += good_feats_batch
                 total_feats_epoch += total_feats_batch
 
-                good_lemma_scripts_batch, total_lemma_scripts_batch = compute_acc_upos(model_output.lemma_scripts, batch.lemma_scripts, eps=0)
+                good_lemma_scripts_batch, total_lemma_scripts_batch = compute_acc_class(model_output.lemma_scripts, batch.lemma_scripts, eps=0)
                 good_lemma_scripts_epoch += good_lemma_scripts_batch
                 total_lemma_scripts_epoch += total_lemma_scripts_batch
 
-                loss_uposs_batch = compute_loss_poss(model_output.uposs, batch.uposs, self.criterion)
+                loss_uposs_batch = compute_loss_class(model_output.uposs, batch.uposs, self.criterion)
                 loss_uposs_epoch += loss_uposs_batch
 
-                loss_xposs_batch = compute_loss_poss(model_output.xposs, batch.xposs, self.criterion)
+                loss_xposs_batch = compute_loss_class(model_output.xposs, batch.xposs, self.criterion)
                 loss_xposs_epoch += loss_xposs_batch
 
-                loss_feats_batch = compute_loss_poss(model_output.feats, batch.feats, self.criterion)
+                loss_feats_batch = compute_loss_class(model_output.feats, batch.feats, self.criterion)
                 loss_feats_epoch += loss_feats_batch
 
-                loss_lemma_scripts_batch = compute_loss_poss(model_output.lemma_scripts, batch.lemma_scripts, self.criterion)
+                loss_lemma_scripts_batch = compute_loss_class(model_output.lemma_scripts, batch.lemma_scripts, self.criterion)
                 loss_lemma_scripts_epoch += loss_lemma_scripts_batch
 
                 processed_sentence_counter += batch.sequence_token_ids.size(0)
