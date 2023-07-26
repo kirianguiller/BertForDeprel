@@ -5,29 +5,37 @@ from torch import sum as tsum
 
 from .load_data_utils import DUMMY_ID
 
-# deprels_pred.shape = torch.Size([batch_len, n_class_deprel, seq_len, seq_len])
-# heads_true.shape = torch.Size([batch_len, seq_len])
-
-def deprel_pred_for_heads(deprels_pred: Tensor, heads_true: Tensor):
-    # Next: finish explaining this function. Debugging is needed. Write test to really nail it down.
-    # shich seq_len corresponds to which thing?
+def deprel_pred_for_heads(deprels_pred: Tensor, heads_pred: Tensor):
     """
-    Given the dependency relation score predictions for all possible heads of each word and
-    the list of predicted heads, return just the ones corresponding to the predicted heads.
-    deprels_pred: torch.Size([batch_len, n_class_deprel, seq_len, seq_len])
-    heads_true: torch.Size([batch_len, seq_len])
+    Given the dependency relation label score predictions for all possible heads of each word and
+    the list of predicted heads, return the scores with the head dimension removed, and just the
+    scores for the labels on the predicted dependency-head arcs remaining.
 
-    returns: torch.Size([batch_len, n_class_deprel, seq_len])
+    deprels_pred: tensor with 4 dimensions: (batch_len, n_class_deprel, seq_len, seq_len).
+    Read indexing as [sentence_index][deprel_label_index][dependent_index][head_index], with the
+    last dimension containing the scores for each potential head of the dependent.
+
+    heads_pred: tensor with two dimensions: (batch_len, seq_len). Read indexing as
+    [sentence_index][dependent_index], with the value at each index being the predicted head
+    index.
+
+    returns: tensor of size (batch_len, n_class_deprel, seq_len). Read indexing as
+    [sentence_index][deprel_label_index][dependent_index], with the value at each index being
+    the score for the given dependency relation label for the dependency edge between a
+    dependent and its predicted head (which was specified in heads_pred, and is not contained
+    explicitly in the output tensor).
+
+    See test case if it's still not clear what this function does.
     """
     # modify heads_true to have the same shape as deprels_pred
     # add two dimensions of size 1: (batch_size, 1, 1, seq_len)
-    heads_true = heads_true.unsqueeze(1).unsqueeze(2)
+    heads_pred = heads_pred.unsqueeze(1).unsqueeze(2)
     # expand to (batch_size, n_class_deprel, 1, seq_len)
-    heads_true = heads_true.expand(-1, deprels_pred.size(1), -1, -1).clone()
-    heads_true[heads_true == DUMMY_ID] = 0
+    heads_pred = heads_pred.expand(-1, deprels_pred.size(1), -1, -1).clone()
+    heads_pred[heads_pred == DUMMY_ID] = 0
     # deprels_pred.shape after gather =  torch.Size([batch_len, n_class_deprel, 1, sq_len])
     # deprels_pred.shape after squeeze =  torch.Size([batch_len, n_class_deprel, seq_len])
-    deprels_pred = gather(deprels_pred, 2, heads_true).squeeze(2)
+    deprels_pred = gather(deprels_pred, 2, heads_pred).squeeze(2)
 
     return deprels_pred
 
