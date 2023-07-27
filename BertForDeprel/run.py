@@ -1,14 +1,13 @@
 import argparse
 import os
 import json
-from pathlib import Path
 import torch
 from typing import Dict
 
 from parser.cmds import Predict, Train
 from parser.cmds.cmd import CMD
 from parser.utils.gpu_utils import get_devices_configuration
-from parser.utils.types import ModelParams_T
+from parser.utils.types import AnnotationSchema_T, ModelParams_T
 
 
 if __name__ == "__main__":
@@ -45,8 +44,13 @@ if __name__ == "__main__":
         if os.path.isfile(args.conf):
             with open(args.conf, "r") as infile:
                 custom_model_params = json.loads(infile.read())
-                # TODO: check if the config file is valid before updating the model_params
+                # TODO: check if the config file is valid first
                 model_params.__dict__.update(custom_model_params)
+                if custom_model_params["annotation_schema"]:
+                    annotation_schema = AnnotationSchema_T()
+                    # TODO: check if the annotation schema is valid first
+                    annotation_schema.__dict__.update(custom_model_params["annotation_schema"])
+                    model_params.annotation_schema = annotation_schema
         else:
             raise Exception(f"You provided a --conf parameter but no config was found in `{args.conf}`")
 
