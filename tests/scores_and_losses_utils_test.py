@@ -2,7 +2,7 @@
 import torch
 from BertForDeprel.parser.utils.load_data_utils import DUMMY_ID
 
-from BertForDeprel.parser.utils.scores_and_losses_utils import deprel_pred_for_heads
+from BertForDeprel.parser.utils.scores_and_losses_utils import _deprel_pred_for_heads
 
 def test_deprel_pred_for_heads():
     batch_len = 3
@@ -14,8 +14,8 @@ def test_deprel_pred_for_heads():
     relation_scores = torch.tensor(range(1, seq_len + 1))
     deprel_scores = torch.stack([relation_scores * i for i in range(1, seq_len + 1)])
     deprel_scores_per_relation = torch.stack([deprel_scores * i for i in range(1, n_class_deprel + 1)])
-    deprels_pred = torch.stack([deprel_scores_per_relation * i for i in range(1, batch_len + 1)])
-    assert(deprels_pred.size() == (batch_len, n_class_deprel, seq_len, seq_len))
+    deprel_scores_pred = torch.stack([deprel_scores_per_relation * i for i in range(1, batch_len + 1)])
+    assert(deprel_scores_pred.size() == (batch_len, n_class_deprel, seq_len, seq_len))
     # read the output like this: for each sentence in the batch, for each potential
     # deprel class label, for each potential dependent, the score for each potential head
     # print(deprels_pred)
@@ -37,7 +37,7 @@ def test_deprel_pred_for_heads():
     # will be taken from deprels_pred index (1, 0, 1, 2) (12 below). Similarly,
     # (1, 0, 1, 2) will be taken from deprels_pred index (1, 0, 1, 3) (24 below).
     # It helps to work through the example by hand to see that this is correct.
-    actual = deprel_pred_for_heads(deprels_pred, heads_pred)
+    actual = _deprel_pred_for_heads(deprel_scores_pred, heads_pred)
     print(actual)
     expected = torch.tensor([[[  1,   4,   9,   4,  20],
          [  2,   8,  18,   8,  40]],

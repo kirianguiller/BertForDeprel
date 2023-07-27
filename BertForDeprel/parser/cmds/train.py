@@ -182,7 +182,7 @@ class Train(CMD):
         path_scores_history = os.path.join(model_params.model_folder_path, "scores.history.json")
         path_scores_best = os.path.join(model_params.model_folder_path, "scores.best.json")
         for n_epoch in range(n_epoch_start + 1, model_params.max_epoch + 1):
-            print("\n-----   Epoch {}   -----".format(n_epoch))
+            print(f"-----   Epoch {n_epoch}   -----")
             model.train_epoch(train_loader, args.device) # type: ignore (https://github.com/pytorch/pytorch/issues/90827)
             results = model.eval_epoch(test_loader, args.device) # type: ignore (https://github.com/pytorch/pytorch/issues/90827)
             results["n_sentences_train"] = len(train_dataset)

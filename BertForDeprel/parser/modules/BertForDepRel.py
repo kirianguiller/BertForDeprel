@@ -115,13 +115,13 @@ class BertForDeprel(Module):
             parsing_speed = int(round(((processed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
 
             if batch_counter % print_every == 0:
-                print(
-                f'Training: {100 * (batch_counter + 1) / len(loader):.2f}% complete. {time_from_start:.2f} seconds in epoch ({parsing_speed:.2f} sents/sec)',
-                end='\r')
+                print(f'Training: {100 * (batch_counter + 1) / len(loader):.2f}% '
+                      f'complete. {time_from_start:.2f} seconds in epoch '
+                      f'({parsing_speed:.2f} sents/sec)')
         # My Mac runs out of shared memory without this. See
         # https://github.com/pytorch/pytorch/issues/13246#issuecomment-905703662
         torch.mps.empty_cache()
-        print(f"\nFinished training epoch in {time_from_start:.2f} seconds ({processed_sentence_counter} sentence at {parsing_speed} sents/sec)\n")
+        print(f"Finished training epoch in {time_from_start:.2f} seconds ({processed_sentence_counter} sentence at {parsing_speed} sents/sec)")
 
     def eval_epoch(self, loader, device):
         self.eval()
@@ -163,37 +163,37 @@ class BertForDeprel(Module):
 
                 n_correct_LAS_batch, n_total_batch = \
                     compute_LAS(model_output.heads, model_output.deprels, batch.heads, batch.deprels)
-                n_correct_LAS_chuliu_batch, _, n_total_batch = \
+                n_correct_LAS_chuliu_batch, n_total_batch = \
                     compute_LAS_chuliu(chuliu_heads_pred, model_output.deprels, batch.heads, batch.deprels)
                 n_correct_LAS_epoch += n_correct_LAS_batch
                 n_correct_LAS_chuliu_epoch += n_correct_LAS_chuliu_batch
                 n_total_epoch += n_total_batch
 
                 loss_head_batch = compute_loss_head(model_output.heads, batch.heads, self.criterion)
-                good_head_batch, total_head_batch = compute_acc_head(model_output.heads, batch.heads, eps=0)
+                good_head_batch, total_head_batch = compute_acc_head(model_output.heads, batch.heads)
                 loss_head_epoch += loss_head_batch.item()
                 good_head_epoch += good_head_batch
                 total_head_epoch += total_head_batch
 
                 loss_deprel_batch = compute_loss_deprel(model_output.deprels, batch.deprels, batch.heads, self.criterion)
-                good_deprel_batch, total_deprel_batch = compute_acc_deprel(model_output.deprels, batch.deprels, batch.heads, eps=0)
+                good_deprel_batch, total_deprel_batch = compute_acc_deprel(model_output.deprels, batch.deprels, batch.heads)
                 loss_deprel_epoch += loss_deprel_batch.item()
                 good_deprel_epoch += good_deprel_batch
                 total_deprel_epoch += total_deprel_batch
 
-                good_uposs_batch, total_uposs_batch = compute_acc_class(model_output.uposs, batch.uposs, eps=0)
+                good_uposs_batch, total_uposs_batch = compute_acc_class(model_output.uposs, batch.uposs)
                 good_uposs_epoch += good_uposs_batch
                 total_uposs_epoch += total_uposs_batch
 
-                good_xposs_batch, total_xposs_batch = compute_acc_class(model_output.xposs, batch.xposs, eps=0)
+                good_xposs_batch, total_xposs_batch = compute_acc_class(model_output.xposs, batch.xposs)
                 good_xposs_epoch += good_xposs_batch
                 total_xposs_epoch += total_xposs_batch
 
-                good_feats_batch, total_feats_batch = compute_acc_class(model_output.feats, batch.feats, eps=0)
+                good_feats_batch, total_feats_batch = compute_acc_class(model_output.feats, batch.feats)
                 good_feats_epoch += good_feats_batch
                 total_feats_epoch += total_feats_batch
 
-                good_lemma_scripts_batch, total_lemma_scripts_batch = compute_acc_class(model_output.lemma_scripts, batch.lemma_scripts, eps=0)
+                good_lemma_scripts_batch, total_lemma_scripts_batch = compute_acc_class(model_output.lemma_scripts, batch.lemma_scripts)
                 good_lemma_scripts_epoch += good_lemma_scripts_batch
                 total_lemma_scripts_epoch += total_lemma_scripts_batch
 
@@ -215,8 +215,7 @@ class BertForDeprel(Module):
 
                 if batch_counter % print_every == 0:
                     print(
-                    f'Evaluating: {100 * (batch_counter + 1) / len(loader):.2f}% complete. {time_from_start:.2f} seconds in epoch ({parsing_speed:.2f} sents/sec)',
-                    end='\r')
+                    f'Evaluating: {100 * (batch_counter + 1) / len(loader):.2f}% complete. {time_from_start:.2f} seconds in epoch ({parsing_speed:.2f} sents/sec)')
 
 
             loss_head_epoch = loss_head_epoch/len(loader)
@@ -236,10 +235,19 @@ class BertForDeprel(Module):
             LAS_epoch = n_correct_LAS_epoch/n_total_epoch
             LAS_chuliu_epoch = n_correct_LAS_chuliu_epoch/n_total_epoch
 
-
-            loss_epoch = loss_head_epoch + loss_deprel_epoch + loss_uposs_epoch + loss_xposs_epoch + loss_feats_epoch + loss_lemma_scripts_epoch
-            print("\nevaluation result: LAS={:.3f}; LAS_chuliu={:.3f}; loss_epoch={:.3f}; eval_acc_head={:.3f}; eval_acc_deprel = {:.3f}, eval_acc_upos = {:.3f}, eval_acc_feat = {:.3f}, eval_acc_lemma_script = {:.3f}, acc_xposs_epoch = {:.3f}\n".format(
-            LAS_epoch, LAS_chuliu_epoch, loss_epoch, LAS_epoch, acc_head_epoch, acc_uposs_epoch, acc_feats_epoch, acc_lemma_scripts_epoch, acc_xposs_epoch))
+            loss_epoch = loss_head_epoch + loss_deprel_epoch + loss_uposs_epoch + \
+                loss_xposs_epoch + loss_feats_epoch + loss_lemma_scripts_epoch
+            print(
+                f"\nEpoch evaluation results\n"
+                f"Total loss = {loss_epoch:.3f}\n"
+                f"LAS = {LAS_epoch:.3f}\n"
+                f"LAS_chuliu = {LAS_chuliu_epoch:.3f}\n"
+                f"Acc. head = {acc_head_epoch:.3f}\n"
+                f"Acc. deprel = {acc_deprel_epoch:.3f}\n"
+                f"Acc. upos = {acc_uposs_epoch:.3f}\n"
+                f"Acc. feat = {acc_feats_epoch:.3f}\n"
+                f"Acc. lemma_script = {acc_lemma_scripts_epoch:.3f}\n"
+                f"Acc. xposs = {acc_xposs_epoch:.3f}\n")
 
         results = {
             "LAS_epoch": round(float(LAS_epoch), 3),

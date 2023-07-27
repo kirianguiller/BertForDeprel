@@ -17,7 +17,7 @@ from ..utils.annotation_schema_utils import get_path_of_conllus_from_folder_path
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
 from ..utils.load_data_utils import ConlluDataset, CopyOption, PartialPredictionConfig, SequencePredictionBatch_T
 from ..modules.BertForDepRel import BertForDeprel
-from ..utils.scores_and_losses_utils import deprel_pred_for_heads
+from ..utils.scores_and_losses_utils import _deprel_pred_for_heads
 from ..utils.types import ModelParams_T
 
 
@@ -94,7 +94,7 @@ class Predict(CMD):
 
         chuliu_heads_pred = torch.tensor(chuliu_heads_pred).to(device)
 
-        deprels_pred_chuliu = deprel_pred_for_heads(
+        deprels_pred_chuliu = _deprel_pred_for_heads(
             deprels_pred.unsqueeze(0), chuliu_heads_pred.unsqueeze(0)
         ).squeeze(0)
 
@@ -208,7 +208,7 @@ class Predict(CMD):
 
             if args.overwrite != True:
                 if os.path.isfile(path_result_file):
-                    print(f"file '{path_result_file}' already exist and overwrite!=False, skipping ...\n")
+                    print(f"file '{path_result_file}' already exists and overwrite!=False, skipping ...")
                     continue
 
             print(args.inpath)
@@ -243,10 +243,9 @@ class Predict(CMD):
                         time_from_start = timer() - start
                         parsing_speed = int(round(((parsed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
 
-                    print(
-                        f"Predicting: {100 * (parsed_sentence_counter + 1) / len(pred_dataset):.2f}% complete. {time_from_start:.2f} seconds in file ({parsing_speed} sents/sec).",
-                        end="\r",
-                    )
+                    print(f"Predicting: {100 * (parsed_sentence_counter + 1) / len(pred_dataset):.2f}% "
+                          f"complete. {time_from_start:.2f} seconds in file "
+                          f"({parsing_speed} sents/sec).")
 
             writeConlluFile(path_result_file, predicted_sentences, overwrite=args.overwrite)
 
