@@ -1,4 +1,3 @@
-import pandas as pd
 from torch import gather, Tensor
 from torch.nn import CrossEntropyLoss
 from torch import sum as tsum

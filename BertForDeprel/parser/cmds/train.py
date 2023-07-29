@@ -1,7 +1,6 @@
-from argparse import _SubParsersAction, ArgumentParser
+from argparse import ArgumentParser
 import os
 from datetime import datetime
-from time import time
 import json
 from typing import Optional
 

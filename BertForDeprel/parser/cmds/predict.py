@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from parser.modules.BertForDepRelOutput import BertForDeprelBatchOutput
 from ..cmds.cmd import CMD, SubparsersType
-from ..utils.annotation_schema_utils import get_path_of_conllus_from_folder_path
+from ..utils.annotation_schema_utils import resolve_conllu_paths
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
 from ..utils.load_data_utils import ConlluDataset, CopyOption, PartialPredictionConfig, SequencePredictionBatch_T
 from ..modules.BertForDepRel import BertForDeprel
@@ -65,7 +65,8 @@ class Predict(CMD):
 
         return subparser
 
-    # TODO: there must be some overlap between this and the model eval code
+    # TODO: there must be some overlap between this and the model eval
+    # chuliu_heads_pred method; it's the same except for the constraint logic
     def __get_constrained_dependencies(self, heads_pred, deprels_pred, subwords_start, keep_heads: CopyOption, pred_dataset: ConlluDataset, n_sentence: int, idx_converter: Tensor, device: str):
         head_true_like = heads_pred.max(dim=0).indices
         chuliu_heads_pred = head_true_like.clone().cpu().numpy()
@@ -160,70 +161,19 @@ class Predict(CMD):
                             partial_pred_config=partial_pred_config
                         )
 
-
     def __call__(self, args, model_params: ModelParams_T):
         super().__call__(args, model_params)
-        if not args.conf:
-            raise Exception("Path to model xxx.config.json must be provided as --conf parameter")
-        paths_pred = []
-        if os.path.isdir(args.inpath):
-            paths_pred = get_path_of_conllus_from_folder_path(args.inpath)
-        elif os.path.isfile(args.inpath):
-            paths_pred.append(args.inpath)
-        else:
-            raise BaseException(f"args.inpath must be a folder or a file, not nothing (current inpath = {args.inpath})")
+        in_to_out_paths, partial_pred_config, data_loader_params = self.__validate_args(args, model_params)
+        model = self.__load_model(args, model_params)
 
-        path_predicted_files = args.outpath
-
-        if not os.path.isdir(path_predicted_files):
-            os.makedirs(path_predicted_files)
-
-        partial_pred_config = PartialPredictionConfig(
-            keep_upos=args.keep_upos,
-            keep_xpos=args.keep_xpos,
-            keep_feats=args.keep_feats,
-            keep_deprels=args.keep_deprels,
-            keep_heads=args.keep_heads,
-            keep_lemmas=args.keep_lemmas
-            )
-
-        print(paths_pred)
-
-        print("Loading model...")
-        model = BertForDeprel(model_params)
-        model.load_pretrained()
-
-
-        model.to(args.device)
-
-        if args.multi_gpu:
-            print("Sending model to multiple GPUs...")
-            model = nn.DataParallel(model)
-
-        model.eval()
         print("Starting Predictions ...")
-        for path in paths_pred:
+        for in_path, out_path in in_to_out_paths.items():
+            print(f"Loading dataset from {in_path}...")
+            pred_dataset = ConlluDataset(in_path, model_params, "predict")
 
-            path_result_file = os.path.join(path_predicted_files, path.split("/")[-1].replace(".conll", args.suffix + ".conll"))
-
-            if args.overwrite != True:
-                if os.path.isfile(path_result_file):
-                    print(f"file '{path_result_file}' already exists and overwrite!=False, skipping ...")
-                    continue
-
-            print(args.inpath)
-
-            print(f"Loading dataset from {args.inpath}...")
-
-            pred_dataset = ConlluDataset(path, model_params, args.mode)
-
-            params = {
-                "batch_size": model_params.batch_size,
-                "num_workers": args.num_workers,
-            }
-            pred_loader = DataLoader(pred_dataset, collate_fn=pred_dataset.collate_fn_predict, shuffle=False, **params)
+            pred_loader = DataLoader(pred_dataset, collate_fn=pred_dataset.collate_fn_predict, shuffle=False, **data_loader_params)
             print(
-                f"{'Loaded '} {len(pred_dataset):5} sentences ({len(pred_loader):3} batches)"
+                f"Loaded {len(pred_dataset):5} sentences, ({len(pred_loader):3} batches)"
             )
             start = timer()
             predicted_sentences: List[sentenceJson_T] = []
@@ -247,8 +197,59 @@ class Predict(CMD):
                           f"complete. {time_from_start:.2f} seconds in file "
                           f"({parsing_speed} sents/sec).")
 
-            writeConlluFile(path_result_file, predicted_sentences, overwrite=args.overwrite)
+            writeConlluFile(out_path, predicted_sentences, overwrite=args.overwrite)
 
-            print(f"Finished predicting `{path_result_file}, wrote {parsed_sentence_counter} sents in {round(timer() - start, 2)} secs`")
+            print(f"Finished predicting `{out_path}, wrote {parsed_sentence_counter} sents in {round(timer() - start, 2)} secs`")
 
+    def __load_model(self, args, model_params):
+        print("Loading model...")
+        model = BertForDeprel(model_params)
+        model.load_pretrained()
+        model.eval()
+        model.to(args.device)
+        if args.multi_gpu:
+            print("Sending model to multiple GPUs...")
+            model = nn.DataParallel(model)
+        return model
 
+    def __validate_args(self, args, model_params: ModelParams_T):
+        if not args.conf:
+            raise Exception("Path to model xxx.config.json must be provided as --conf parameter")
+
+        output_dir = args.outpath
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir)
+
+        unvalidated_input_paths = []
+        if os.path.isdir(args.inpath):
+            unvalidated_input_paths = resolve_conllu_paths(args.inpath)
+        elif os.path.isfile(args.inpath):
+            unvalidated_input_paths.append(args.inpath)
+        else:
+            raise BaseException(f"args.inpath must be a folder or a file; was {args.inpath}")
+
+        in_to_out_paths = {}
+        for input_path in unvalidated_input_paths:
+            output_path = os.path.join(output_dir, input_path.split("/")[-1].replace(".conll", args.suffix + ".conll"))
+
+            if args.overwrite != True:
+                if os.path.isfile(output_path):
+                    print(f"file '{output_path}' already exists and overwrite!=False, skipping ...")
+                    continue
+            in_to_out_paths[input_path] = output_path
+
+        partial_pred_config = PartialPredictionConfig(
+            keep_upos=args.keep_upos,
+            keep_xpos=args.keep_xpos,
+            keep_feats=args.keep_feats,
+            keep_deprels=args.keep_deprels,
+            keep_heads=args.keep_heads,
+            keep_lemmas=args.keep_lemmas
+            )
+
+        data_loader_params = {
+            "batch_size": model_params.batch_size,
+            "num_workers": args.num_workers,
+        }
+
+        return in_to_out_paths, partial_pred_config, data_loader_params

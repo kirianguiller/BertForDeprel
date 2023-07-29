@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import numpy as np
 import json
 import os
@@ -20,6 +21,105 @@ from torch.optim import AdamW
 from transformers import AutoModel, XLMRobertaModel # type: ignore (TODO: why can't PyLance find these?)
 from transformers.adapters import PfeifferConfig
 
+@dataclass
+class EvalResultAccumulator:
+    good_head_epoch, total_head_epoch, loss_head_epoch = 0.0, 0.0, 0.0
+    good_uposs_epoch, total_uposs_epoch, loss_uposs_epoch = 0.0, 0.0, 0.0
+    good_xposs_epoch, total_xposs_epoch, loss_xposs_epoch = 0.0, 0.0, 0.0
+    good_feats_epoch, total_feats_epoch, loss_feats_epoch = 0.0, 0.0, 0.0
+    good_lemma_scripts_epoch, total_lemma_scripts_epoch, loss_lemma_scripts_epoch = 0.0, 0.0, 0.0
+    good_deprel_epoch, total_deprel_epoch, loss_deprel_epoch = 0.0, 0.0, 0.0
+    n_correct_LAS_epoch, n_correct_LAS_epoch, n_total_epoch = 0.0, 0.0, 0.0
+    n_correct_LAS_chuliu_epoch, n_total_epoch = 0.0, 0.0
+    dataset_size: int
+    criterion: CrossEntropyLoss
+
+    def accumulate(self, batch: SequenceTrainingBatch_T, model_output: BertForDeprelBatchOutput, chuliu_heads_pred: torch.Tensor):
+        n_correct_LAS_batch, n_total_batch = \
+            compute_LAS(model_output.heads, model_output.deprels, batch.heads, batch.deprels)
+        n_correct_LAS_chuliu_batch, n_total_batch = \
+            compute_LAS_chuliu(chuliu_heads_pred, model_output.deprels, batch.heads, batch.deprels)
+        self.n_correct_LAS_epoch += n_correct_LAS_batch
+        self.n_correct_LAS_chuliu_epoch += n_correct_LAS_chuliu_batch
+        self.n_total_epoch += n_total_batch
+
+        loss_head_batch = compute_loss_head(model_output.heads, batch.heads, self.criterion)
+        good_head_batch, total_head_batch = compute_acc_head(model_output.heads, batch.heads)
+        self.loss_head_epoch += loss_head_batch.item()
+        self.good_head_epoch += good_head_batch
+        self.total_head_epoch += total_head_batch
+
+        loss_deprel_batch = compute_loss_deprel(model_output.deprels, batch.deprels, batch.heads, self.criterion)
+        good_deprel_batch, total_deprel_batch = compute_acc_deprel(model_output.deprels, batch.deprels, batch.heads)
+        self.loss_deprel_epoch += loss_deprel_batch.item()
+        self.good_deprel_epoch += good_deprel_batch
+        self.total_deprel_epoch += total_deprel_batch
+
+        good_uposs_batch, total_uposs_batch = compute_acc_class(model_output.uposs, batch.uposs)
+        self.good_uposs_epoch += good_uposs_batch
+        self.total_uposs_epoch += total_uposs_batch
+
+        good_xposs_batch, total_xposs_batch = compute_acc_class(model_output.xposs, batch.xposs)
+        self.good_xposs_epoch += good_xposs_batch
+        self.total_xposs_epoch += total_xposs_batch
+
+        good_feats_batch, total_feats_batch = compute_acc_class(model_output.feats, batch.feats)
+        self.good_feats_epoch += good_feats_batch
+        self.total_feats_epoch += total_feats_batch
+
+        good_lemma_scripts_batch, total_lemma_scripts_batch = compute_acc_class(model_output.lemma_scripts, batch.lemma_scripts)
+        self.good_lemma_scripts_epoch += good_lemma_scripts_batch
+        self.total_lemma_scripts_epoch += total_lemma_scripts_batch
+
+        loss_uposs_batch = compute_loss_class(model_output.uposs, batch.uposs, self.criterion)
+        self.loss_uposs_epoch += loss_uposs_batch
+
+        loss_xposs_batch = compute_loss_class(model_output.xposs, batch.xposs, self.criterion)
+        self.loss_xposs_epoch += loss_xposs_batch
+
+        loss_feats_batch = compute_loss_class(model_output.feats, batch.feats, self.criterion)
+        self.loss_feats_epoch += loss_feats_batch
+
+        loss_lemma_scripts_batch = compute_loss_class(model_output.lemma_scripts, batch.lemma_scripts, self.criterion)
+        self.loss_lemma_scripts_epoch += loss_lemma_scripts_batch
+
+    def get_results(self, ndigits=3):
+        loss_head_epoch = self.loss_head_epoch/self.dataset_size
+        acc_head_epoch = self.good_head_epoch/self.total_head_epoch
+
+        loss_deprel_epoch = self.loss_deprel_epoch/self.dataset_size
+        acc_deprel_epoch = self.good_deprel_epoch/self.total_deprel_epoch
+
+        acc_uposs_epoch = self.good_uposs_epoch/self.total_uposs_epoch
+
+        acc_xposs_epoch = self.good_xposs_epoch/self.total_xposs_epoch
+
+        acc_feats_epoch = self.good_feats_epoch/self.total_feats_epoch
+
+        acc_lemma_scripts_epoch = self.good_lemma_scripts_epoch/self.total_lemma_scripts_epoch
+
+        LAS_epoch = self.n_correct_LAS_epoch/self.n_total_epoch
+        LAS_chuliu_epoch = self.n_correct_LAS_chuliu_epoch/self.n_total_epoch
+
+        loss_epoch = loss_head_epoch + loss_deprel_epoch + self.loss_uposs_epoch + \
+            self.loss_xposs_epoch + self.loss_feats_epoch + self.loss_lemma_scripts_epoch
+
+        return {
+            "LAS_epoch": round(float(LAS_epoch), ndigits),
+            "LAS_chuliu_epoch": round(float(LAS_chuliu_epoch), ndigits),
+            "acc_head_epoch": round(float(acc_head_epoch), ndigits),
+            "acc_deprel_epoch" : acc_deprel_epoch,
+            "acc_uposs_epoch": round(float(acc_uposs_epoch), ndigits),
+            "acc_xposs_epoch": round(float(acc_xposs_epoch), ndigits),
+            "acc_feats_epoch": round(float(acc_feats_epoch), ndigits),
+            "acc_lemma_scripts_epoch": round(float(acc_lemma_scripts_epoch), ndigits),
+            "loss_head_epoch": round(float(loss_head_epoch), ndigits),
+            "loss_deprel_epoch": round(float(loss_deprel_epoch), ndigits),
+            "loss_xposs_epoch": round(float(self.loss_xposs_epoch), ndigits),
+            "loss_feats_epoch": round(float(self.loss_feats_epoch), ndigits),
+            "loss_lemma_scripts_epoch": round(float(self.loss_lemma_scripts_epoch), ndigits),
+            "loss_epoch": round(float(loss_epoch), ndigits),
+        }
 
 class BertForDeprel(Module):
     def __init__(self, model_params: ModelParams_T, pretrain_model_params: Optional[ModelParams_T] = None, overwrite_pretrain_classifiers = True):
@@ -126,88 +226,19 @@ class BertForDeprel(Module):
     def eval_epoch(self, loader, device):
         self.eval()
         with torch.no_grad():
-            good_head_epoch, total_head_epoch, loss_head_epoch = 0.0, 0.0, 0.0
-            good_uposs_epoch, total_uposs_epoch, loss_uposs_epoch = 0.0, 0.0, 0.0
-            good_xposs_epoch, total_xposs_epoch, loss_xposs_epoch = 0.0, 0.0, 0.0
-            good_feats_epoch, total_feats_epoch, loss_feats_epoch = 0.0, 0.0, 0.0
-            good_lemma_scripts_epoch, total_lemma_scripts_epoch, loss_lemma_scripts_epoch = 0.0, 0.0, 0.0
-            good_deprel_epoch, total_deprel_epoch, loss_deprel_epoch = 0.0, 0.0, 0.0
-            n_correct_LAS_epoch, n_correct_LAS_epoch, n_total_epoch = 0.0, 0.0, 0.0
-            n_correct_LAS_chuliu_epoch, n_total_epoch = 0.0, 0.0
-
+            dataset_size = len(loader)
+            print_every = max(1, dataset_size // 4)
+            results_accumulator = EvalResultAccumulator(dataset_size, self.criterion)
             start = timer()
             processed_sentence_counter = 0
-            total_number_batch = len(loader)
-            print_every = max(1, total_number_batch // 4) # so we print only around 8 times per epochs
 
             batch: SequenceTrainingBatch_T
             for batch_counter, batch in enumerate(loader):
                 batch = batch.to(device, is_eval=True)
 
                 model_output = self.forward(batch.sequence_token_ids, batch.attn_masks).detach()
-
-                # TODO: move to separate method
-                chuliu_heads_pred = batch.heads.clone()
-                for i_sentence, (heads_pred_sentence, subwords_start_sentence, idx_converter_sentence) in enumerate(zip(model_output.heads, batch.subwords_start, batch.idx_converter)):
-                    subwords_start_with_root = subwords_start_sentence.clone()
-                    # TODO: why?
-                    subwords_start_with_root[0] = True
-
-                    heads_pred_np = heads_pred_sentence[:,subwords_start_with_root == 1][subwords_start_with_root == 1]
-                    heads_pred_np = heads_pred_np.cpu().numpy()
-
-                    chuliu_heads_vector = chuliu_edmonds_one_root(np.transpose(heads_pred_np, (1,0)))[1:]
-
-                    for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
-                        chuliu_heads_pred[i_sentence, idx_converter_sentence[i_token+1]] = idx_converter_sentence[chuliu_head_pred]
-
-                n_correct_LAS_batch, n_total_batch = \
-                    compute_LAS(model_output.heads, model_output.deprels, batch.heads, batch.deprels)
-                n_correct_LAS_chuliu_batch, n_total_batch = \
-                    compute_LAS_chuliu(chuliu_heads_pred, model_output.deprels, batch.heads, batch.deprels)
-                n_correct_LAS_epoch += n_correct_LAS_batch
-                n_correct_LAS_chuliu_epoch += n_correct_LAS_chuliu_batch
-                n_total_epoch += n_total_batch
-
-                loss_head_batch = compute_loss_head(model_output.heads, batch.heads, self.criterion)
-                good_head_batch, total_head_batch = compute_acc_head(model_output.heads, batch.heads)
-                loss_head_epoch += loss_head_batch.item()
-                good_head_epoch += good_head_batch
-                total_head_epoch += total_head_batch
-
-                loss_deprel_batch = compute_loss_deprel(model_output.deprels, batch.deprels, batch.heads, self.criterion)
-                good_deprel_batch, total_deprel_batch = compute_acc_deprel(model_output.deprels, batch.deprels, batch.heads)
-                loss_deprel_epoch += loss_deprel_batch.item()
-                good_deprel_epoch += good_deprel_batch
-                total_deprel_epoch += total_deprel_batch
-
-                good_uposs_batch, total_uposs_batch = compute_acc_class(model_output.uposs, batch.uposs)
-                good_uposs_epoch += good_uposs_batch
-                total_uposs_epoch += total_uposs_batch
-
-                good_xposs_batch, total_xposs_batch = compute_acc_class(model_output.xposs, batch.xposs)
-                good_xposs_epoch += good_xposs_batch
-                total_xposs_epoch += total_xposs_batch
-
-                good_feats_batch, total_feats_batch = compute_acc_class(model_output.feats, batch.feats)
-                good_feats_epoch += good_feats_batch
-                total_feats_epoch += total_feats_batch
-
-                good_lemma_scripts_batch, total_lemma_scripts_batch = compute_acc_class(model_output.lemma_scripts, batch.lemma_scripts)
-                good_lemma_scripts_epoch += good_lemma_scripts_batch
-                total_lemma_scripts_epoch += total_lemma_scripts_batch
-
-                loss_uposs_batch = compute_loss_class(model_output.uposs, batch.uposs, self.criterion)
-                loss_uposs_epoch += loss_uposs_batch
-
-                loss_xposs_batch = compute_loss_class(model_output.xposs, batch.xposs, self.criterion)
-                loss_xposs_epoch += loss_xposs_batch
-
-                loss_feats_batch = compute_loss_class(model_output.feats, batch.feats, self.criterion)
-                loss_feats_epoch += loss_feats_batch
-
-                loss_lemma_scripts_batch = compute_loss_class(model_output.lemma_scripts, batch.lemma_scripts, self.criterion)
-                loss_lemma_scripts_epoch += loss_lemma_scripts_batch
+                chuliu_heads_pred = self.chuliu_heads_pred(batch, model_output)
+                results_accumulator.accumulate(batch, model_output, chuliu_heads_pred)
 
                 processed_sentence_counter += batch.sequence_token_ids.size(0)
                 time_from_start = timer() - start
@@ -217,56 +248,36 @@ class BertForDeprel(Module):
                     print(
                     f'Evaluating: {100 * (batch_counter + 1) / len(loader):.2f}% complete. {time_from_start:.2f} seconds in epoch ({parsing_speed:.2f} sents/sec)')
 
-
-            loss_head_epoch = loss_head_epoch/len(loader)
-            acc_head_epoch = good_head_epoch/total_head_epoch
-
-            loss_deprel_epoch = loss_deprel_epoch/len(loader)
-            acc_deprel_epoch = good_deprel_epoch/total_deprel_epoch
-
-            acc_uposs_epoch = good_uposs_epoch/total_uposs_epoch
-
-            acc_xposs_epoch = good_xposs_epoch/total_xposs_epoch
-
-            acc_feats_epoch = good_feats_epoch/total_feats_epoch
-
-            acc_lemma_scripts_epoch = good_lemma_scripts_epoch/total_lemma_scripts_epoch
-
-            LAS_epoch = n_correct_LAS_epoch/n_total_epoch
-            LAS_chuliu_epoch = n_correct_LAS_chuliu_epoch/n_total_epoch
-
-            loss_epoch = loss_head_epoch + loss_deprel_epoch + loss_uposs_epoch + \
-                loss_xposs_epoch + loss_feats_epoch + loss_lemma_scripts_epoch
+            results = results_accumulator.get_results()
             print(
                 f"\nEpoch evaluation results\n"
-                f"Total loss = {loss_epoch:.3f}\n"
-                f"LAS = {LAS_epoch:.3f}\n"
-                f"LAS_chuliu = {LAS_chuliu_epoch:.3f}\n"
-                f"Acc. head = {acc_head_epoch:.3f}\n"
-                f"Acc. deprel = {acc_deprel_epoch:.3f}\n"
-                f"Acc. upos = {acc_uposs_epoch:.3f}\n"
-                f"Acc. feat = {acc_feats_epoch:.3f}\n"
-                f"Acc. lemma_script = {acc_lemma_scripts_epoch:.3f}\n"
-                f"Acc. xposs = {acc_xposs_epoch:.3f}\n")
-
-        results = {
-            "LAS_epoch": round(float(LAS_epoch), 3),
-            "LAS_chuliu_epoch": round(float(LAS_chuliu_epoch), 3),
-            "acc_head_epoch": round(float(acc_head_epoch), 3),
-            "acc_deprel_epoch" : acc_deprel_epoch,
-            "acc_uposs_epoch": round(float(acc_uposs_epoch), 3),
-            "acc_xposs_epoch": round(float(acc_xposs_epoch), 3),
-            "acc_feats_epoch": round(float(acc_feats_epoch), 3),
-            "acc_lemma_scripts_epoch": round(float(acc_lemma_scripts_epoch), 3),
-            "loss_head_epoch": round(float(loss_head_epoch), 3),
-            "loss_deprel_epoch": round(float(loss_deprel_epoch), 3),
-            "loss_xposs_epoch": round(float(loss_xposs_epoch), 3),
-            "loss_feats_epoch": round(float(loss_feats_epoch), 3),
-            "loss_lemma_scripts_epoch": round(float(loss_lemma_scripts_epoch), 3),
-            "loss_epoch": round(float(loss_epoch), 3),
-        }
+                f"Total loss = {results['loss_epoch']:.3f}\n"
+                f"LAS = {results['LAS_epoch']:.3f}\n"
+                f"LAS_chuliu = {results['LAS_chuliu_epoch']:.3f}\n"
+                f"Acc. head = {results['acc_head_epoch']:.3f}\n"
+                f"Acc. deprel = {results['acc_deprel_epoch']:.3f}\n"
+                f"Acc. upos = {results['acc_uposs_epoch']:.3f}\n"
+                f"Acc. feat = {results['acc_feats_epoch']:.3f}\n"
+                f"Acc. lemma_script = {results['acc_lemma_scripts_epoch']:.3f}\n"
+                f"Acc. xposs = {results['acc_xposs_epoch']:.3f}\n")
 
         return results
+
+    def chuliu_heads_pred(self, batch, model_output) -> torch.Tensor:
+        chuliu_heads_pred = batch.heads.clone()
+        for i_sentence, (heads_pred_sentence, subwords_start_sentence, idx_converter_sentence) in enumerate(zip(model_output.heads, batch.subwords_start, batch.idx_converter)):
+            subwords_start_with_root = subwords_start_sentence.clone()
+                    # TODO: why?
+            subwords_start_with_root[0] = True
+
+            heads_pred_np = heads_pred_sentence[:,subwords_start_with_root == 1][subwords_start_with_root == 1]
+            heads_pred_np = heads_pred_np.cpu().numpy()
+
+            chuliu_heads_vector = chuliu_edmonds_one_root(np.transpose(heads_pred_np, (1,0)))[1:]
+
+            for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
+                chuliu_heads_pred[i_sentence, idx_converter_sentence[i_token+1]] = idx_converter_sentence[chuliu_head_pred]
+        return chuliu_heads_pred
 
 
     def save_model(self, epoch):

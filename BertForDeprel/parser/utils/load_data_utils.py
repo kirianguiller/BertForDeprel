@@ -9,7 +9,7 @@ from torch import tensor, Tensor
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from .types import ModelParams_T
-from .annotation_schema_utils import compute_annotation_schema, get_path_of_conllus_from_folder_path, is_annotation_schema_empty, NONE_VOCAB
+from .annotation_schema_utils import compute_annotation_schema, resolve_conllu_paths, is_annotation_schema_empty, NONE_VOCAB
 from .lemma_script_utils import apply_lemma_rule, gen_lemma_script
 
 
@@ -148,7 +148,7 @@ class PartialPredictionConfig:
 
 class ConlluDataset(Dataset):
     def __init__(self, path_file_or_folder: str, model_params: ModelParams_T, run_mode: Literal["train", "predict"], compute_annotation_schema_if_not_found = False):
-        paths = get_path_of_conllus_from_folder_path(path_file_or_folder)
+        paths = resolve_conllu_paths(path_file_or_folder)
         if is_annotation_schema_empty(model_params.annotation_schema):
             if compute_annotation_schema_if_not_found == True:
                 model_params.annotation_schema = compute_annotation_schema(*paths)

@@ -46,7 +46,7 @@ if __name__ == "__main__":
                 custom_model_params = json.loads(infile.read())
                 # TODO: check if the config file is valid first
                 model_params.__dict__.update(custom_model_params)
-                if custom_model_params["annotation_schema"]:
+                if "annotation_schema" in custom_model_params:
                     annotation_schema = AnnotationSchema_T()
                     # TODO: check if the annotation schema is valid first
                     annotation_schema.__dict__.update(custom_model_params["annotation_schema"])
