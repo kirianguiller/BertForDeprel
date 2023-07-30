@@ -11,7 +11,7 @@ from typing import Optional
 from .BertForDepRelOutput import BertForDeprelBatchOutput
 from .PosAndDepRelParserHead import PosAndDeprelParserHead
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
-from ..utils.load_data_utils import SequenceTrainingBatch_T
+from ..utils.load_data_utils import SequencePredictionBatch_T, SequenceTrainingBatch_T
 from ..utils.scores_and_losses_utils import compute_LAS, compute_LAS_chuliu, compute_acc_deprel, compute_acc_head, compute_acc_class, compute_loss_deprel, compute_loss_head, compute_loss_class
 from ..utils.types import DataclassJSONEncoder, ModelParams_T
 
@@ -166,21 +166,22 @@ class BertForDeprel(Module):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
 
-    def forward(self, seq, attn_masks) -> BertForDeprelBatchOutput:
+    def forward(self, batch: SequencePredictionBatch_T) -> BertForDeprelBatchOutput:
         '''
         Inputs:
             -seq : Tensor of shape [B, T] containing token ids of sequences
             -attn_masks : Tensor of shape [B, T] containing attention masks to be used to avoid contribution of PAD tokens
             -mode: if set to "predict", resulting tensors will be detached before returning
         '''
-        # Feeding the input to BERT model to obtain contextualized representations
-        bert_output = self.llm_layer.forward(seq, attention_mask=attn_masks, return_dict=True)
+
+        # Feed the input to BERT model to obtain contextualized representations
+        bert_output = self.llm_layer.forward(batch.sequence_token_ids, attention_mask=batch.attn_masks, return_dict=True)
         # return_dict is True, so the return value will never be a tuple, but we do this to satisfy the type-checker
         assert not isinstance(bert_output, tuple)
 
 
         x = bert_output.last_hidden_state
-        output = self.tagger_layer.forward(x)
+        output = self.tagger_layer.forward(x, batch)
         return output
 
     def __compute_loss(self, batch: SequenceTrainingBatch_T, preds: BertForDeprelBatchOutput):
@@ -205,7 +206,7 @@ class BertForDeprel(Module):
         for batch_counter, batch in enumerate(loader):
             batch = batch.to(device)
             self.optimizer.zero_grad()
-            preds = self.forward(batch.sequence_token_ids, batch.attn_masks)
+            preds = self.forward(batch)
             loss_batch = self.__compute_loss(batch, preds)
             loss_batch.backward()
             self.optimizer.step()
@@ -236,7 +237,7 @@ class BertForDeprel(Module):
             for batch_counter, batch in enumerate(loader):
                 batch = batch.to(device, is_eval=True)
 
-                model_output = self.forward(batch.sequence_token_ids, batch.attn_masks).detach()
+                model_output = self.forward(batch).detach()
                 chuliu_heads_pred = self.chuliu_heads_pred(batch, model_output)
                 results_accumulator.accumulate(batch, model_output, chuliu_heads_pred)
 
@@ -266,21 +267,27 @@ class BertForDeprel(Module):
     def chuliu_heads_pred(self, batch, model_output) -> torch.Tensor:
         chuliu_heads_pred = batch.heads.clone()
         for i_sentence, (heads_pred_sentence, subwords_start_sentence, idx_converter_sentence) in enumerate(zip(model_output.heads, batch.subwords_start, batch.idx_converter)):
-            # TODO: why clone?
+            # clone so that we can edit in-place below
+            # TODO: but gradient is turned off. Isn't this unnecessary?
+            # TODO: what does "with root" indicate?
             subwords_start_with_root = subwords_start_sentence.clone()
 
             # TODO: why?
             subwords_start_with_root[0] = True
-            # TODO: explain
-            heads_pred_np = heads_pred_sentence[:,subwords_start_with_root == 1][subwords_start_with_root == 1]
+            # TODO: explain. What is np here?
+            heads_pred_np = heads_pred_sentence[
+                :,subwords_start_with_root == 1
+            ][subwords_start_with_root == 1]
             # TODO: why?
             heads_pred_np = heads_pred_np.cpu().numpy()
 
             # TODO: why transpose? Why 1:? Skipping CLS token? But the output is for words, not tokens.
             chuliu_heads_vector = chuliu_edmonds_one_root(np.transpose(heads_pred_np, (1,0)))[1:]
 
-            for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
-                chuliu_heads_pred[i_sentence, idx_converter_sentence[i_token+1]] = idx_converter_sentence[chuliu_head_pred]
+            for i_dependent_word, chuliu_head_pred in enumerate(chuliu_heads_vector):
+                chuliu_heads_pred[
+                    i_sentence, idx_converter_sentence[i_dependent_word + 1]
+                ] = idx_converter_sentence[chuliu_head_pred]
         # TODO: what is this return value?
         return chuliu_heads_pred
 

@@ -68,21 +68,23 @@ class Predict(CMD):
     # TODO Next: explain this as much as possible
     # Then: combine this and the model eval chuliu_heads_pred method; it's the
     # same except for the constraint logic
-    def __get_constrained_dependencies(self, heads_pred, deprels_pred, subwords_start, keep_heads: CopyOption, pred_dataset: ConlluDataset, n_sentence: int, idx_converter: Tensor, device: str):
-        head_true_like = heads_pred.max(dim=0).indices
+    def __get_constrained_dependencies(self, heads_pred_sentence, deprels_pred, subwords_start, keep_heads: CopyOption, pred_dataset: ConlluDataset, n_sentence: int, idx_converter_sentence: Tensor, device: str):
+        head_true_like = heads_pred_sentence.max(dim=0).indices
         chuliu_heads_pred = head_true_like.clone().cpu().numpy()
         chuliu_heads_list: List[int] = []
 
-        # TODO: why clone?
+        # clone so that we can edit in-place below
+        # TODO: but gradient is turned off. Isn't this unnecessary?
+        # TODO: what does "with root" indicate?
         subwords_start_with_root = subwords_start.clone()
 
         # TODO: why?
         subwords_start_with_root[0] = True
-        # TODO: explain
-        heads_pred_np = heads_pred[
+        # TODO: explain. What is np here?
+        heads_pred_np = heads_pred_sentence[
             :, subwords_start_with_root == 1
         ][subwords_start_with_root == 1]
-        # TODO: why
+        # TODO: why?
         heads_pred_np = heads_pred_np.cpu().numpy()
 
         forced_relations: List[Tuple] = []
@@ -95,8 +97,8 @@ class Predict(CMD):
         )[1:]
         for i_dependent_word, chuliu_head_pred in enumerate(chuliu_heads_vector):
             chuliu_heads_pred[
-                idx_converter[i_dependent_word + 1]
-            ] = idx_converter[chuliu_head_pred]
+                idx_converter_sentence[i_dependent_word + 1]
+            ] = idx_converter_sentence[chuliu_head_pred]
             chuliu_heads_list.append(int(chuliu_head_pred))
 
         # TODO: why?
@@ -111,33 +113,30 @@ class Predict(CMD):
         return chuliu_heads_list, deprels_pred_chuliu
 
     def __prediction_iterator(self, batch: SequencePredictionBatch_T, preds: BertForDeprelBatchOutput, pred_dataset: ConlluDataset, partial_pred_config: PartialPredictionConfig, device: str):
-        subwords_start_batch = batch.subwords_start
-        idx_converter_batch = batch.idx_converter
         idx_batch = batch.idx
 
-        for sentence_in_batch_counter in range(batch.sequence_token_ids.size()[0]):
-            # TODO Next: push these two into the output classes so that the code farther below can be encapsulated in the output classes;
+        for i_sentence in range(batch.sequence_token_ids.size()[0]):
+            raw_sentence_preds = preds.distributions_for_sentence(i_sentence)
+
+            # TODO Next: encapsulate below in the output classes;
             # these will then be containers for the raw model outputs, with methods for constructing the final predictions.
             # the overwrite logic should be done in a separate step, I think.
-            subwords_start = subwords_start_batch[sentence_in_batch_counter]
-            idx_converter = idx_converter_batch[sentence_in_batch_counter]
-            raw_sentence_preds = preds.distributions_for_sentence(sentence_in_batch_counter)
-
-            sentence_idx = idx_batch[sentence_in_batch_counter]
+            # Start by encapsulating the n_sentence and pred_dataset stuff into the output classes.
+            sentence_idx = idx_batch[i_sentence]
             n_sentence = int(sentence_idx)
 
             (chuliu_heads_list, deprels_pred_chuliu) = self.__get_constrained_dependencies(
-                heads_pred=raw_sentence_preds.heads,
+                heads_pred_sentence=raw_sentence_preds.heads,
                 deprels_pred=raw_sentence_preds.deprels,
-                subwords_start=subwords_start,
+                subwords_start=raw_sentence_preds.subwords_start,
                 pred_dataset=pred_dataset,
                 keep_heads=partial_pred_config.keep_heads,
                 n_sentence=n_sentence,
-                idx_converter=idx_converter,
+                idx_converter_sentence=raw_sentence_preds.idx_converter,
                 device=device,)
 
             # TODO: would it not be better if this were a boolean vector to begin with?
-            is_word_start = subwords_start == 1
+            is_word_start = raw_sentence_preds.subwords_start == 1
 
             deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[
                 is_word_start
@@ -191,7 +190,7 @@ class Predict(CMD):
             with torch.no_grad():
                 for batch in pred_loader:
                     batch = batch.to(args.device)
-                    preds = model.forward(batch.sequence_token_ids, batch.attn_masks).detach()
+                    preds = model.forward(batch).detach()
 
                     time_from_start = 0
                     parsing_speed = 0

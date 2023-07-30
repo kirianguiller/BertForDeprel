@@ -1,4 +1,6 @@
 from torch import Tensor
+
+from ..utils.load_data_utils import SequencePredictionBatch_T
 from .BiAffineTrankit import FixedClassDeepBiAffineClassifier
 from .BertForDepRelOutput import BertForDeprelBatchOutput
 
@@ -25,7 +27,7 @@ class PosAndDeprelParserHead(Module):
         self.lemma_scripts_ffn = Linear(llm_output_size, n_lemma_scripts)
 
 
-    def forward(self, x: Tensor) -> BertForDeprelBatchOutput:
+    def forward(self, x: Tensor, batch: SequencePredictionBatch_T) -> BertForDeprelBatchOutput:
         uposs = self.uposs_ffn(x)
         xposs = self.xposs_ffn(x)
         feats = self.feats_ffn(x)
@@ -44,4 +46,6 @@ class PosAndDeprelParserHead(Module):
             lemma_scripts=lemma_scripts,
             deprels=deprels,
             heads=heads,
+            subwords_start=batch.subwords_start,
+            idx_converter=batch.idx_converter
         )
