@@ -407,7 +407,15 @@ class ConlluDataset(Dataset):
         return predicted_sentence
 
 
+    # TODO: This suggests to me that we shouldn't actually have separate predict/train
+    # data classes. It's weird to have to refer back to the JSON here.
+    # TODO: this exists solely to construct the argument to chuliu_edmonds_one_root_with_constraints.
+    # Move it closer to that usage (inside that function or in its (only) caller).
     def get_constrained_dependency_for_chuliu(self, idx: int) -> List[Tuple]:
+        """
+        idx: index of the sentence in the dataset
+        Returns a list of tuples (i, j), indicating that the ith word is
+        dependent on the jth word in sentence idx."""
         forced_relations: List[Tuple] = []
 
         sentence_json: sentenceJson_T = self.sequences[idx].sentence_json

@@ -176,8 +176,8 @@ def chuliu_edmonds_one_root(scores: NDArray):
 
 def chuliu_edmonds_one_root_with_constraints(scores: NDArray, forced_relations: List[Tuple] = []):
     """
-    scores: NDArray : 2D array of scores, where scores[i, j] is the score of the ith token being dependent on the jth token
-    forced_relations: List[Tuple] : List of (i, j) tuples, the ith index will be forced to be dependent on jth token
+    scores: NDArray : 2D array of scores of size (W, W), where scores[i, j] is the score of the ith word being dependent on the jth word
+    forced_relations: List[Tuple] : List of (i, j) tuples, the ith word will be forced to be dependent on jth word
     """
     if len(forced_relations):
         scores = scores.copy()
