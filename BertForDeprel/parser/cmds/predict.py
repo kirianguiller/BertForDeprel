@@ -65,25 +65,31 @@ class Predict(CMD):
 
         return subparser
 
-    # TODO: there must be some overlap between this and the model eval
-    # chuliu_heads_pred method; it's the same except for the constraint logic
+    # TODO Next: explain this as much as possible
+    # Then: combine this and the model eval chuliu_heads_pred method; it's the
+    # same except for the constraint logic
     def __get_constrained_dependencies(self, heads_pred, deprels_pred, subwords_start, keep_heads: CopyOption, pred_dataset: ConlluDataset, n_sentence: int, idx_converter: Tensor, device: str):
         head_true_like = heads_pred.max(dim=0).indices
         chuliu_heads_pred = head_true_like.clone().cpu().numpy()
         chuliu_heads_list: List[int] = []
 
+        # TODO: why clone?
         subwords_start_with_root = subwords_start.clone()
+
+        # TODO: why?
         subwords_start_with_root[0] = True
+        # TODO: explain
         heads_pred_np = heads_pred[
             :, subwords_start_with_root == 1
         ][subwords_start_with_root == 1]
-
+        # TODO: why
         heads_pred_np = heads_pred_np.cpu().numpy()
 
         forced_relations: List[Tuple] = []
         if keep_heads == "EXISTING":
             forced_relations = pred_dataset.get_constrained_dependency_for_chuliu(n_sentence)
 
+        # TODO: why transpose? Why 1:? Skipping CLS token? But the output is for words, not tokens.
         chuliu_heads_vector = chuliu_edmonds_one_root_with_constraints(
             np.transpose(heads_pred_np, (1, 0)), forced_relations
         )[1:]
@@ -93,12 +99,15 @@ class Predict(CMD):
             ] = idx_converter[chuliu_head_pred]
             chuliu_heads_list.append(int(chuliu_head_pred))
 
+        # TODO: why?
         chuliu_heads_pred = torch.tensor(chuliu_heads_pred).to(device)
 
+        # TODO: explain all that squeezing and unsqueezing
         deprels_pred_chuliu = _deprel_pred_for_heads(
             deprels_pred.unsqueeze(0), chuliu_heads_pred.unsqueeze(0)
         ).squeeze(0)
 
+        # TODO: what are these return values?
         return chuliu_heads_list, deprels_pred_chuliu
 
     def __prediction_iterator(self, batch: SequencePredictionBatch_T, preds: BertForDeprelBatchOutput, pred_dataset: ConlluDataset, partial_pred_config: PartialPredictionConfig, device: str):
@@ -107,7 +116,7 @@ class Predict(CMD):
         idx_batch = batch.idx
 
         for sentence_in_batch_counter in range(batch.sequence_token_ids.size()[0]):
-            # Next: push these two into the output classes so that the code farther below can be encapsulated in the output classes;
+            # TODO Next: push these two into the output classes so that the code farther below can be encapsulated in the output classes;
             # these will then be containers for the raw model outputs, with methods for constructing the final predictions.
             # the overwrite logic should be done in a separate step, I think.
             subwords_start = subwords_start_batch[sentence_in_batch_counter]

@@ -125,7 +125,9 @@ def apply_lemma_rule(form: str, lemma_rule: str) -> str:
 
     return lemma
 
-# TODO: allow_copy should be moved into model params
+# TODO: allow_copy should be moved into model params and
+# "auto" should be implemented as described in the UDPipe paper
+# (use whichever value yields fewer unique rules for a given language)
 def gen_lemma_script(form: str, lemma: str, allow_copy=False) -> str:
     lemma_script = "none"
 

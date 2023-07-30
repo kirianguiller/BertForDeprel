@@ -266,17 +266,22 @@ class BertForDeprel(Module):
     def chuliu_heads_pred(self, batch, model_output) -> torch.Tensor:
         chuliu_heads_pred = batch.heads.clone()
         for i_sentence, (heads_pred_sentence, subwords_start_sentence, idx_converter_sentence) in enumerate(zip(model_output.heads, batch.subwords_start, batch.idx_converter)):
+            # TODO: why clone?
             subwords_start_with_root = subwords_start_sentence.clone()
-                    # TODO: why?
-            subwords_start_with_root[0] = True
 
+            # TODO: why?
+            subwords_start_with_root[0] = True
+            # TODO: explain
             heads_pred_np = heads_pred_sentence[:,subwords_start_with_root == 1][subwords_start_with_root == 1]
+            # TODO: why?
             heads_pred_np = heads_pred_np.cpu().numpy()
 
+            # TODO: why transpose? Why 1:? Skipping CLS token? But the output is for words, not tokens.
             chuliu_heads_vector = chuliu_edmonds_one_root(np.transpose(heads_pred_np, (1,0)))[1:]
 
             for i_token, chuliu_head_pred in enumerate(chuliu_heads_vector):
                 chuliu_heads_pred[i_sentence, idx_converter_sentence[i_token+1]] = idx_converter_sentence[chuliu_head_pred]
+        # TODO: what is this return value?
         return chuliu_heads_pred
 
 
