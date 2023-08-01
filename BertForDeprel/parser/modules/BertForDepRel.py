@@ -279,8 +279,11 @@ class BertForDeprel(Module):
             # Chu-Liu/Edmonds implementation requires numpy array, which can only be created in CPU memory
             heads_pred_np = heads_pred_np.cpu().numpy()
 
-            # TODO: why transpose? Why 1:? Skipping CLS token? But the output is for words, not tokens.
-            chuliu_heads_vector = chuliu_edmonds_one_root(np.transpose(heads_pred_np, (1,0)))[1:]
+            # TODO: why transpose? C-L/E wants (dep, head), which is what we have. Unless the
+            # constraint logic for prediction is wrong, which is possible...
+            chuliu_heads_vector = chuliu_edmonds_one_root(np.transpose(heads_pred_np, (1,0)))
+            # Remove the dummy root node for final output
+            chuliu_heads_vector = chuliu_heads_vector[1:]
 
             for i_dependent_word, chuliu_head_pred in enumerate(chuliu_heads_vector):
                 chuliu_heads_pred[

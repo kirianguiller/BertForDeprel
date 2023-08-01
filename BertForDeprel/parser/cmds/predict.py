@@ -88,20 +88,23 @@ class Predict(CMD):
         if keep_heads == "EXISTING":
             forced_relations = pred_dataset.get_constrained_dependency_for_chuliu(n_sentence)
 
-        # TODO: why transpose? Why 1:? Skipping CLS token? But the output is for words, not tokens.
+        # TODO: why transpose? C-L/E wants (dep, head), which is what we have. Unless the
+        # constraint logic above is wrong, which is possible...
         chuliu_heads_vector = chuliu_edmonds_one_root_with_constraints(
             np.transpose(heads_pred_np, (1, 0)), forced_relations
-        )[1:]
+        )
+        # Remove the dummy root node for final output
+        chuliu_heads_vector = chuliu_heads_vector[1:]
         for i_dependent_word, chuliu_head_pred in enumerate(chuliu_heads_vector):
             chuliu_heads_pred[
                 idx_converter_sentence[i_dependent_word + 1]
             ] = idx_converter_sentence[chuliu_head_pred]
             chuliu_heads_list.append(int(chuliu_head_pred))
 
-        # TODO: why?
-        chuliu_heads_pred = torch.tensor(chuliu_heads_pred).to(device)
-
-        # TODO: explain all that squeezing and unsqueezing
+        # Move to same device for Tensor operations in _deprel_pred_for_heads
+        chuliu_heads_pred = torch.tensor(chuliu_heads_pred).to(deprels_pred.device)
+        # _depred_pred_for_heads expects a batch dimension, so add a dummy one to the inputs
+        # and then remove it from the output
         deprels_pred_chuliu = _deprel_pred_for_heads(
             deprels_pred.unsqueeze(0), chuliu_heads_pred.unsqueeze(0)
         ).squeeze(0)
