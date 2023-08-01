@@ -264,7 +264,7 @@ class BertForDeprel(Module):
 
         return results
 
-    def chuliu_heads_pred(self, batch: SequenceTrainingBatch_T, model_output) -> torch.Tensor:
+    def chuliu_heads_pred(self, batch: SequenceTrainingBatch_T, model_output: BertForDeprelBatchOutput) -> torch.Tensor:
         chuliu_heads_pred = batch.heads.clone()
         for i_sentence, (heads_pred_sentence, tok_starts_word_sentence, idx_converter_sentence) in enumerate(zip(model_output.heads, batch.tok_starts_word, batch.idx_converter)):
 
