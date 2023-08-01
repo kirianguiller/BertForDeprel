@@ -30,8 +30,8 @@ class SequencePrediction_T:
     """The token ids of the sequence, prepended with a CLS token and appended with a SEP token as required
     by BERT models. Size is (T)."""
     sequence_token_ids: List[int]
-    """1 if sequence token begins a new word, 0 otherwise. Size is (T)."""
-    subwords_start: List[int]
+    """True if sequence token begins a new word, 0 otherwise. Size is (T)."""
+    subwords_start: List[bool]
 
     """Maps word index + 1 to the index in the sequence_token_ids where the word begins. Size is (W)."""
     idx_converter: List[int]
@@ -224,7 +224,8 @@ class ConlluDataset(Dataset):
 
         return labels2i, i2labels
 
-    def _pad_list(self, l: List[Any], padding_value: int, maxlen: int):
+    T = TypeVar('T')
+    def _pad_list(self, l: List[T], padding_value: T, maxlen: int):
         if len(l) > maxlen:
             print(l, len(l))
             raise Exception(f"The sequence length (={len(l)}) than the maximum allowed length ({maxlen})")
@@ -234,7 +235,7 @@ class ConlluDataset(Dataset):
 
     def _get_input(self, sequence: sentenceJson_T, idx: int) -> SequencePrediction_T:
         sequence_ids = [self.CLS_token_id]
-        subwords_start = [DUMMY_ID]
+        subwords_start = [False]
 
         idx_converter = [0]
         tokens_len = [1]
@@ -252,7 +253,7 @@ class ConlluDataset(Dataset):
             idx_converter.append(len(sequence_ids))
             tokens_len.append(len(token_ids))
 
-            subword_start = [1] + [0] * (len(token_ids) - 1)
+            subword_start = [True] + [False] * (len(token_ids) - 1)
             sequence_ids += token_ids
             subwords_start += subword_start
 
@@ -329,7 +330,7 @@ class ConlluDataset(Dataset):
         # Add padding values so that the entire batch has the same length, then collect the
         # field tensors for all sequences into a single tensor for each field.
         max_sentence_length  = max([len(sentence.sequence_token_ids) for sentence in sentences])
-        subwords_start_batch = tensor([self._pad_list(sentence.subwords_start, DUMMY_ID, max_sentence_length) for sentence in sentences])
+        subwords_start_batch = tensor([self._pad_list(sentence.subwords_start, False, max_sentence_length) for sentence in sentences])
         idx_converter_batch  = tensor([self._pad_list(sentence.idx_converter, DUMMY_ID, max_sentence_length) for sentence in sentences])
         idx_batch            = tensor([sentence.idx for sentence in sentences])
         # The docs say to pad with the PAD token and just mask those, but for some reason we get better performance when

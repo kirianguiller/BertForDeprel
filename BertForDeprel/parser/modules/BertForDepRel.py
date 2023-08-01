@@ -268,17 +268,14 @@ class BertForDeprel(Module):
         chuliu_heads_pred = batch.heads.clone()
         for i_sentence, (heads_pred_sentence, subwords_start_sentence, idx_converter_sentence) in enumerate(zip(model_output.heads, batch.subwords_start, batch.idx_converter)):
             # clone so that we can edit in-place below
-            # TODO: but gradient is turned off. Isn't this unnecessary?
-            # TODO: what does "with root" indicate?
             subwords_start_with_root = subwords_start_sentence.clone()
-
-            # TODO: why?
+            # Chu-Liu/Edmonds needs a dummy root node, so we use the CLS token slot for it.
             subwords_start_with_root[0] = True
-            # TODO: explain. What is np here?
+            # Get the head scores for each word predicted
             heads_pred_np = heads_pred_sentence[
-                :,subwords_start_with_root == 1
-            ][subwords_start_with_root == 1]
-            # TODO: why?
+                :,subwords_start_with_root
+            ][subwords_start_with_root]
+            # Chu-Liu/Edmonds implementation requires numpy array, which can only be created in CPU memory
             heads_pred_np = heads_pred_np.cpu().numpy()
 
             # TODO: why transpose? Why 1:? Skipping CLS token? But the output is for words, not tokens.

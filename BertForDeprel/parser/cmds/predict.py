@@ -74,17 +74,14 @@ class Predict(CMD):
         chuliu_heads_list: List[int] = []
 
         # clone so that we can edit in-place below
-        # TODO: but gradient is turned off. Isn't this unnecessary?
-        # TODO: what does "with root" indicate?
         subwords_start_with_root = subwords_start.clone()
-
-        # TODO: why?
+        # Chu-Liu/Edmonds needs a dummy root node, so we use the CLS token slot for it.
         subwords_start_with_root[0] = True
-        # TODO: explain. What is np here?
+        # Get the head scores for each word predicted
         heads_pred_np = heads_pred_sentence[
-            :, subwords_start_with_root == 1
-        ][subwords_start_with_root == 1]
-        # TODO: why?
+            :,subwords_start_with_root
+        ][subwords_start_with_root]
+        # Chu-Liu/Edmonds implementation requires numpy array, which can only be created in CPU memory
         heads_pred_np = heads_pred_np.cpu().numpy()
 
         forced_relations: List[Tuple] = []
@@ -135,27 +132,26 @@ class Predict(CMD):
                 idx_converter_sentence=raw_sentence_preds.idx_converter,
                 device=device,)
 
-            # TODO: would it not be better if this were a boolean vector to begin with?
-            is_word_start = raw_sentence_preds.subwords_start == 1
-
+            # predictions for tokens that begin words are used as the predictions for the words
+            mask = raw_sentence_preds.subwords_start
             deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[
-                is_word_start
+                mask
             ].tolist()
 
             uposs_pred_list = raw_sentence_preds.uposs.max(dim=1).indices[
-                is_word_start
+                mask
             ].tolist()
 
             xposs_pred_list = raw_sentence_preds.xposs.max(dim=1).indices[
-                is_word_start
+                mask
             ].tolist()
 
             feats_pred_list = raw_sentence_preds.feats.max(dim=1).indices[
-                is_word_start
+                mask
             ].tolist()
 
             lemma_scripts_pred_list = raw_sentence_preds.lemma_scripts.max(dim=1).indices[
-                is_word_start
+                mask
             ].tolist()
 
             yield pred_dataset.construct_sentence_prediction(

@@ -45,7 +45,7 @@ def test_predict_output():
     assert dataset[0].idx == 0
     assert dataset[0].sequence_token_ids == [101, 2054, 2003, 1996, 5700, 3462, 2013, 3731, 2000, 1038, 9148, 2008, 4240, 1037,
                                      19782, 102]
-    assert dataset[0].subwords_start == [-1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1]
+    assert dataset[0].subwords_start == [False, True, True, True, True, True, True, True, True, True, False, True, True, True, True]
     assert dataset[0].idx_converter == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14]
     assert dataset[0].tokens_len == [1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1]
 
