@@ -46,6 +46,6 @@ class PosAndDeprelParserHead(Module):
             lemma_scripts=lemma_scripts,
             deprels=deprels,
             heads=heads,
-            subwords_start=batch.subwords_start,
+            tok_starts_word=batch.tok_starts_word,
             idx_converter=batch.idx_converter
         )

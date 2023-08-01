@@ -264,17 +264,18 @@ class BertForDeprel(Module):
 
         return results
 
-    def chuliu_heads_pred(self, batch, model_output) -> torch.Tensor:
+    def chuliu_heads_pred(self, batch: SequenceTrainingBatch_T, model_output) -> torch.Tensor:
         chuliu_heads_pred = batch.heads.clone()
-        for i_sentence, (heads_pred_sentence, subwords_start_sentence, idx_converter_sentence) in enumerate(zip(model_output.heads, batch.subwords_start, batch.idx_converter)):
-            # clone so that we can edit in-place below
-            subwords_start_with_root = subwords_start_sentence.clone()
-            # Chu-Liu/Edmonds needs a dummy root node, so we use the CLS token slot for it.
-            subwords_start_with_root[0] = True
+        for i_sentence, (heads_pred_sentence, tok_starts_word_sentence, idx_converter_sentence) in enumerate(zip(model_output.heads, batch.tok_starts_word, batch.idx_converter)):
+
+            # clone and set the value for the leading CLS token to True so that Chu-Liu/Edmonds
+            # has the dummy root node it requires.
+            tok_starts_word_or_is_root = tok_starts_word_sentence.clone()
+            tok_starts_word_or_is_root[0] = True
             # Get the head scores for each word predicted
             heads_pred_np = heads_pred_sentence[
-                :,subwords_start_with_root
-            ][subwords_start_with_root]
+                :,tok_starts_word_or_is_root
+            ][tok_starts_word_or_is_root]
             # Chu-Liu/Edmonds implementation requires numpy array, which can only be created in CPU memory
             heads_pred_np = heads_pred_np.cpu().numpy()
 

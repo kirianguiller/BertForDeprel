@@ -31,7 +31,7 @@ class SequencePrediction_T:
     by BERT models. Size is (T)."""
     sequence_token_ids: List[int]
     """True if sequence token begins a new word, 0 otherwise. Size is (T)."""
-    subwords_start: List[bool]
+    tok_starts_word: List[bool]
 
     """Maps word index + 1 to the index in the sequence_token_ids where the word begins. Size is (W)."""
     idx_converter: List[int]
@@ -72,7 +72,7 @@ class SequencePredictionBatch_T:
     # Size is (B, T). See https://huggingface.co/docs/transformers/glossary#attention-mask.
     attn_masks: Tensor
 
-    subwords_start: Tensor
+    tok_starts_word: Tensor
     idx_converter: Tensor
 
     # The maximum length of any sequence in the batch, determining the size of the tensors representing sequences
@@ -83,16 +83,16 @@ class SequencePredictionBatch_T:
         """Returns a new training batch with the tensors sent to the specified device. For use
         during model training or prediction (is_eval=False) or evaluation (is_eval=True)."""
         if is_eval:
-            subwords_start = self.subwords_start.to(device)
+            tok_starts_word = self.tok_starts_word.to(device)
             idx_converter = self.idx_converter.to(device)
         else:
-            subwords_start = self.subwords_start
+            tok_starts_word = self.tok_starts_word
             idx_converter = self.idx_converter
         return SequencePredictionBatch_T(
             idx=self.idx,
             sequence_token_ids=self.sequence_token_ids.to(device),
             attn_masks=self.attn_masks.to(device),
-            subwords_start=subwords_start,
+            tok_starts_word=tok_starts_word,
             idx_converter=idx_converter,
             max_sentence_length=self.max_sentence_length
         )
@@ -209,6 +209,7 @@ class ConlluDataset(Dataset):
     def __len__(self):
         return len(self.sequences)
 
+    # TODO: specify return type. Will require generifying class.
     def __getitem__(self, idx):
         return self.sequences[idx]
 
@@ -235,7 +236,7 @@ class ConlluDataset(Dataset):
 
     def _get_input(self, sequence: sentenceJson_T, idx: int) -> SequencePrediction_T:
         sequence_ids = [self.CLS_token_id]
-        subwords_start = [False]
+        tok_starts_word = [False]
 
         idx_converter = [0]
         tokens_len = [1]
@@ -253,16 +254,15 @@ class ConlluDataset(Dataset):
             idx_converter.append(len(sequence_ids))
             tokens_len.append(len(token_ids))
 
-            subword_start = [True] + [False] * (len(token_ids) - 1)
             sequence_ids += token_ids
-            subwords_start += subword_start
+            tok_starts_word += [True] + [False] * (len(token_ids) - 1)
 
         sequence_ids = sequence_ids + [self.SEP_token_id]
         return SequencePrediction_T(
             idx=idx,
             sentence_json=sequence,
             sequence_token_ids=sequence_ids,
-            subwords_start=subwords_start,
+            tok_starts_word=tok_starts_word,
             idx_converter=idx_converter,
             tokens_len=tokens_len,
         )
@@ -330,7 +330,7 @@ class ConlluDataset(Dataset):
         # Add padding values so that the entire batch has the same length, then collect the
         # field tensors for all sequences into a single tensor for each field.
         max_sentence_length  = max([len(sentence.sequence_token_ids) for sentence in sentences])
-        subwords_start_batch = tensor([self._pad_list(sentence.subwords_start, False, max_sentence_length) for sentence in sentences])
+        tok_starts_word_batch = tensor([self._pad_list(sentence.tok_starts_word, False, max_sentence_length) for sentence in sentences])
         idx_converter_batch  = tensor([self._pad_list(sentence.idx_converter, DUMMY_ID, max_sentence_length) for sentence in sentences])
         idx_batch            = tensor([sentence.idx for sentence in sentences])
         # The docs say to pad with the PAD token and just mask those, but for some reason we get better performance when
@@ -341,7 +341,7 @@ class ConlluDataset(Dataset):
         return SequencePredictionBatch_T(
             idx=idx_batch,
             sequence_token_ids=seq_ids_batch,
-            subwords_start=subwords_start_batch,
+            tok_starts_word=tok_starts_word_batch,
             attn_masks=attn_masks,
             idx_converter=idx_converter_batch,
             max_sentence_length=max_sentence_length,

@@ -68,19 +68,19 @@ class Predict(CMD):
     # TODO Next: explain this as much as possible
     # Then: combine this and the model eval chuliu_heads_pred method; it's the
     # same except for the constraint logic
-    def __get_constrained_dependencies(self, heads_pred_sentence, deprels_pred, subwords_start, keep_heads: CopyOption, pred_dataset: ConlluDataset, n_sentence: int, idx_converter_sentence: Tensor, device: str):
+    def __get_constrained_dependencies(self, heads_pred_sentence, deprels_pred, tok_starts_word, keep_heads: CopyOption, pred_dataset: ConlluDataset, n_sentence: int, idx_converter_sentence: Tensor, device: str):
         head_true_like = heads_pred_sentence.max(dim=0).indices
         chuliu_heads_pred = head_true_like.clone().cpu().numpy()
         chuliu_heads_list: List[int] = []
 
-        # clone so that we can edit in-place below
-        subwords_start_with_root = subwords_start.clone()
-        # Chu-Liu/Edmonds needs a dummy root node, so we use the CLS token slot for it.
-        subwords_start_with_root[0] = True
+        # clone and set the value for the leading CLS token to True so that Chu-Liu/Edmonds
+        # has the dummy root node it requires.
+        tok_starts_word_or_is_root = tok_starts_word.clone()
+        tok_starts_word_or_is_root[0] = True
         # Get the head scores for each word predicted
         heads_pred_np = heads_pred_sentence[
-            :,subwords_start_with_root
-        ][subwords_start_with_root]
+            :,tok_starts_word_or_is_root
+        ][tok_starts_word_or_is_root]
         # Chu-Liu/Edmonds implementation requires numpy array, which can only be created in CPU memory
         heads_pred_np = heads_pred_np.cpu().numpy()
 
@@ -125,7 +125,7 @@ class Predict(CMD):
             (chuliu_heads_list, deprels_pred_chuliu) = self.__get_constrained_dependencies(
                 heads_pred_sentence=raw_sentence_preds.heads,
                 deprels_pred=raw_sentence_preds.deprels,
-                subwords_start=raw_sentence_preds.subwords_start,
+                tok_starts_word=raw_sentence_preds.tok_starts_word,
                 pred_dataset=pred_dataset,
                 keep_heads=partial_pred_config.keep_heads,
                 n_sentence=n_sentence,
@@ -133,7 +133,7 @@ class Predict(CMD):
                 device=device,)
 
             # predictions for tokens that begin words are used as the predictions for the words
-            mask = raw_sentence_preds.subwords_start
+            mask = raw_sentence_preds.tok_starts_word
             deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[
                 mask
             ].tolist()

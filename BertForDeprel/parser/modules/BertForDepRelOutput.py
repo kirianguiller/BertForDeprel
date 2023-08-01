@@ -13,8 +13,8 @@ class BertForDeprelSentenceOutput:
     deprels: torch.Tensor
     heads: torch.Tensor
 
-    # 1 if sequence token begins a new word, 0 otherwise. Size is (B, T).
-    subwords_start: torch.Tensor
+    # True if sequence token begins a new word, False otherwise. Size is (B, T).
+    tok_starts_word: torch.Tensor
     # Maps word index + 1 to the index in the sequence_token_ids where the word begins. Size is (W).
     idx_converter: torch.Tensor
 
@@ -29,8 +29,8 @@ class BertForDeprelBatchOutput:
     deprels: torch.Tensor
     heads: torch.Tensor
 
-    # 1 if sequence token begins a new word, 0 otherwise. Size is (B, T).
-    subwords_start: torch.Tensor
+    # True if sequence token begins a new word, False otherwise. Size is (B, T).
+    tok_starts_word: torch.Tensor
     # Maps word index + 1 to the index in the sequence_token_ids where the word begins. Size is (B, W).
     idx_converter: torch.Tensor
 
@@ -44,7 +44,7 @@ class BertForDeprelBatchOutput:
             lemma_scripts=self.lemma_scripts.detach(),
             deprels=self.deprels.detach(),
             heads=self.heads.detach(),
-            subwords_start=self.subwords_start,
+            tok_starts_word=self.tok_starts_word,
             idx_converter=self.idx_converter
         )
 
@@ -57,6 +57,6 @@ class BertForDeprelBatchOutput:
             xposs=self.xposs[sentence_idx].clone(),
             feats= self.feats[sentence_idx].clone(),
             lemma_scripts=self.lemma_scripts[sentence_idx].clone(),
-            subwords_start = self.subwords_start[sentence_idx],
+            tok_starts_word = self.tok_starts_word[sentence_idx],
             idx_converter = self.idx_converter[sentence_idx]
         )
