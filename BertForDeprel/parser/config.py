@@ -1,20 +1,23 @@
 # -*- coding: utf-8 -*-
 
+from argparse import Namespace
 from ast import literal_eval
 from configparser import ConfigParser
-from argparse import Namespace
 
 
 class Config(ConfigParser):
-
     def __init__(self, path):
         super().__init__()
 
         self.read(path)
         self.namespace = Namespace()
-        self.update(dict((name, literal_eval(value))
-                         for section in self.sections()
-                         for name, value in self.items(section)))
+        self.update(
+            dict(
+                (name, literal_eval(value))
+                for section in self.sections()
+                for name, value in self.items(section)
+            )
+        )
 
     def __repr__(self):
         s = line = "-" * 15 + "-+-" + "-" * 25 + "\n"

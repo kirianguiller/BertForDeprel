@@ -1,22 +1,28 @@
-from argparse import ArgumentParser
 import os
-from typing import List, Tuple
-from conllup.conllup import writeConlluFile, sentenceJson_T
+from argparse import ArgumentParser
+from parser.modules.BertForDepRelOutput import BertForDeprelBatchOutput
 from timeit import default_timer as timer
+from typing import List, Tuple
 
 import numpy as np
 import torch
-from scipy.sparse.csgraph import minimum_spanning_tree # type: ignore (TODO: why can't PyLance find this?)
+from conllup.conllup import sentenceJson_T, writeConlluFile
+from scipy.sparse.csgraph import (  # type: ignore (TODO: why can't PyLance find this?)
+    minimum_spanning_tree,
+)
 from torch import Tensor, nn
 from torch.utils.data import DataLoader
 
-
-from parser.modules.BertForDepRelOutput import BertForDeprelBatchOutput
 from ..cmds.cmd import CMD, SubparsersType
+from ..modules.BertForDepRel import BertForDeprel
 from ..utils.annotation_schema_utils import resolve_conllu_paths
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
-from ..utils.load_data_utils import ConlluDataset, CopyOption, PartialPredictionConfig, SequencePredictionBatch_T
-from ..modules.BertForDepRel import BertForDeprel
+from ..utils.load_data_utils import (
+    ConlluDataset,
+    CopyOption,
+    PartialPredictionConfig,
+    SequencePredictionBatch_T,
+)
 from ..utils.scores_and_losses_utils import _deprel_pred_for_heads
 from ..utils.types import ModelParams_T
 
@@ -32,11 +38,20 @@ class Predict(CMD):
         subparser = parser.add_parser(
             name, help="Use a trained model to make predictions."
         )
-        subparser.add_argument("--inpath", '-i', required=True, help="path to inpath (can be a folder)")
-        subparser.add_argument("--outpath", '-o',help="path to predicted outpath(s)")
-        subparser.add_argument("--suffix", default="", help="suffix that will be added to the name of the predicted files (before the file extension)")
         subparser.add_argument(
-            "--overwrite", action="store_true", help="whether to overwrite predicted file if already existing"
+            "--inpath", "-i", required=True, help="path to inpath (can be a folder)"
+        )
+        subparser.add_argument("--outpath", "-o", help="path to predicted outpath(s)")
+        subparser.add_argument(
+            "--suffix",
+            default="",
+            help="suffix that will be added to the name of the predicted files (before"
+            " the file extension)",
+        )
+        subparser.add_argument(
+            "--overwrite",
+            action="store_true",
+            help="whether to overwrite predicted file if already existing",
         )
         subparser.add_argument(
             "--write_preds_in_misc",
@@ -44,23 +59,40 @@ class Predict(CMD):
             help="whether to include punctuation",
         )
         subparser.add_argument(
-            "--keep_heads", default="NONE",
-            help="whether to use deps of input files as constrained for maximum spanning tree (NONE | EXISTING | ALL) (default : NONE)",
+            "--keep_heads",
+            default="NONE",
+            help="whether to use deps of input files as constrained for maximum "
+            "spanning tree (NONE | EXISTING | ALL) (default : NONE)",
         )
         subparser.add_argument(
-            "--keep_deprels", default="NONE", help="whether to keep current deprels and not predict new ones (NONE | EXISTING | ALL) (default : NONE)"
+            "--keep_deprels",
+            default="NONE",
+            help="whether to keep current deprels and not predict new ones (NONE | "
+            "EXISTING | ALL) (default : NONE)",
         )
         subparser.add_argument(
-            "--keep_upos", default="NONE", help="whether to keep current upos and not predict new ones (NONE | EXISTING | ALL) (default : NONE)"
+            "--keep_upos",
+            default="NONE",
+            help="whether to keep current upos and not predict new ones (NONE | "
+            "EXISTING | ALL) (default : NONE)",
         )
         subparser.add_argument(
-            "--keep_xpos", default="NONE", help="whether to keep current xpos and not predict new ones (NONE | EXISTING | ALL) (default : NONE)"
+            "--keep_xpos",
+            default="NONE",
+            help="whether to keep current xpos and not predict new ones (NONE | "
+            "EXISTING | ALL) (default : NONE)",
         )
         subparser.add_argument(
-            "--keep_feats", default="NONE", help="whether to keep current feats and not predict new ones (NONE | EXISTING | ALL) (default : NONE)"
+            "--keep_feats",
+            default="NONE",
+            help="whether to keep current feats and not predict new ones (NONE | "
+            "EXISTING | ALL) (default : NONE)",
         )
         subparser.add_argument(
-            "--keep_lemmas", default="NONE", help="whether to keep current lemmas and not predict new ones (NONE | EXISTING | ALL) (default : NONE)"
+            "--keep_lemmas",
+            default="NONE",
+            help="whether to keep current lemmas and not predict new ones (NONE | "
+            "EXISTING | ALL) (default : NONE)",
         )
 
         return subparser
@@ -68,28 +100,41 @@ class Predict(CMD):
     # TODO Next: explain this as much as possible
     # Then: combine this and the model eval chuliu_heads_pred method; it's the
     # same except for the constraint logic
-    def __get_constrained_dependencies(self, heads_pred_sentence, deprels_pred, tok_starts_word, keep_heads: CopyOption, pred_dataset: ConlluDataset, n_sentence: int, idx_converter_sentence: Tensor, device: str):
+    def __get_constrained_dependencies(
+        self,
+        heads_pred_sentence,
+        deprels_pred,
+        tok_starts_word,
+        keep_heads: CopyOption,
+        pred_dataset: ConlluDataset,
+        n_sentence: int,
+        idx_converter_sentence: Tensor,
+        device: str,
+    ):
         head_true_like = heads_pred_sentence.max(dim=0).indices
         chuliu_heads_pred = head_true_like.clone().cpu().numpy()
         chuliu_heads_list: List[int] = []
 
-        # clone and set the value for the leading CLS token to True so that Chu-Liu/Edmonds
-        # has the dummy root node it requires.
+        # clone and set the value for the leading CLS token to True so that
+        # Chu-Liu/Edmonds has the dummy root node it requires.
         tok_starts_word_or_is_root = tok_starts_word.clone()
         tok_starts_word_or_is_root[0] = True
         # Get the head scores for each word predicted
-        heads_pred_np = heads_pred_sentence[
-            :,tok_starts_word_or_is_root
-        ][tok_starts_word_or_is_root]
-        # Chu-Liu/Edmonds implementation requires numpy array, which can only be created in CPU memory
+        heads_pred_np = heads_pred_sentence[:, tok_starts_word_or_is_root][
+            tok_starts_word_or_is_root
+        ]
+        # Chu-Liu/Edmonds implementation requires numpy array, which can only be
+        # created in CPU memory
         heads_pred_np = heads_pred_np.cpu().numpy()
 
         forced_relations: List[Tuple] = []
         if keep_heads == "EXISTING":
-            forced_relations = pred_dataset.get_constrained_dependency_for_chuliu(n_sentence)
+            forced_relations = pred_dataset.get_constrained_dependency_for_chuliu(
+                n_sentence
+            )
 
-        # TODO: why transpose? C-L/E wants (dep, head), which is what we have. Unless the
-        # constraint logic above is wrong, which is possible...
+        # TODO: why transpose? C-L/E wants (dep, head), which is what we have. Unless
+        # the constraint logic above is wrong, which is possible...
         chuliu_heads_vector = chuliu_edmonds_one_root_with_constraints(
             np.transpose(heads_pred_np, (1, 0)), forced_relations
         )
@@ -103,8 +148,8 @@ class Predict(CMD):
 
         # Move to same device for Tensor operations in _deprel_pred_for_heads
         chuliu_heads_pred = torch.tensor(chuliu_heads_pred).to(deprels_pred.device)
-        # _depred_pred_for_heads expects a batch dimension, so add a dummy one to the inputs
-        # and then remove it from the output
+        # _depred_pred_for_heads expects a batch dimension, so add a dummy one to the
+        # inputs and then remove it from the output
         deprels_pred_chuliu = _deprel_pred_for_heads(
             deprels_pred.unsqueeze(0), chuliu_heads_pred.unsqueeze(0)
         ).squeeze(0)
@@ -112,20 +157,31 @@ class Predict(CMD):
         # TODO: what are these return values?
         return chuliu_heads_list, deprels_pred_chuliu
 
-    def __prediction_iterator(self, batch: SequencePredictionBatch_T, preds: BertForDeprelBatchOutput, pred_dataset: ConlluDataset, partial_pred_config: PartialPredictionConfig, device: str):
+    def __prediction_iterator(
+        self,
+        batch: SequencePredictionBatch_T,
+        preds: BertForDeprelBatchOutput,
+        pred_dataset: ConlluDataset,
+        partial_pred_config: PartialPredictionConfig,
+        device: str,
+    ):
         idx_batch = batch.idx
 
         for i_sentence in range(batch.sequence_token_ids.size()[0]):
             raw_sentence_preds = preds.distributions_for_sentence(i_sentence)
 
             # TODO Next: encapsulate below in the output classes;
-            # these will then be containers for the raw model outputs, with methods for constructing the final predictions.
-            # the overwrite logic should be done in a separate step, I think.
-            # Start by encapsulating the n_sentence and pred_dataset stuff into the output classes.
+            # these will then be containers for the raw model outputs, with methods for
+            # constructing the final predictions. The overwrite logic should be done
+            # in a separate step, I think. Start by encapsulating the n_sentence and
+            # pred_dataset stuff into the output classes.
             sentence_idx = idx_batch[i_sentence]
             n_sentence = int(sentence_idx)
 
-            (chuliu_heads_list, deprels_pred_chuliu) = self.__get_constrained_dependencies(
+            (
+                chuliu_heads_list,
+                deprels_pred_chuliu,
+            ) = self.__get_constrained_dependencies(
                 heads_pred_sentence=raw_sentence_preds.heads,
                 deprels_pred=raw_sentence_preds.deprels,
                 tok_starts_word=raw_sentence_preds.tok_starts_word,
@@ -133,44 +189,42 @@ class Predict(CMD):
                 keep_heads=partial_pred_config.keep_heads,
                 n_sentence=n_sentence,
                 idx_converter_sentence=raw_sentence_preds.idx_converter,
-                device=device,)
+                device=device,
+            )
 
-            # predictions for tokens that begin words are used as the predictions for the words
+            # predictions for tokens that begin words are used as the predictions for
+            # the words
             mask = raw_sentence_preds.tok_starts_word
-            deprels_pred_chuliu_list = deprels_pred_chuliu.max(dim=0).indices[
-                mask
-            ].tolist()
+            deprels_pred_chuliu_list = (
+                deprels_pred_chuliu.max(dim=0).indices[mask].tolist()
+            )
 
-            uposs_pred_list = raw_sentence_preds.uposs.max(dim=1).indices[
-                mask
-            ].tolist()
+            uposs_pred_list = raw_sentence_preds.uposs.max(dim=1).indices[mask].tolist()
 
-            xposs_pred_list = raw_sentence_preds.xposs.max(dim=1).indices[
-                mask
-            ].tolist()
+            xposs_pred_list = raw_sentence_preds.xposs.max(dim=1).indices[mask].tolist()
 
-            feats_pred_list = raw_sentence_preds.feats.max(dim=1).indices[
-                mask
-            ].tolist()
+            feats_pred_list = raw_sentence_preds.feats.max(dim=1).indices[mask].tolist()
 
-            lemma_scripts_pred_list = raw_sentence_preds.lemma_scripts.max(dim=1).indices[
-                mask
-            ].tolist()
+            lemma_scripts_pred_list = (
+                raw_sentence_preds.lemma_scripts.max(dim=1).indices[mask].tolist()
+            )
 
             yield pred_dataset.construct_sentence_prediction(
-                            n_sentence,
-                            uposs_pred_list,
-                            xposs_pred_list,
-                            chuliu_heads_list,
-                            deprels_pred_chuliu_list,
-                            feats_pred_list,
-                            lemma_scripts_pred_list,
-                            partial_pred_config=partial_pred_config
-                        )
+                n_sentence,
+                uposs_pred_list,
+                xposs_pred_list,
+                chuliu_heads_list,
+                deprels_pred_chuliu_list,
+                feats_pred_list,
+                lemma_scripts_pred_list,
+                partial_pred_config=partial_pred_config,
+            )
 
     def __call__(self, args, model_params: ModelParams_T):
         super().__call__(args, model_params)
-        in_to_out_paths, partial_pred_config, data_loader_params = self.__validate_args(args, model_params)
+        in_to_out_paths, partial_pred_config, data_loader_params = self.__validate_args(
+            args, model_params
+        )
         model = self.__load_model(args, model_params)
 
         print("Starting Predictions ...")
@@ -178,9 +232,15 @@ class Predict(CMD):
             print(f"Loading dataset from {in_path}...")
             pred_dataset = ConlluDataset(in_path, model_params, "predict")
 
-            pred_loader = DataLoader(pred_dataset, collate_fn=pred_dataset.collate_fn_predict, shuffle=False, **data_loader_params)
+            pred_loader = DataLoader(
+                pred_dataset,
+                collate_fn=pred_dataset.collate_fn_predict,
+                shuffle=False,
+                **data_loader_params,
+            )
             print(
-                f"Loaded {len(pred_dataset):5} sentences, ({len(pred_loader):3} batches)"
+                f"Loaded {len(pred_dataset):5} sentences, "
+                f"({len(pred_loader):3} batches)"
             )
             start = timer()
             predicted_sentences: List[sentenceJson_T] = []
@@ -193,20 +253,34 @@ class Predict(CMD):
 
                     time_from_start = 0
                     parsing_speed = 0
-                    for predicted_sentence in self.__prediction_iterator(batch, preds, pred_dataset, partial_pred_config, args.device):
+                    for predicted_sentence in self.__prediction_iterator(
+                        batch, preds, pred_dataset, partial_pred_config, args.device
+                    ):
                         predicted_sentences.append(predicted_sentence)
 
                         parsed_sentence_counter += 1
                         time_from_start = timer() - start
-                        parsing_speed = int(round(((parsed_sentence_counter + 1) / time_from_start) / 100, 2) * 100)
+                        parsing_speed = int(
+                            round(
+                                ((parsed_sentence_counter + 1) / time_from_start) / 100,
+                                2,
+                            )
+                            * 100
+                        )
 
-                    print(f"Predicting: {100 * (parsed_sentence_counter + 1) / len(pred_dataset):.2f}% "
-                          f"complete. {time_from_start:.2f} seconds in file "
-                          f"({parsing_speed} sents/sec).")
+                    print(
+                        "Predicting: "
+                        f"{100 * (parsed_sentence_counter + 1)/len(pred_dataset):.2f}%"
+                        f" complete. {time_from_start:.2f} seconds in file "
+                        f"({parsing_speed} sents/sec)."
+                    )
 
             writeConlluFile(out_path, predicted_sentences, overwrite=args.overwrite)
 
-            print(f"Finished predicting `{out_path}, wrote {parsed_sentence_counter} sents in {round(timer() - start, 2)} secs`")
+            print(
+                f"Finished predicting `{out_path}, wrote {parsed_sentence_counter} "
+                f"sents in {round(timer() - start, 2)} secs`"
+            )
 
     def __load_model(self, args, model_params):
         print("Loading model...")
@@ -221,7 +295,9 @@ class Predict(CMD):
 
     def __validate_args(self, args, model_params: ModelParams_T):
         if not args.conf:
-            raise Exception("Path to model xxx.config.json must be provided as --conf parameter")
+            raise Exception(
+                "Path to model xxx.config.json must be provided as --conf parameter"
+            )
 
         output_dir = args.outpath
         if not os.path.isdir(output_dir):
@@ -233,15 +309,23 @@ class Predict(CMD):
         elif os.path.isfile(args.inpath):
             unvalidated_input_paths.append(args.inpath)
         else:
-            raise BaseException(f"args.inpath must be a folder or a file; was {args.inpath}")
+            raise BaseException(
+                f"args.inpath must be a folder or a file; was {args.inpath}"
+            )
 
         in_to_out_paths = {}
         for input_path in unvalidated_input_paths:
-            output_path = os.path.join(output_dir, input_path.split("/")[-1].replace(".conll", args.suffix + ".conll"))
+            output_path = os.path.join(
+                output_dir,
+                input_path.split("/")[-1].replace(".conll", args.suffix + ".conll"),
+            )
 
-            if args.overwrite != True:
+            if not args.overwrite:
                 if os.path.isfile(output_path):
-                    print(f"file '{output_path}' already exists and overwrite!=False, skipping ...")
+                    print(
+                        f"file '{output_path}' already exists and overwrite!=False, "
+                        "skipping ..."
+                    )
                     continue
             in_to_out_paths[input_path] = output_path
 
@@ -251,8 +335,8 @@ class Predict(CMD):
             keep_feats=args.keep_feats,
             keep_deprels=args.keep_deprels,
             keep_heads=args.keep_heads,
-            keep_lemmas=args.keep_lemmas
-            )
+            keep_lemmas=args.keep_lemmas,
+        )
 
         data_loader_params = {
             "batch_size": model_params.batch_size,
