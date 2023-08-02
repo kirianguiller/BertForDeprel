@@ -1,2 +1,63 @@
+[tool.poetry]
+name = "BertForDeprel"
+version = "0.0.1"
+description = "Universal Dependencies Pipeline"
+authors = ["Kirian Guiller <kiriangui@gmail.com>"]
+repository = "https://github.com/kirianguiller/BertForDeprel.git"
+license = "GPL-3.0-or-later"
+keywords = [
+    "Universal Dependencies", "PyTorch", "BERT", "Dependency Parsing", "Natural Language Processing"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+huggingface-hub = "^0.16.4"
+numpy = "^1.25.2"
+conllup = "0.4.1"
+adapter-transformers = "^3.2.0"
+torch = "^2.0.1"
+
+[tool.poetry.dev-dependencies]
+black = "^23.7.0"
+flake8 = "^6.1.0"
+isort = "^5.12.0"
+poethepoet = "^0.21.1"
+pre-commit = "^3.3.3"
+pyright = "^1.1.318"
+pytest = "^7.2.2"
+pytest-cov = "^4.1.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.isort]
+profile = "black"
+
 [tool.pyright]
 typeCheckingMode = "basic"
+
+[tool.coverage.run]
+source = ["BertForDeprel"]
+
+[tool.coverage.report]
+# TODO: require certain level of test coverage
+# fail_under = 100
+exclude_lines = [
+    # Have to re-enable the standard pragma
+    "pragma: no cover",
+
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self.debug",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:"
+]
+
+[tool.poe.tasks.verify]
+cmd  = "pre-commit run --all-files"
+help = "Run all lints and tests"
