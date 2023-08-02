@@ -1,7 +1,7 @@
 from torch import Tensor
 
 from ..utils.load_data_utils import SequencePredictionBatch_T
-from .BiAffineTrankit import FixedClassDeepBiAffineClassifier
+from .FixedClassDeepBiAffineClassifier import FixedClassDeepBiAffineClassifier
 from .BertForDepRelOutput import BertForDeprelBatchOutput
 
 
