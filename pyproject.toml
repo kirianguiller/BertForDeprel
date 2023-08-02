@@ -6,7 +6,12 @@ authors = ["Kirian Guiller <kiriangui@gmail.com>"]
 repository = "https://github.com/kirianguiller/BertForDeprel.git"
 license = "GPL-3.0-or-later"
 keywords = [
-    "Universal Dependencies", "PyTorch", "BERT", "Dependency Parsing", "Natural Language Processing"]
+    "Universal Dependencies",
+    "PyTorch",
+    "BERT",
+    "Dependency Parsing",
+    "Natural Language Processing",
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -25,6 +30,10 @@ pre-commit = "^3.3.3"
 pyright = "^1.1.318"
 pytest = "^7.2.2"
 pytest-cov = "^4.1.0"
+
+[build-system]
+requires = ["poetry"]
+build-backend = "poetry.masonry.api"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -55,9 +64,9 @@ exclude_lines = [
 
     # Don't complain if non-runnable code isn't run:
     "if 0:",
-    "if __name__ == .__main__.:"
+    "if __name__ == .__main__.:",
 ]
 
 [tool.poe.tasks.verify]
-cmd  = "pre-commit run --all-files"
+cmd = "pre-commit run --all-files"
 help = "Run all lints and tests"
