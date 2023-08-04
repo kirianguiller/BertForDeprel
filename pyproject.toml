@@ -14,7 +14,7 @@ keywords = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 huggingface-hub = "^0.16.4"
 numpy = "^1.25.2"
 conllup = "0.4.1"
