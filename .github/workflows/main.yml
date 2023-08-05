@@ -24,3 +24,5 @@ jobs:
               run: poetry install
             - name: Run verifications
               uses: pre-commit/action@v2.0.3
+              env:
+                  PYTHONUTF8: 1
