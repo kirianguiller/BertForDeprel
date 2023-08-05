@@ -45,7 +45,7 @@ def test_deprel_pred_for_heads():
     # (24 below). It helps to work through the example by hand to see that this is
     # correct.
     actual = _deprel_pred_for_heads(deprel_scores_pred, heads_pred)
-    print(actual)
+    # print(actual)
     expected = torch.tensor(
         [
             [[1, 4, 9, 4, 20], [2, 8, 18, 8, 40]],

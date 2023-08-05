@@ -6,9 +6,11 @@ test/test_folder/models
 
 test/naija_pretrained_test/
 
+tests/data/models
+
 **.pyc
 .pytest_cache
-.coverage
+.coverage*
 
 **/__pycache__
 **/__pycache__/

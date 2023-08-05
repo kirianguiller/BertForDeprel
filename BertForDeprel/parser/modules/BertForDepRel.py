@@ -305,7 +305,9 @@ class BertForDeprel(Module):
                 )
         # My Mac runs out of shared memory without this. See
         # https://github.com/pytorch/pytorch/issues/13246#issuecomment-905703662
-        torch.mps.empty_cache()
+        # TODO: do this actually help?
+        if device == "mps":
+            torch.mps.empty_cache()
         print(
             f"Finished training epoch in {time_from_start:.2f} seconds ("
             f"{processed_sentence_counter} sentence at {parsing_speed} sents/sec)"

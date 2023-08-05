@@ -52,6 +52,9 @@ build-backend = "poetry.masonry.api"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# show all output
+addopts = ["-rPx"]
+markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
 
 [tool.isort]
 profile = "black"
@@ -63,8 +66,8 @@ typeCheckingMode = "basic"
 source = ["BertForDeprel"]
 
 [tool.coverage.report]
-# TODO: require certain level of test coverage
-# fail_under = 100
+# we get 76 on Mac, though. Why?
+fail_under = 73
 exclude_lines = [
     # Have to re-enable the standard pragma
     "pragma: no cover",

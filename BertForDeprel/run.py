@@ -78,6 +78,6 @@ if __name__ == "__main__":
 
     print("Override the default configs with parsed arguments")
 
-    print(f"Run the subcommand in mode {args.mode}")
+    print(f"Running subcommand '{args.mode}'")
     cmd = subcommands[args.mode]
     cmd(args, model_params)

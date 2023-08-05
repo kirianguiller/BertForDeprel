@@ -1,0 +1,1029 @@
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__68
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # { my broders |c and my sisters } wey dey hear my voice < # { anywhere wey una dey |c anyting wey una dey do } < # meh una put God //
+# text_en = Brothers and sisters, as you hear my voice, wherever you are, whatever you're doing, you should put God first.
+# text_ortho = My broders, and my sisters wey dey hear my voice, anywhere wey una dey, anyting wey una dey do, meh una put God.
+1	#	#	PUNCT	_	_	31	punct	_	AlignBegin=157348|AlignEnd=158286|Gloss=PUNCT
+2	{	{	PUNCT	_	_	4	punct	_	AlignBegin=158256|AlignEnd=158286|Gloss=PUNCT
+3	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	4	mod:poss	_	AlignBegin=158286|AlignEnd=158456|Gloss=SG.1.POSS
+4	broders	broder	NOUN	_	Number=Plur	31	dislocated	_	AlignBegin=158456|AlignEnd=158776|Gloss=brother.PL
+5	|c	|c	PUNCT	_	_	8	punct	_	AlignBegin=158776|AlignEnd=158806|Gloss=PUNCT
+6	and	and	CCONJ	_	_	8	cc	_	AlignBegin=158806|AlignEnd=158916|Gloss=and
+7	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	8	mod:poss	_	AlignBegin=158916|AlignEnd=159066|Gloss=SG.1.POSS
+8	sisters	sista	NOUN	_	Number=Plur	4	conj:coord	_	AlignBegin=159066|AlignEnd=159421|Gloss=sister.PL
+9	}	}	PUNCT	_	_	4	punct	_	AlignBegin=159421|AlignEnd=159451|Gloss=PUNCT
+10	wey	wey	SCONJ	_	_	8	mod@relcl	_	AlignBegin=159451|AlignEnd=159576|Gloss=REL
+11	dey	dey	AUX	_	Aspect=Imp	10	comp:obj	_	AlignBegin=159576|AlignEnd=159746|Gloss=IPFV
+12	hear	hear	VERB	_	_	11	comp:aux	_	AlignBegin=159746|AlignEnd=159886|Gloss=hear
+13	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	14	mod:poss	_	AlignBegin=159886|AlignEnd=160046|Gloss=SG.1.POSS
+14	voice	voice	NOUN	_	_	12	comp:obj	_	AlignBegin=160046|AlignEnd=160515|Gloss=voice
+15	<	<	PUNCT	_	_	10	punct	_	AlignBegin=160515|AlignEnd=160545|Gloss=PUNCT
+16	#	#	PUNCT	_	_	4	punct	_	AlignBegin=160545|AlignEnd=161245|Gloss=PUNCT
+17	{	{	PUNCT	_	_	18	punct	_	AlignBegin=161215|AlignEnd=161245|Gloss=PUNCT
+18	anywhere	anywhere	ADV	_	_	31	mod:periph	_	AlignBegin=161245|AlignEnd=161685|Gloss=anywhere
+19	wey	wey	SCONJ	_	_	18	mod@relcl	_	AlignBegin=161685|AlignEnd=161755|Gloss=REL
+20	una	una	PRON	_	Case=Nom|Number=Plur|Person=2|PronType=Prs	21	subj	_	AlignBegin=161755|AlignEnd=161943|Gloss=NOM.PL.2
+21	dey	dey	VERB	_	VerbType=Cop	19	comp:obj	_	AlignBegin=161943|AlignEnd=162355|Gloss=be
+22	|c	|c	PUNCT	_	_	23	punct	_	AlignBegin=162355|AlignEnd=162385|Gloss=PUNCT
+23	anyting	anyting	PRON	_	_	18	conj:dicto	_	AlignBegin=162385|AlignEnd=162805|Gloss=anything
+24	wey	wey	SCONJ	_	_	23	mod@relcl	_	AlignBegin=162805|AlignEnd=162925|Gloss=REL
+25	una	una	PRON	_	Case=Nom|Number=Plur|Person=2|PronType=Prs	26	subj	_	AlignBegin=162925|AlignEnd=163065|Gloss=NOM.PL.2
+26	dey	dey	AUX	_	Aspect=Imp	24	comp:obj	_	AlignBegin=163065|AlignEnd=163205|Gloss=IPFV
+27	do	do	VERB	_	_	26	comp:aux	_	AlignBegin=163205|AlignEnd=163510|Gloss=do
+28	}	}	PUNCT	_	_	18	punct	_	AlignBegin=163510|AlignEnd=163540|Gloss=PUNCT
+29	<	<	PUNCT	_	_	4	punct	_	AlignBegin=163510|AlignEnd=163540|Gloss=PUNCT
+30	#	#	PUNCT	_	_	4	punct	_	AlignBegin=163540|AlignEnd=164160|Gloss=PUNCT
+31	meh	make	AUX	_	Mood=Opt	0	root	_	AlignBegin=164160|AlignEnd=164250|Gloss=SBJV
+32	una	una	PRON	_	Case=Nom|Number=Plur|Person=2|PronType=Prs	33	subj	_	AlignBegin=164250|AlignEnd=164423|Gloss=NOM.PL.2
+33	put	put	VERB	_	_	31	comp:aux	_	AlignBegin=164423|AlignEnd=164770|Gloss=put
+34	God	God	PROPN	_	_	33	comp:obj	_	AlignBegin=164770|AlignEnd=165050|Gloss=God
+35	//	//	PUNCT	_	_	31	punct	_	AlignBegin=165050|AlignEnd=165080|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__69
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = meh God dey first o //
+# text_en = God should come first.
+# text_ortho = Meh God dey first o.
+1	meh	make	AUX	_	Mood=Opt	0	root	_	AlignBegin=165080|AlignEnd=165300|Gloss=SBJV
+2	God	God	PROPN	_	_	3	subj	_	AlignBegin=165300|AlignEnd=165530|Gloss=God
+3	dey	dey	VERB	_	VerbType=Cop	1	comp:aux	_	AlignBegin=165530|AlignEnd=165700|Gloss=be
+4	first	first	ADJ	_	NumType=Ord	3	comp:pred	_	AlignBegin=165700|AlignEnd=166050|Gloss=first.ORD
+5	o	o	PART	_	PartType=Disc	4	mod:emph	_	AlignBegin=166050|AlignEnd=166130|Gloss=EMPH
+6	//	//	PUNCT	_	_	1	punct	_	AlignBegin=166130|AlignEnd=166160|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__70
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = because God < # na im >+ dey first //
+# text_en = Because God, He comes first.
+# text_ortho = Because God, na im, dey first.
+1	because	because	SCONJ	_	_	5	cc	_	AlignBegin=166160|AlignEnd=166660|Gloss=because
+2	God	God	PROPN	_	_	5	dislocated	_	AlignBegin=166660|AlignEnd=167095|Gloss=God
+3	<	<	PUNCT	_	_	2	punct	_	AlignBegin=167095|AlignEnd=167125|Gloss=PUNCT
+4	#	#	PUNCT	_	_	2	punct	_	AlignBegin=167125|AlignEnd=167312|Gloss=PUNCT
+5	na	na	PART	_	PartType=Cop	0	root	_	AlignBegin=167312|AlignEnd=167409|EXTPOS=SCONJ|Gloss=be
+6	im	im	PRON	_	Case=Nom|Number=Sing|Person=3|PronType=Prs	5	comp:pred	_	AlignBegin=167409|AlignEnd=167530|Gloss=NOM.SG.3
+7	>+	>+	PUNCT	_	_	8	punct	_	AlignBegin=167530|AlignEnd=167560|Gloss=PUNCT
+8	dey	dey	VERB	_	VerbType=Cop	5	comp:cleft	_	AlignBegin=167560|AlignEnd=167690|Gloss=be
+9	first	first	ADJ	_	NumType=Ord	8	comp:pred	_	AlignBegin=167690|AlignEnd=168160|Gloss=first.ORD
+10	//	//	PUNCT	_	_	5	punct	_	AlignBegin=168160|AlignEnd=168190|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__71
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = [eng without God < # you are on your own # because if not < # if you do n't have God eng] < # you go suffer //
+# text_en = Without God, you're on your own, because if not, if you don't have God, you'll suffer.
+# text_ortho = Without God, you are on your own because if not, if you don't have God , you go suffer.
+1	[eng	[eng	PUNCT	_	_	7	punct	_	AlignBegin=168190|AlignEnd=168540|Gloss=PUNCT
+2	without	without	ADP	_	_	7	mod:periph	_	AlignBegin=168190|AlignEnd=168540|Gloss=without
+3	God	God	PROPN	_	_	2	comp:obj	_	AlignBegin=168540|AlignEnd=168989|Gloss=God
+4	<	<	PUNCT	_	_	2	punct	_	AlignBegin=168989|AlignEnd=169019|Gloss=PUNCT
+5	#	#	PUNCT	_	_	7	punct	_	AlignBegin=169019|AlignEnd=169501|Gloss=PUNCT
+6	you	you	PRON	_	Case=Nom|Person=2|PronType=Prs	7	subj	_	AlignBegin=169501|AlignEnd=169620|Gloss=NOM.2
+7	are	be	VERB	_	Mood=Ind|Tense=Pres|VerbForm=Fin|VerbType=Cop	0	root	_	AlignBegin=169620|AlignEnd=169738|Gloss=be.IND.PRS.FIN
+8	on	on	ADP	_	_	7	comp:pred	_	AlignBegin=169738|AlignEnd=169851|Gloss=on
+9	your	your	PRON	_	Number=Plur|Person=2|Poss=Yes	10	mod:poss	_	AlignBegin=169851|AlignEnd=170142|Gloss=PL.2.POSS
+10	own	own	ADJ	_	_	8	comp:obj	_	AlignBegin=170142|AlignEnd=170582|Gloss=own
+11	#	#	PUNCT	_	_	12	punct	_	AlignBegin=170582|AlignEnd=171186|Gloss=PUNCT
+12	because	because	SCONJ	_	_	7	mod	_	AlignBegin=171186|AlignEnd=171706|Gloss=because
+13	if	if	SCONJ	_	_	27	mod	_	AlignBegin=171706|AlignEnd=171876|Gloss=if
+14	not	not	PART	_	Polarity=Neg	13	comp:obj	_	AlignBegin=171876|AlignEnd=172245|Gloss=NEG
+15	<	<	PUNCT	_	_	13	punct	_	AlignBegin=172245|AlignEnd=172277|Gloss=PUNCT
+16	#	#	PUNCT	_	_	13	punct	_	AlignBegin=172277|AlignEnd=172544|Gloss=PUNCT
+17	if	if	SCONJ	_	_	27	mod	_	AlignBegin=172544|AlignEnd=172636|Gloss=if
+18	you	you	PRON	_	Case=Nom|Person=2|PronType=Prs	21	subj	_	AlignBegin=172636|AlignEnd=172706|Gloss=NOM.2
+19	do	do	AUX	_	Mood=Ind|Polarity=Neg|Tense=Pres|VerbForm=Fin	21	mod	_	AlignBegin=172706|AlignEnd=172846|Gloss=do.IND.NEG.PRS.FIN
+20	n't	not	PART	_	_	19	mod	_	Gloss=NEG
+21	have	have	VERB	_	_	17	comp:obj	_	AlignBegin=172846|AlignEnd=173176|Gloss=have
+22	God	God	PROPN	_	_	21	comp:obj	_	AlignBegin=173176|AlignEnd=173667|Gloss=God
+23	eng]	eng]	PUNCT	_	_	7	punct	_	AlignBegin=173667|AlignEnd=173698|Gloss=PUNCT
+24	<	<	PUNCT	_	_	17	punct	_	AlignBegin=173698|AlignEnd=174212|Gloss=PUNCT
+25	#	#	PUNCT	_	_	17	punct	_	AlignBegin=173698|AlignEnd=174212|Gloss=PUNCT
+26	you	you	PRON	_	Case=Nom|Person=2|PronType=Prs	27	subj	_	AlignBegin=174212|AlignEnd=174316|Gloss=NOM.2
+27	go	go	AUX	_	Aspect=Prosp	12	comp:obj	_	AlignBegin=174316|AlignEnd=174472|Gloss=PROSP
+28	suffer	suffer	VERB	_	_	27	comp:aux	_	AlignBegin=174472|AlignEnd=175315|Gloss=suffer
+29	//	//	PUNCT	_	_	7	punct	_	AlignBegin=175315|AlignEnd=175345|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__72
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # you go suffer //
+# text_en = You'll suffer.
+# text_ortho = You go suffer.
+1	#	#	PUNCT	_	_	3	punct	_	AlignBegin=175345|AlignEnd=176205|Gloss=PUNCT
+2	you	you	PRON	_	Case=Nom|Person=2|PronType=Prs	3	subj	_	AlignBegin=176205|AlignEnd=176365|Gloss=NOM.2
+3	go	go	AUX	_	Aspect=Prosp	0	root	_	AlignBegin=176365|AlignEnd=176565|Gloss=PROSP
+4	suffer	suffer	VERB	_	_	3	comp:aux	_	AlignBegin=176565|AlignEnd=177085|Gloss=suffer
+5	//	//	PUNCT	_	_	3	punct	_	AlignBegin=177085|AlignEnd=177115|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__73
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # and anyting you dey do again < # make sure you dey hardworking //
+# text_en = Also, whatever you do, make sure you work hard.
+# text_ortho = And anyting you dey do again, make sure you dey hardworking.
+1	#	#	PUNCT	_	_	10	punct	_	AlignBegin=177115|AlignEnd=177615|Gloss=PUNCT
+2	and	and	CCONJ	_	_	10	cc	_	AlignBegin=177615|AlignEnd=178042|Gloss=and
+3	anyting	anyting	PRON	_	_	10	dislocated	_	AlignBegin=178042|AlignEnd=178455|Gloss=anything
+4	you	you	PRON	_	Case=Nom|Person=2|PronType=Prs	5	subj	_	AlignBegin=178455|AlignEnd=178565|Gloss=NOM.2
+5	dey	dey	AUX	_	Aspect=Imp	3	mod@relcl	_	AlignBegin=178565|AlignEnd=178745|Gloss=IPFV
+6	do	do	VERB	_	_	5	comp:aux	_	AlignBegin=178745|AlignEnd=178979|Gloss=do
+7	again	again	ADV	_	_	6	mod	_	AlignBegin=178979|AlignEnd=179405|Gloss=again
+8	<	<	PUNCT	_	_	3	punct	_	AlignBegin=179405|AlignEnd=179435|Gloss=PUNCT
+9	#	#	PUNCT	_	_	3	punct	_	AlignBegin=179435|AlignEnd=180017|Gloss=PUNCT
+10	make	make	VERB	_	_	0	root	_	AlignBegin=180017|AlignEnd=180247|Gloss=make
+11	sure	sure	ADJ	_	_	10	comp:obj@lvc	_	AlignBegin=180247|AlignEnd=180580|Gloss=sure
+12	you	you	PRON	_	Case=Nom|Person=2|PronType=Prs	13	subj	_	AlignBegin=180580|AlignEnd=180695|Gloss=NOM.2
+13	dey	dey	VERB	_	VerbType=Cop	10	comp:obj	_	AlignBegin=180695|AlignEnd=180992|Gloss=be
+14	hardworking	hardworking	ADJ	_	_	13	comp:pred	_	AlignBegin=180992|AlignEnd=181932|Gloss=hardworking
+15	//	//	PUNCT	_	_	10	punct	_	AlignBegin=181932|AlignEnd=181962|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__74
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # if you dey hardworking < # hunger no go meet you //= hunger no go # near you //= # hunger no go come where you dey //
+# text_en = If you work hard, you will not go hungry, you won't know hunger.
+# text_ortho = If you dey hardworking, hunger no go meet you, hunger no go near you, hunger no go come where you dey.
+1	#	#	PUNCT	_	_	10	punct	_	AlignBegin=181962|AlignEnd=182620|Gloss=PUNCT
+2	if	if	SCONJ	_	_	10	mod:periph	_	AlignBegin=182620|AlignEnd=182820|Gloss=if
+3	you	you	PRON	_	Case=Nom|Person=2|PronType=Prs	4	subj	_	AlignBegin=182820|AlignEnd=182910|Gloss=NOM.2
+4	dey	dey	VERB	_	VerbType=Cop	2	comp:obj	_	AlignBegin=182910|AlignEnd=183055|Gloss=be
+5	hardworking	hardworking	ADJ	_	_	4	comp:pred	_	AlignBegin=183055|AlignEnd=183832|Gloss=hardworking
+6	<	<	PUNCT	_	_	2	punct	_	AlignBegin=183832|AlignEnd=183862|Gloss=PUNCT
+7	#	#	PUNCT	_	_	2	punct	_	AlignBegin=183862|AlignEnd=184202|Gloss=PUNCT
+8	hunger	hunger	NOUN	_	_	10	subj	_	AlignBegin=184202|AlignEnd=184550|Gloss=hunger
+9	no	no	PART	_	Polarity=Neg	10	mod	_	AlignBegin=184550|AlignEnd=184710|Gloss=NEG
+10	go	go	AUX	_	Aspect=Prosp	0	root	_	AlignBegin=184710|AlignEnd=184832|Gloss=PROSP
+11	meet	meet	VERB	_	_	10	comp:aux	_	AlignBegin=184832|AlignEnd=185133|Gloss=meet
+12	you	you	PRON	_	Case=Nom|Person=2|PronType=Prs	11	comp:obj	_	AlignBegin=185133|AlignEnd=185271|Gloss=NOM.2
+13	//=	//=	PUNCT	_	_	10	punct	_	AlignBegin=185271|AlignEnd=185301|Gloss=PUNCT
+14	hunger	hunger	NOUN	_	_	16	subj	_	AlignBegin=185301|AlignEnd=185632|Gloss=hunger
+15	no	no	PART	_	Polarity=Neg	16	mod	_	AlignBegin=185632|AlignEnd=185792|Gloss=NEG
+16	go	go	AUX	_	Aspect=Prosp	10	parataxis:conj	_	AlignBegin=185792|AlignEnd=186162|Gloss=PROSP
+17	#	#	PUNCT	_	_	18	punct	_	AlignBegin=186162|AlignEnd=186542|Gloss=PUNCT
+18	near	near	ADJ	_	_	16	comp:aux	_	AlignBegin=186542|AlignEnd=186954|Gloss=near
+19	you	you	PRON	_	Case=Nom|Person=2|PronType=Prs	18	comp:obj	_	AlignBegin=186954|AlignEnd=187172|Gloss=NOM.2
+20	//=	//=	PUNCT	_	_	16	punct	_	AlignBegin=187172|AlignEnd=187200|Gloss=PUNCT
+21	#	#	PUNCT	_	_	24	punct	_	AlignBegin=187200|AlignEnd=187794|Gloss=PUNCT
+22	hunger	hunger	NOUN	_	_	24	subj	_	AlignBegin=187794|AlignEnd=188113|Gloss=hunger
+23	no	no	PART	_	Polarity=Neg	24	mod	_	AlignBegin=188113|AlignEnd=188248|Gloss=NEG
+24	go	go	AUX	_	Aspect=Prosp	16	parataxis:conj	_	AlignBegin=188248|AlignEnd=188422|Gloss=PROSP
+25	come	come	VERB	_	_	24	comp:aux	_	AlignBegin=188422|AlignEnd=188682|Gloss=come
+26	where	where	ADV	_	PronType=Int	25	comp:obj	_	AlignBegin=188682|AlignEnd=188835|Gloss=where.Q
+27	you	you	PRON	_	Case=Nom|Person=2|PronType=Prs	28	subj	_	AlignBegin=188835|AlignEnd=188932|Gloss=NOM.2
+28	dey	dey	VERB	_	VerbType=Cop	26	mod@relcl	_	AlignBegin=188932|AlignEnd=189235|Gloss=be
+29	//	//	PUNCT	_	_	24	punct	_	AlignBegin=189235|AlignEnd=189265|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__75
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # ehn # wetin dey happen for me before < wetin don happen to me before wey I know sey [ kai < # I no fit forget am |c and in fact < { na God || # na God } >+ na im even do dat one be sey # [ na my school stuff |c # na my school ] ] //
+# text_en = Well, what happened to me before, what happened to me before which I remember and can't forget, and which in fact was God… it's God, He is the one who did it, it is my school stuff… it's my school.
+# text_ortho = Ehn wetin dey happen for me before, wetin don happen to me before wey I know sey kai, I no fit forget am, and in fact, na God... na God, na im even do dat one be sey na my school stuff... na my school.
+1	#	#	PUNCT	_	_	19	punct	_	AlignBegin=189265|AlignEnd=191545|Gloss=PUNCT
+2	ehn	ehn	INTJ	_	_	19	discourse	_	AlignBegin=191545|AlignEnd=192155|Gloss=ehn
+3	#	#	PUNCT	_	_	19	punct	_	AlignBegin=192185|AlignEnd=192930|Gloss=PUNCT
+4	wetin	wetin	PRON	_	PronType=Int	19	dislocated	_	AlignBegin=192930|AlignEnd=193170|Gloss=what.Q
+5	dey	dey	AUX	_	Aspect=Imp	4	mod@relcl	_	AlignBegin=193170|AlignEnd=193241|Gloss=IPFV
+6	happen	happen	VERB	_	_	5	comp:aux	_	AlignBegin=193241|AlignEnd=193570|Gloss=happen
+7	for	for	ADP	_	_	6	comp:obl	_	AlignBegin=193570|AlignEnd=193740|Gloss=for
+8	me	me	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	7	comp:obj	_	AlignBegin=193740|AlignEnd=193897|Gloss=ACC.SG.1
+9	before	before	ADP	_	_	6	mod	_	AlignBegin=193897|AlignEnd=194180|Gloss=before
+10	<	<	PUNCT	_	_	4	punct	_	AlignBegin=194180|AlignEnd=194210|Gloss=PUNCT
+11	wetin	wetin	PRON	_	PronType=Int	19	dislocated	_	AlignBegin=194210|AlignEnd=194460|Gloss=what.Q
+12	don	don	AUX	_	Aspect=Perf	11	mod@relcl	_	AlignBegin=194460|AlignEnd=194790|Gloss=PRF
+13	happen	happen	VERB	_	_	12	comp:aux	_	AlignBegin=194790|AlignEnd=195190|Gloss=happen
+14	to	to	ADP	_	_	13	comp:obl	_	AlignBegin=195190|AlignEnd=195400|Gloss=to
+15	me	me	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	14	comp:obj	_	AlignBegin=195400|AlignEnd=195510|Gloss=ACC.SG.1
+16	before	before	ADP	_	_	13	mod	_	AlignBegin=195510|AlignEnd=195810|Gloss=before
+17	wey	when	SCONJ	_	_	19	discourse	_	AlignBegin=195810|AlignEnd=195974|Gloss=when
+18	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	19	subj	_	AlignBegin=195974|AlignEnd=196030|Gloss=NOM.SG.1
+19	know	know	VERB	_	_	0	root	_	AlignBegin=196030|AlignEnd=196170|Gloss=know
+20	sey	sey	SCONJ	_	_	19	comp:obj	_	AlignBegin=196170|AlignEnd=196360|Gloss=COMP
+21	[	[	PUNCT	_	_	27	punct	_	AlignBegin=196390|AlignEnd=196643|Gloss=PUNCT
+22	kai	kai	INTJ	_	_	27	discourse	_	AlignBegin=196390|AlignEnd=196643|Gloss=please!
+23	<	<	PUNCT	_	_	22	punct	_	AlignBegin=196643|AlignEnd=196673|Gloss=PUNCT
+24	#	#	PUNCT	_	_	22	punct	_	AlignBegin=196673|AlignEnd=197209|Gloss=PUNCT
+25	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	27	subj	_	AlignBegin=197209|AlignEnd=197299|Gloss=NOM.SG.1
+26	no	no	PART	_	Polarity=Neg	27	mod	_	AlignBegin=197299|AlignEnd=197429|Gloss=NEG
+27	fit	fit	AUX	_	Mood=Pot	20	comp:obj	_	AlignBegin=197429|AlignEnd=197537|Gloss=ABIL
+28	forget	forget	VERB	_	_	27	comp:aux	_	AlignBegin=197537|AlignEnd=197959|Gloss=forget
+29	am	am	PRON	_	Case=Acc|Number=Sing|Person=3|PronType=Prs	28	comp:obj	_	AlignBegin=197959|AlignEnd=198099|Gloss=ACC.SG.3
+30	|c	|c	PUNCT	_	_	36	punct	_	AlignBegin=198099|AlignEnd=198129|Gloss=PUNCT
+31	and	and	CCONJ	_	_	36	cc	_	AlignBegin=198099|AlignEnd=198129|Gloss=and
+32	in	in	ADP	_	_	36	mod:periph	_	AlignBegin=198099|AlignEnd=198129|EXTPOS=ADV|Gloss=in
+33	fact	fact	NOUN	_	_	32	unk@fixed	_	AlignBegin=198129|AlignEnd=198269|Gloss=fact
+34	<	<	PUNCT	_	_	32	punct	_	AlignBegin=198269|AlignEnd=198329|Gloss=PUNCT
+35	{	{	PUNCT	_	_	36	punct	_	AlignBegin=198329|AlignEnd=198603|Gloss=PUNCT
+36	na	na	PART	_	PartType=Cop	27	conj:coord	_	AlignBegin=198603|AlignEnd=198633|Gloss=be
+37	God	God	PROPN	_	_	36	comp:pred	_	AlignBegin=198603|AlignEnd=198633|Gloss=God
+38	||	||	PUNCT	_	_	40	punct	_	AlignBegin=198633|AlignEnd=198879|Gloss=PUNCT
+39	#	#	PUNCT	_	_	40	punct	_	AlignBegin=198879|AlignEnd=199369|Gloss=PUNCT
+40	na	na	PART	_	PartType=Cop	36	conj:dicto	_	AlignBegin=199369|AlignEnd=199399|Gloss=be
+41	God	God	PROPN	_	_	40	comp:pred	_	AlignBegin=199399|AlignEnd=199748|Gloss=God
+42	}	}	PUNCT	_	_	36	punct	_	AlignBegin=199748|AlignEnd=199928|Gloss=PUNCT
+43	>+	>+	PUNCT	_	_	44	punct	_	AlignBegin=199928|AlignEnd=200091|Gloss=PUNCT
+44	na	na	PART	_	PartType=Cop	40	comp:cleft	_	AlignBegin=200091|AlignEnd=200121|EXTPOS=SCONJ|Gloss=be
+45	im	im	PRON	_	Case=Nom|Number=Sing|Person=3|PronType=Prs	44	comp:pred@fixed	_	AlignBegin=200091|AlignEnd=200121|Gloss=NOM.SG.3
+46	even	even	ADV	_	_	47	mod	_	AlignBegin=200121|AlignEnd=200237|Gloss=even
+47	do	do	VERB	_	_	45	comp:obj	_	AlignBegin=200237|AlignEnd=200409|Gloss=do
+48	dat	dat	DET	_	Number=Sing|PronType=Dem	49	det	_	AlignBegin=200409|AlignEnd=200558|Gloss=SG.DIST.DEM
+49	one	one	NOUN	_	_	47	comp:obj	_	AlignBegin=200558|AlignEnd=200648|Gloss=one
+50	be	be	VERB	_	PartType=Cop	49	mod@relcl	_	AlignBegin=200648|AlignEnd=200843|Gloss=be
+51	sey	sey	SCONJ	_	_	50	comp:pred	_	AlignBegin=200843|AlignEnd=200998|Gloss=COMP
+52	#	#	PUNCT	_	_	54	punct	_	AlignBegin=200998|AlignEnd=201058|Gloss=PUNCT
+53	[	[	PUNCT	_	_	54	punct	_	AlignBegin=201058|AlignEnd=201360|Gloss=PUNCT
+54	na	na	PART	_	PartType=Cop	51	comp:obj	_	AlignBegin=201360|AlignEnd=201850|Gloss=be
+55	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	57	mod:poss	_	AlignBegin=201820|AlignEnd=201850|Gloss=SG.1.POSS
+56	school	school	NOUN	_	_	57	compound	_	AlignBegin=201850|AlignEnd=202000|Gloss=school
+57	stuff	stuff	NOUN	_	_	54	comp:pred	_	AlignBegin=202000|AlignEnd=202225|Gloss=stuff
+58	|c	|c	PUNCT	_	_	60	punct	_	AlignBegin=202225|AlignEnd=202560|Gloss=PUNCT
+59	#	#	PUNCT	_	_	60	punct	_	AlignBegin=202560|AlignEnd=203080|Gloss=PUNCT
+60	na	na	PART	_	PartType=Cop	54	parataxis:conj	_	AlignBegin=203080|AlignEnd=203110|Gloss=be
+61	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	62	mod:poss	_	AlignBegin=203110|AlignEnd=203480|Gloss=SG.1.POSS
+62	school	school	NOUN	_	_	60	comp:pred	_	AlignBegin=203480|AlignEnd=203550|Gloss=school
+63	]	]	PUNCT	_	_	54	punct	_	AlignBegin=203550|AlignEnd=203716|Gloss=PUNCT
+64	]	]	PUNCT	_	_	27	punct	_	AlignBegin=203716|AlignEnd=204020|Gloss=PUNCT
+65	//	//	PUNCT	_	_	19	punct	_	AlignBegin=204020|AlignEnd=204050|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__76
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = because { as I dey do dis hairdressing |c # and I dey write JAMB } < # { no be sey [ I no dey pass am ] |c but I no dey get admission } //
+# text_en = Because as I was doing my hairdressing and taking the JAMB, I wasn't failing but I wasn't going to get in either.
+# text_ortho = Because as I dey do dis hairdressing, and I dey write JAMB, no be sey I no dey pass am, but I no dey get admission.
+1	because	because	SCONJ	_	_	21	cc	_	AlignBegin=204050|AlignEnd=204571|Gloss=because
+2	{	{	PUNCT	_	_	3	punct	_	AlignBegin=204571|AlignEnd=204601|Gloss=PUNCT
+3	as	as	ADP	_	_	21	mod:periph	_	AlignBegin=204601|AlignEnd=204740|Gloss=as
+4	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	5	subj	_	AlignBegin=204740|AlignEnd=204831|Gloss=NOM.SG.1
+5	dey	dey	AUX	_	Aspect=Imp	3	comp:obj	_	AlignBegin=204831|AlignEnd=204988|Gloss=IPFV
+6	do	do	VERB	_	_	5	comp:aux	_	AlignBegin=204988|AlignEnd=205130|Gloss=do
+7	dis	dis	DET	_	Number=Sing|PronType=Dem	8	det	_	AlignBegin=205130|AlignEnd=205330|Gloss=SG.PROX.DEM
+8	hairdressing	hairdressing	NOUN	_	_	6	comp:obj	_	AlignBegin=205330|AlignEnd=205885|Gloss=hairdressing
+9	|c	|c	PUNCT	_	_	13	punct	_	AlignBegin=205885|AlignEnd=205915|Gloss=PUNCT
+10	#	#	PUNCT	_	_	13	punct	_	AlignBegin=205915|AlignEnd=206475|Gloss=PUNCT
+11	and	and	CCONJ	_	_	13	cc	_	AlignBegin=206475|AlignEnd=206635|Gloss=and
+12	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	13	subj	_	AlignBegin=206635|AlignEnd=206735|Gloss=NOM.SG.1
+13	dey	dey	AUX	_	Aspect=Imp	5	conj:coord	_	AlignBegin=206735|AlignEnd=206925|Gloss=IPFV
+14	write	write	VERB	_	_	13	comp:aux	_	AlignBegin=206925|AlignEnd=207326|Gloss=write
+15	JAMB	JAMB	PROPN	_	_	14	comp:obj	_	AlignBegin=207326|AlignEnd=207615|Gloss=JAMB
+16	}	}	PUNCT	_	_	3	punct	_	AlignBegin=207615|AlignEnd=207646|Gloss=PUNCT
+17	<	<	PUNCT	_	_	3	punct	_	AlignBegin=207615|AlignEnd=207646|Gloss=PUNCT
+18	#	#	PUNCT	_	_	21	punct	_	AlignBegin=207646|AlignEnd=207996|Gloss=PUNCT
+19	{	{	PUNCT	_	_	21	punct	_	AlignBegin=207965|AlignEnd=207996|Gloss=PUNCT
+20	no	no	PART	_	Polarity=Neg	21	mod	_	AlignBegin=207996|AlignEnd=208100|Gloss=NEG
+21	be	be	VERB	_	PartType=Cop	0	root	_	AlignBegin=208100|AlignEnd=208222|Gloss=be
+22	sey	sey	SCONJ	_	_	21	comp:pred	_	AlignBegin=208222|AlignEnd=208285|Gloss=COMP
+23	[	[	PUNCT	_	_	26	punct	_	AlignBegin=208285|AlignEnd=208315|Gloss=PUNCT
+24	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	26	subj	_	AlignBegin=208315|AlignEnd=208449|Gloss=NOM.SG.1
+25	no	no	PART	_	Polarity=Neg	26	mod	_	AlignBegin=208449|AlignEnd=208526|Gloss=NEG
+26	dey	dey	AUX	_	Aspect=Imp	22	comp:obj	_	AlignBegin=208526|AlignEnd=208764|Gloss=IPFV
+27	pass	pass	VERB	_	_	26	comp:aux	_	AlignBegin=208764|AlignEnd=209085|Gloss=pass
+28	am	am	PRON	_	Case=Acc|Number=Sing|Person=3|PronType=Prs	27	comp:obj	_	AlignBegin=209085|AlignEnd=209185|Gloss=ACC.SG.3
+29	]	]	PUNCT	_	_	26	punct	_	AlignBegin=209185|AlignEnd=209215|Gloss=PUNCT
+30	|c	|c	PUNCT	_	_	34	punct	_	AlignBegin=209185|AlignEnd=209215|Gloss=PUNCT
+31	but	but	CCONJ	_	_	34	cc	_	AlignBegin=209215|AlignEnd=209394|Gloss=but
+32	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	34	subj	_	AlignBegin=209394|AlignEnd=209475|Gloss=NOM.SG.1
+33	no	no	PART	_	Polarity=Neg	34	mod	_	AlignBegin=209475|AlignEnd=209575|Gloss=NEG
+34	dey	dey	AUX	_	Aspect=Imp	21	conj:coord	_	AlignBegin=209575|AlignEnd=209755|Gloss=IPFV
+35	get	get	VERB	_	_	34	comp:aux	_	AlignBegin=209755|AlignEnd=209916|Gloss=get
+36	admission	admission	NOUN	_	_	35	comp:obj	_	AlignBegin=209916|AlignEnd=210445|Gloss=admission
+37	}	}	PUNCT	_	_	21	punct	_	AlignBegin=210445|AlignEnd=210475|Gloss=PUNCT
+38	//	//	PUNCT	_	_	21	punct	_	AlignBegin=210445|AlignEnd=210475|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__77
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # I don pray //
+# text_en = I prayed.
+# text_ortho = I don pray.
+1	#	#	PUNCT	_	_	3	punct	_	AlignBegin=210475|AlignEnd=211085|Gloss=PUNCT
+2	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	3	subj	_	AlignBegin=211085|AlignEnd=211265|Gloss=NOM.SG.1
+3	don	don	AUX	_	Aspect=Perf	0	root	_	AlignBegin=211265|AlignEnd=211565|Gloss=PRF
+4	pray	pray	VERB	_	_	3	comp:aux	_	AlignBegin=211565|AlignEnd=212133|Gloss=pray
+5	//	//	PUNCT	_	_	3	punct	_	AlignBegin=212133|AlignEnd=212163|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__78
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = mtschew # but in fact < e con even get time wey be sey [ { I come || I just comot } my mind ] |c be sey # [ maybe God no wan mah go school again ] |c or be sey [ I no dey favour to go school ] //
+# text_en = Mtschew, but in fact, it got to a time when… I just took my mind away from it saying maybe God doesn't want me to go to school again, or I'm not meant to go to school.
+# text_ortho = Mtschew but in fact, e con even get time wey be sey I come... I just comot my mind, be sey maybe God no wan mah go school again, or be sey I no dey favour to go school.
+1	mtschew	mtschew	INTJ	_	_	8	discourse	_	AlignBegin=212163|AlignEnd=212368|Gloss=sucking_of_teeth
+2	#	#	PUNCT	_	_	1	punct	_	AlignBegin=212398|AlignEnd=212725|Gloss=PUNCT
+3	but	but	CCONJ	_	_	8	cc	_	AlignBegin=212725|AlignEnd=212955|Gloss=but
+4	in	in	ADP	_	_	8	mod:periph	_	AlignBegin=212955|AlignEnd=213015|EXTPOS=ADV|Gloss=in
+5	fact	fact	NOUN	_	_	4	unk@fixed	_	AlignBegin=213015|AlignEnd=213213|Gloss=fact
+6	<	<	PUNCT	_	_	4	punct	_	AlignBegin=213213|AlignEnd=213243|Gloss=PUNCT
+7	e	im	PRON	_	Case=Nom|Number=Sing|Person=3|PronType=Prs	8	subj@expl	_	AlignBegin=213243|AlignEnd=213325|Gloss=NOM.SG.3
+8	con	con	AUX	_	Aspect=Cons	0	root	_	AlignBegin=213325|AlignEnd=213535|Gloss=CONS
+9	even	even	ADV	_	_	10	mod	_	AlignBegin=213535|AlignEnd=213655|Gloss=even
+10	get	get	VERB	_	_	8	comp:aux	_	AlignBegin=213655|AlignEnd=213855|Gloss=get
+11	time	time	NOUN	_	_	10	comp:obj	_	AlignBegin=213855|AlignEnd=214005|Gloss=time
+12	wey	wey	SCONJ	_	_	11	mod@relcl	_	AlignBegin=214005|AlignEnd=214095|EXTPOS=SCONJ|Gloss=REL
+13	be	be	VERB	_	PartType=Cop	12	comp:obj@fixed	_	AlignBegin=214095|AlignEnd=214165|Gloss=be
+14	sey	sey	SCONJ	_	_	13	comp:pred@fixed	_	AlignBegin=214165|AlignEnd=214251|Gloss=COMP
+15	[	[	PUNCT	_	_	18	punct	_	AlignBegin=214251|AlignEnd=214281|Gloss=PUNCT
+16	{	{	PUNCT	_	_	18	punct	_	AlignBegin=214251|AlignEnd=214281|Gloss=PUNCT
+17	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	18	subj	_	AlignBegin=214281|AlignEnd=214375|Gloss=NOM.SG.1
+18	come	con	AUX	_	Aspect=Cons	14	comp:obj	_	AlignBegin=214375|AlignEnd=214695|Gloss=CONS
+19	||	||	PUNCT	_	_	22	punct	_	AlignBegin=214695|AlignEnd=214725|Gloss=PUNCT
+20	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	22	subj	_	AlignBegin=214725|AlignEnd=214935|Gloss=NOM.SG.1
+21	just	just	ADV	_	_	22	mod	_	AlignBegin=214935|AlignEnd=215195|Gloss=just
+22	comot	comot	VERB	_	_	18	conj:dicto	_	AlignBegin=215195|AlignEnd=215425|Gloss=get_out
+23	}	}	PUNCT	_	_	18	punct	_	AlignBegin=215425|AlignEnd=215455|Gloss=PUNCT
+24	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	25	mod:poss	_	AlignBegin=215455|AlignEnd=215622|Gloss=SG.1.POSS
+25	mind	mind	NOUN	_	_	22	comp:obj	_	AlignBegin=215622|AlignEnd=215875|Gloss=mind
+26	]	]	PUNCT	_	_	18	punct	_	AlignBegin=215622|AlignEnd=215875|Gloss=PUNCT
+27	|c	|c	PUNCT	_	_	28	punct	_	AlignBegin=215622|AlignEnd=215875|Gloss=PUNCT
+28	be	be	VERB	_	PartType=Cop	13	conj:coord	_	AlignBegin=215875|AlignEnd=215948|Gloss=be
+29	sey	sey	SCONJ	_	_	28	comp:pred	_	AlignBegin=215948|AlignEnd=216391|Gloss=COMP
+30	#	#	PUNCT	_	_	35	punct	_	AlignBegin=216391|AlignEnd=216700|Gloss=PUNCT
+31	[	[	PUNCT	_	_	35	punct	_	AlignBegin=216670|AlignEnd=216700|Gloss=PUNCT
+32	maybe	maybe	ADV	_	_	35	mod	_	AlignBegin=216700|AlignEnd=217112|Gloss=maybe
+33	God	God	PROPN	_	_	35	subj	_	AlignBegin=217112|AlignEnd=217472|Gloss=God
+34	no	no	PART	_	Polarity=Neg	35	mod	_	AlignBegin=217472|AlignEnd=217530|Gloss=NEG
+35	wan	want	VERB	_	_	29	comp:obj	_	AlignBegin=217530|AlignEnd=217680|Gloss=want
+36	mah	make	AUX	_	Mood=Opt	35	comp:pred	_	AlignBegin=217680|AlignEnd=217864|Gloss=SBJV
+37	go	go	VERB	_	_	36	comp:aux	_	AlignBegin=217864|AlignEnd=218030|Gloss=go
+38	school	school	NOUN	_	_	37	comp:obj	_	AlignBegin=218030|AlignEnd=218430|Gloss=school
+39	again	again	ADV	_	_	37	mod	_	AlignBegin=218430|AlignEnd=218680|Gloss=again
+40	]	]	PUNCT	_	_	37	punct	_	AlignBegin=218680|AlignEnd=218710|Gloss=PUNCT
+41	|c	|c	PUNCT	_	_	43	punct	_	AlignBegin=218680|AlignEnd=218710|Gloss=PUNCT
+42	or	or	CCONJ	_	_	43	cc	_	AlignBegin=218710|AlignEnd=218870|Gloss=or
+43	be	be	VERB	_	PartType=Cop	28	conj:coord	_	AlignBegin=218870|AlignEnd=218980|Gloss=be
+44	sey	sey	SCONJ	_	_	43	comp:pred	_	AlignBegin=218980|AlignEnd=219285|Gloss=COMP
+45	[	[	PUNCT	_	_	48	punct	_	AlignBegin=219285|AlignEnd=219315|Gloss=PUNCT
+46	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	48	subj	_	AlignBegin=219315|AlignEnd=219490|Gloss=NOM.SG.1
+47	no	no	PART	_	Polarity=Neg	48	mod	_	AlignBegin=219490|AlignEnd=219690|Gloss=NEG
+48	dey	dey	AUX	_	Aspect=Imp	44	comp:obj	_	AlignBegin=219690|AlignEnd=220090|Gloss=IPFV
+49	favour	favour	VERB	_	_	48	comp:aux	_	AlignBegin=220090|AlignEnd=220570|Gloss=favour
+50	to	to	ADP	_	_	49	comp:obl@x	_	AlignBegin=220570|AlignEnd=220780|Gloss=to
+51	go	go	VERB	_	_	50	comp:obj	_	AlignBegin=220780|AlignEnd=220971|Gloss=go
+52	school	school	NOUN	_	_	51	comp:obj	_	AlignBegin=220971|AlignEnd=221363|Gloss=school
+53	]	]	PUNCT	_	_	48	punct	_	AlignBegin=221363|AlignEnd=221393|Gloss=PUNCT
+54	//	//	PUNCT	_	_	8	punct	_	AlignBegin=221363|AlignEnd=221393|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__79
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # so now < { di last time wey I write JAMB || # di last time wey I write JAMB } < # I no get admission //
+# text_en = So, then the last time I sat for JAMB… the last time I wrote JAMB, I didn't get in.
+# text_ortho = So now, di last time wey I write JAMB... di last time wey I write JAMB, I no get admission.
+1	#	#	PUNCT	_	_	27	punct	_	AlignBegin=221393|AlignEnd=222075|Gloss=PUNCT
+2	so	so	ADV	_	_	27	discourse	_	AlignBegin=222075|AlignEnd=222262|Gloss=so
+3	now	now	ADV	_	_	2	mod:emph	_	AlignBegin=222262|AlignEnd=222425|Gloss=now
+4	<	<	PUNCT	_	_	2	punct	_	AlignBegin=222425|AlignEnd=222455|Gloss=PUNCT
+5	{	{	PUNCT	_	_	8	punct	_	AlignBegin=222455|AlignEnd=222685|Gloss=PUNCT
+6	di	the	DET	_	Definite=Def|PronType=Art	8	det	_	AlignBegin=222455|AlignEnd=222685|Gloss=DEF.ART
+7	last	last	ADJ	_	_	8	mod	_	AlignBegin=222685|AlignEnd=222915|Gloss=last
+8	time	time	NOUN	_	_	27	mod:periph	_	AlignBegin=222915|AlignEnd=223096|Gloss=time
+9	wey	wey	SCONJ	_	_	8	mod@relcl	_	AlignBegin=223096|AlignEnd=223198|Gloss=REL
+10	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	11	subj	_	AlignBegin=223198|AlignEnd=223312|Gloss=NOM.SG.1
+11	write	write	VERB	_	_	9	comp:obj	_	AlignBegin=223312|AlignEnd=223562|Gloss=write
+12	JAMB	JAMB	PROPN	_	_	11	comp:obj	_	AlignBegin=223562|AlignEnd=223930|Gloss=JAMB
+13	||	||	PUNCT	_	_	17	punct	_	AlignBegin=223960|AlignEnd=225970|Gloss=PUNCT
+14	#	#	PUNCT	_	_	17	punct	_	AlignBegin=223960|AlignEnd=225970|Gloss=PUNCT
+15	di	the	DET	_	Definite=Def|PronType=Art	17	det	_	AlignBegin=225970|AlignEnd=226120|Gloss=DEF.ART
+16	last	last	ADJ	_	_	17	mod	_	AlignBegin=226120|AlignEnd=226340|Gloss=last
+17	time	time	NOUN	_	_	8	conj:dicto	_	AlignBegin=226340|AlignEnd=226480|Gloss=time
+18	wey	wey	SCONJ	_	_	17	mod@relcl	_	AlignBegin=226480|AlignEnd=226600|Gloss=REL
+19	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	20	subj	_	AlignBegin=226600|AlignEnd=226640|Gloss=NOM.SG.1
+20	write	write	VERB	_	_	18	comp:obj	_	AlignBegin=226640|AlignEnd=226890|Gloss=write
+21	JAMB	JAMB	PROPN	_	_	20	comp:obj	_	AlignBegin=226890|AlignEnd=227150|Gloss=JAMB
+22	}	}	PUNCT	_	_	8	punct	_	AlignBegin=227150|AlignEnd=227180|Gloss=PUNCT
+23	<	<	PUNCT	_	_	8	punct	_	AlignBegin=227150|AlignEnd=227180|Gloss=PUNCT
+24	#	#	PUNCT	_	_	8	punct	_	AlignBegin=227180|AlignEnd=227625|Gloss=PUNCT
+25	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	27	subj	_	AlignBegin=227625|AlignEnd=227769|Gloss=NOM.SG.1
+26	no	no	PART	_	Polarity=Neg	27	mod	_	AlignBegin=227769|AlignEnd=227945|Gloss=NEG
+27	get	get	VERB	_	_	0	root	_	AlignBegin=227945|AlignEnd=228115|Gloss=get
+28	admission	admission	NOUN	_	_	27	comp:obj	_	AlignBegin=228115|AlignEnd=228665|Gloss=admission
+29	//	//	PUNCT	_	_	27	punct	_	AlignBegin=228665|AlignEnd=228694|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__80
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # I { wait |r wait |r wait |r wait |r wait } //
+# text_en = I waited and waited.
+# text_ortho = I wait, wait, wait, wait, wait.
+1	#	#	PUNCT	_	_	4	punct	_	AlignBegin=228694|AlignEnd=228934|Gloss=PUNCT
+2	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	4	subj	_	AlignBegin=228934|AlignEnd=229071|Gloss=NOM.SG.1
+3	{	{	PUNCT	_	_	4	punct	_	AlignBegin=229071|AlignEnd=229101|Gloss=PUNCT
+4	wait	wait	VERB	_	_	0	root	_	AlignBegin=229101|AlignEnd=229405|Gloss=wait
+5	|r	|r	PUNCT	_	_	6	punct	_	AlignBegin=229405|AlignEnd=229435|Gloss=PUNCT
+6	wait	wait	VERB	_	_	4	compound:redup	_	AlignBegin=229435|AlignEnd=229685|Gloss=wait
+7	|r	|r	PUNCT	_	_	8	punct	_	AlignBegin=229685|AlignEnd=229715|Gloss=PUNCT
+8	wait	wait	VERB	_	_	6	compound:redup	_	AlignBegin=229715|AlignEnd=229955|Gloss=wait
+9	|r	|r	PUNCT	_	_	10	punct	_	AlignBegin=229955|AlignEnd=229985|Gloss=PUNCT
+10	wait	wait	VERB	_	_	8	compound:redup	_	AlignBegin=229985|AlignEnd=230235|Gloss=wait
+11	|r	|r	PUNCT	_	_	12	punct	_	AlignBegin=230235|AlignEnd=230265|Gloss=PUNCT
+12	wait	wait	VERB	_	_	10	compound:redup	_	AlignBegin=230265|AlignEnd=230537|Gloss=wait
+13	}	}	PUNCT	_	_	4	punct	_	AlignBegin=230537|AlignEnd=230567|Gloss=PUNCT
+14	//	//	PUNCT	_	_	4	punct	_	AlignBegin=230537|AlignEnd=230567|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__81
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # for all di whole schools < de don start lectures //
+# text_en = All the schools had started classes.
+# text_ortho = For all di whole schools, de don start lectures.
+1	#	#	PUNCT	_	_	9	punct	_	AlignBegin=230567|AlignEnd=230934|Gloss=PUNCT
+2	for	for	ADP	_	_	9	dislocated	_	AlignBegin=230934|AlignEnd=231016|Gloss=for
+3	all	all	ADV	_	_	6	mod	_	AlignBegin=231016|AlignEnd=231138|Gloss=all
+4	di	the	DET	_	Definite=Def|PronType=Art	6	det	_	AlignBegin=231138|AlignEnd=231311|Gloss=DEF.ART
+5	whole	whole	ADJ	_	_	6	mod	_	AlignBegin=231311|AlignEnd=231485|Gloss=whole
+6	schools	school	NOUN	_	Number=Plur	2	comp:obj	_	AlignBegin=231485|AlignEnd=231965|Gloss=school.PL
+7	<	<	PUNCT	_	_	2	punct	_	AlignBegin=231965|AlignEnd=231995|Gloss=PUNCT
+8	de	dem	PRON	_	Case=Nom|Number=Plur|Person=3|PronType=Prs	9	subj	_	AlignBegin=231995|AlignEnd=232105|Gloss=NOM.PL.3
+9	don	don	AUX	_	Aspect=Perf	0	root	_	AlignBegin=232105|AlignEnd=232265|Gloss=PRF
+10	start	start	VERB	_	_	9	comp:aux	_	AlignBegin=232265|AlignEnd=232585|Gloss=start
+11	lectures	lecture	NOUN	_	Number=Plur	10	comp:obj	_	AlignBegin=232585|AlignEnd=233199|Gloss=lecture.PL
+12	//	//	PUNCT	_	_	9	punct	_	AlignBegin=233199|AlignEnd=233229|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__82
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # and me < I dey house //
+# text_en = I was at home.
+# text_ortho = And me, I dey house.
+1	#	#	PUNCT	_	_	6	punct	_	AlignBegin=233229|AlignEnd=234008|Gloss=PUNCT
+2	and	and	CCONJ	_	_	6	cc	_	AlignBegin=234008|AlignEnd=234138|Gloss=and
+3	me	me	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	6	dislocated	_	AlignBegin=234138|AlignEnd=234238|Gloss=NOM.SG.1
+4	<	<	PUNCT	_	_	3	punct	_	AlignBegin=234238|AlignEnd=234268|Gloss=PUNCT
+5	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	6	subj	_	AlignBegin=234268|AlignEnd=234428|Gloss=NOM.SG.1
+6	dey	dey	VERB	_	VerbType=Cop	0	root	_	AlignBegin=234428|AlignEnd=234668|Gloss=be
+7	house	house	NOUN	_	_	6	comp:pred	_	AlignBegin=234668|AlignEnd=235068|Gloss=house
+8	//	//	PUNCT	_	_	6	punct	_	AlignBegin=235068|AlignEnd=235098|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__83
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # everyday < I go dey tink //
+# text_en = Everyday, I was thinking.
+# text_ortho = Everyday, I go dey tink.
+1	#	#	PUNCT	_	_	5	punct	_	AlignBegin=235098|AlignEnd=235288|Gloss=PUNCT
+2	everyday	everyday	ADV	_	_	5	mod:periph	_	AlignBegin=235288|AlignEnd=235668|Gloss=everyday
+3	<	<	PUNCT	_	_	2	punct	_	AlignBegin=235668|AlignEnd=235698|Gloss=PUNCT
+4	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	5	subj	_	AlignBegin=235698|AlignEnd=235878|Gloss=NOM.SG.1
+5	go	go	AUX	_	Aspect=Prosp	0	root	_	AlignBegin=235878|AlignEnd=235948|Gloss=PROSP
+6	dey	dey	AUX	_	Aspect=Imp	5	comp:aux	_	AlignBegin=235948|AlignEnd=236068|Gloss=IPFV
+7	tink	tink	VERB	_	_	6	comp:aux	_	AlignBegin=236068|AlignEnd=236504|Gloss=think
+8	//	//	PUNCT	_	_	5	punct	_	AlignBegin=236504|AlignEnd=236534|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__84
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # why me < I no get admission now ?//
+# text_en = Why didn't I get in?
+# text_ortho = Why me, I no get admission now?
+1	#	#	PUNCT	_	_	2	punct	_	AlignBegin=236534|AlignEnd=237396|Gloss=PUNCT
+2	why	why	ADV	_	PronType=Int	0	root	7:@mod	AlignBegin=237396|AlignEnd=237873|Gloss=why.Q
+3	me	me	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	7	dislocated	_	AlignBegin=237873|AlignEnd=238042|Gloss=ACC.SG.1
+4	<	<	PUNCT	_	_	3	punct	_	AlignBegin=238042|AlignEnd=238164|Gloss=PUNCT
+5	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	7	subj	_	AlignBegin=238042|AlignEnd=238164|Gloss=NOM.SG.1
+6	no	no	PART	_	Polarity=Neg	7	mod	_	AlignBegin=238164|AlignEnd=238286|Gloss=NEG
+7	get	get	VERB	_	_	2	comp:cleft	_	AlignBegin=238286|AlignEnd=238430|Gloss=get
+8	admission	admission	NOUN	_	_	7	comp:obj	_	AlignBegin=238430|AlignEnd=238916|Gloss=admission
+9	now	now	ADV	_	_	7	mod	_	AlignBegin=238916|AlignEnd=239046|Gloss=now
+10	?//	?//	PUNCT	_	_	2	punct	_	AlignBegin=239046|AlignEnd=239076|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__85
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = wetin be all dese tings ?//
+# text_en = What is all this?
+# text_ortho = Wetin be all dese tings?
+1	wetin	wetin	PRON	_	PronType=Int	0	root	2:@comp	AlignBegin=239076|AlignEnd=239376|Gloss=what.Q
+2	be	be	VERB	_	PartType=Cop	1	comp:cleft	_	AlignBegin=239376|AlignEnd=239442|Gloss=be
+3	all	all	ADV	_	_	5	mod	_	AlignBegin=239442|AlignEnd=239566|Gloss=all
+4	dese	dese	DET	_	Number=Plur|PronType=Dem	5	det	_	AlignBegin=239566|AlignEnd=239796|Gloss=PL.PROX.DEM
+5	tings	tings	NOUN	_	Number=Plur	2	comp:pred@agent	_	AlignBegin=239796|AlignEnd=240043|Gloss=thing.PL
+6	?//	?//	PUNCT	_	_	1	punct	_	AlignBegin=240043|AlignEnd=240073|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__86
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = mtschew # naim I say [ toh mah just kuma forget about am now //] //
+# text_en = Mtschew, that was when I said well, let me just forget about it.
+# text_ortho = Mtschew naim I say toh mah just kuma forget about am now.
+1	mtschew	mtschew	INTJ	_	_	5	discourse	_	AlignBegin=240073|AlignEnd=240457|Gloss=sucking_of_teeth
+2	#	#	PUNCT	_	_	1	punct	_	AlignBegin=240487|AlignEnd=240741|Gloss=PUNCT
+3	naim	naim	ADV	_	_	5	mod:periph	_	AlignBegin=240741|AlignEnd=240886|Gloss=then
+4	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	5	subj	_	AlignBegin=240886|AlignEnd=240921|Gloss=NOM.SG.1
+5	say	say	VERB	_	_	0	root	_	AlignBegin=240921|AlignEnd=241041|Gloss=say
+6	[	[	PUNCT	_	_	8	punct	_	AlignBegin=241041|AlignEnd=241071|Gloss=PUNCT
+7	toh	toh	INTJ	_	_	8	discourse	_	AlignBegin=241071|AlignEnd=241449|Gloss=alright
+8	mah	make	AUX	_	Mood=Opt	5	parataxis:obj	_	AlignBegin=241479|AlignEnd=241615|Gloss=SBJV
+9	just	just	ADV	_	_	11	mod	_	AlignBegin=241615|AlignEnd=241851|Gloss=just
+10	kuma	kuma	ADV	_	PartType=Disc	11	mod	_	AlignBegin=241851|AlignEnd=242061|Gloss=FOC
+11	forget	forget	VERB	_	_	8	comp:aux	_	AlignBegin=242061|AlignEnd=242381|Gloss=forget
+12	about	about	ADP	_	_	11	comp:obl	_	AlignBegin=242381|AlignEnd=242741|Gloss=about
+13	am	am	PRON	_	Case=Acc|Number=Sing|Person=3|PronType=Prs	12	comp:obj	_	AlignBegin=242741|AlignEnd=242921|Gloss=ACC.SG.3
+14	now	now	ADV	_	_	11	mod	_	AlignBegin=242921|AlignEnd=243007|Gloss=now
+15	//]	//]	PUNCT	_	_	8	punct	_	AlignBegin=243007|AlignEnd=243037|Gloss=PUNCT
+16	//	//	PUNCT	_	_	5	punct	_	AlignBegin=243007|AlignEnd=243037|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__87
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # now I even go look for work //
+# text_en = I even went to look for a job.
+# text_ortho = Now I even go look for work.
+1	#	#	PUNCT	_	_	5	punct	_	AlignBegin=243037|AlignEnd=243527|Gloss=PUNCT
+2	now	now	ADV	_	_	5	mod:periph	_	AlignBegin=243527|AlignEnd=243674|Gloss=now
+3	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	5	subj	_	AlignBegin=243674|AlignEnd=243722|Gloss=NOM.SG.1
+4	even	even	ADV	_	_	5	mod	_	AlignBegin=243722|AlignEnd=243875|Gloss=even
+5	go	go	VERB	_	_	0	root	_	AlignBegin=243875|AlignEnd=243996|Gloss=go
+6	look	look	VERB	_	_	5	comp:obj@x	_	AlignBegin=243996|AlignEnd=244137|Gloss=look
+7	for	for	ADP	_	_	6	comp:obl	_	AlignBegin=244137|AlignEnd=244347|Gloss=for
+8	work	work	NOUN	_	_	7	comp:obj	_	AlignBegin=244347|AlignEnd=244739|Gloss=work
+9	//	//	PUNCT	_	_	5	punct	_	AlignBegin=244739|AlignEnd=244769|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__88
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # as I look for work < I con dey work # di day wey I complete two weeks < because { everybody { wey # I don || wey } || everybody } wey promise me sey [ de go help me for my admission ] # de tell me sey [ mah no worry //= mah no worry ] //
+# text_en = As I looked for a job, I was working then, the day I had worked for exactly two weeks, because everybody I had… who… everybody who promised me they would help me for my admission, they told me not to worry, not to worry
+# text_ortho = As I look for work, I con dey work di day wey I complete two weeks, because everybody wey I don... wey...| everybody wey promise me sey de go help me for my admission de tell me sey mah no worry, mah no worry.
+1	#	#	PUNCT	_	_	9	punct	_	AlignBegin=244769|AlignEnd=245253|Gloss=PUNCT
+2	as	as	ADP	_	_	9	mod:periph	_	AlignBegin=245253|AlignEnd=245346|Gloss=as
+3	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	4	subj	_	AlignBegin=245346|AlignEnd=245466|Gloss=NOM.SG.1
+4	look	look	VERB	_	_	2	comp:obj	_	AlignBegin=245466|AlignEnd=245576|Gloss=look
+5	for	for	ADP	_	_	4	comp:obl	_	AlignBegin=245576|AlignEnd=245796|Gloss=for
+6	work	work	NOUN	_	_	5	comp:obj	_	AlignBegin=245796|AlignEnd=246086|Gloss=work
+7	<	<	PUNCT	_	_	2	punct	_	AlignBegin=246086|AlignEnd=246116|Gloss=PUNCT
+8	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	9	subj	_	AlignBegin=246116|AlignEnd=246186|Gloss=NOM.SG.1
+9	con	con	AUX	_	Aspect=Cons	0	root	_	AlignBegin=246186|AlignEnd=246406|Gloss=CONS
+10	dey	dey	AUX	_	Aspect=Imp	9	comp:aux	_	AlignBegin=246406|AlignEnd=246576|Gloss=IPFV
+11	work	work	VERB	_	_	10	comp:aux	_	AlignBegin=246576|AlignEnd=246861|Gloss=work
+12	#	#	PUNCT	_	_	14	punct	_	AlignBegin=246891|AlignEnd=247534|Gloss=PUNCT
+13	di	the	DET	_	Definite=Def|PronType=Art	14	det	_	AlignBegin=247534|AlignEnd=247694|Gloss=DEF.ART
+14	day	day	NOUN	_	_	11	mod	_	AlignBegin=247694|AlignEnd=247844|Gloss=day
+15	wey	wey	SCONJ	_	_	14	mod@relcl	_	AlignBegin=247844|AlignEnd=247961|Gloss=REL
+16	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	17	subj	_	AlignBegin=247961|AlignEnd=248154|Gloss=NOM.SG.1
+17	complete	complete	VERB	_	_	15	comp:obj	_	AlignBegin=248154|AlignEnd=248700|Gloss=complete
+18	two	two	NUM	_	NumType=Card	19	det:num	_	AlignBegin=248700|AlignEnd=248974|Gloss=two.CARD
+19	weeks	week	NOUN	_	Number=Plur	17	comp:obj	_	AlignBegin=248974|AlignEnd=249244|Gloss=week.PL
+20	<	<	PUNCT	_	_	14	punct	_	AlignBegin=249244|AlignEnd=249274|Gloss=PUNCT
+21	because	because	SCONJ	_	_	11	mod	_	AlignBegin=249274|AlignEnd=249754|Gloss=because
+22	{	{	PUNCT	_	_	23	punct	_	AlignBegin=249754|AlignEnd=250274|Gloss=PUNCT
+23	everybody	everybody	PRON	_	_	50	dislocated	_	AlignBegin=249754|AlignEnd=250274|Gloss=everybody
+24	{	{	PUNCT	_	_	25	punct	_	AlignBegin=250274|AlignEnd=250714|Gloss=PUNCT
+25	wey	wey	SCONJ	_	_	23	mod@relcl	_	AlignBegin=250274|AlignEnd=250714|Gloss=REL
+26	#	#	PUNCT	_	_	28	punct	_	AlignBegin=250744|AlignEnd=251065|Gloss=PUNCT
+27	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	28	subj	_	AlignBegin=251065|AlignEnd=251185|Gloss=NOM.SG.1
+28	don	don	AUX	_	Aspect=Perf	25	comp:obj	_	AlignBegin=251185|AlignEnd=251493|Gloss=PRF
+29	||	||	PUNCT	_	_	30	punct	_	AlignBegin=251493|AlignEnd=251523|Gloss=PUNCT
+30	wey	when	SCONJ	_	_	25	conj:dicto@scrap	_	AlignBegin=251523|AlignEnd=251646|Gloss=when
+31	}	}	PUNCT	_	_	25	punct	_	AlignBegin=251523|AlignEnd=251646|Gloss=PUNCT
+32	||	||	PUNCT	_	_	33	punct	_	AlignBegin=251523|AlignEnd=251646|Gloss=PUNCT
+33	everybody	everybody	PRON	_	_	23	conj:dicto	_	AlignBegin=251646|AlignEnd=252095|Gloss=everybody
+34	}	}	PUNCT	_	_	25	punct	_	AlignBegin=251646|AlignEnd=252095|Gloss=PUNCT
+35	wey	wey	SCONJ	_	_	33	mod@relcl	_	AlignBegin=251646|AlignEnd=252095|Gloss=REL
+36	promise	promise	VERB	_	_	35	comp:obj	_	AlignBegin=252095|AlignEnd=252570|Gloss=promise
+37	me	me	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	36	comp:obj	_	AlignBegin=252570|AlignEnd=252632|Gloss=ACC.SG.1
+38	sey	sey	SCONJ	_	_	36	comp:obj	_	AlignBegin=252632|AlignEnd=252755|Gloss=COMP
+39	[	[	PUNCT	_	_	41	punct	_	AlignBegin=252755|AlignEnd=252785|Gloss=PUNCT
+40	de	dem	PRON	_	Case=Nom|Number=Plur|Person=3|PronType=Prs	41	subj	_	AlignBegin=252785|AlignEnd=252875|Gloss=NOM.PL.3
+41	go	go	AUX	_	Aspect=Prosp	38	comp:obj	_	AlignBegin=252875|AlignEnd=253020|Gloss=PROSP
+42	help	help	VERB	_	_	41	comp:aux	_	AlignBegin=253020|AlignEnd=253265|Gloss=help
+43	me	me	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	42	comp:obj	_	AlignBegin=253265|AlignEnd=253365|Gloss=ACC.SG.1
+44	for	for	ADP	_	_	42	comp:obl	_	AlignBegin=253365|AlignEnd=253495|Gloss=for
+45	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	46	mod:poss	_	AlignBegin=253495|AlignEnd=253685|Gloss=SG.1.POSS
+46	admission	admission	NOUN	_	_	44	comp:obj	_	AlignBegin=253685|AlignEnd=254074|Gloss=admission
+47	]	]	PUNCT	_	_	41	punct	_	AlignBegin=254074|AlignEnd=254104|Gloss=PUNCT
+48	#	#	PUNCT	_	_	50	punct	_	AlignBegin=254104|AlignEnd=254499|Gloss=PUNCT
+49	de	dem	PRON	_	Case=Nom|Number=Plur|Person=3|PronType=Prs	50	subj	_	AlignBegin=254499|AlignEnd=254614|Gloss=NOM.PL.3
+50	tell	tell	VERB	_	_	21	comp:obj	_	AlignBegin=254614|AlignEnd=254734|Gloss=tell
+51	me	me	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	50	comp:obj	_	AlignBegin=254734|AlignEnd=254834|Gloss=ACC.SG.1
+52	sey	sey	SCONJ	_	_	50	comp:obj	_	AlignBegin=254834|AlignEnd=255022|Gloss=COMP
+53	[	[	PUNCT	_	_	54	punct	_	AlignBegin=255022|AlignEnd=255052|Gloss=PUNCT
+54	mah	make	AUX	_	Mood=Opt	52	comp:obj	_	AlignBegin=255052|AlignEnd=255226|Gloss=SBJV
+55	no	no	PART	_	Polarity=Neg	56	mod	_	AlignBegin=255226|AlignEnd=255429|Gloss=NEG
+56	worry	worry	VERB	_	_	54	comp:aux	_	AlignBegin=255429|AlignEnd=255754|Gloss=worry
+57	//=	//=	PUNCT	_	_	58	punct	_	AlignBegin=255754|AlignEnd=255784|Gloss=PUNCT
+58	mah	make	AUX	_	Mood=Opt	54	parataxis:conj	_	AlignBegin=255784|AlignEnd=255972|Gloss=SBJV
+59	no	no	PART	_	Polarity=Neg	60	mod	_	AlignBegin=255972|AlignEnd=256134|Gloss=NEG
+60	worry	worry	VERB	_	_	58	comp:aux	_	AlignBegin=256134|AlignEnd=256517|Gloss=worry
+61	]	]	PUNCT	_	_	54	punct	_	AlignBegin=256517|AlignEnd=256547|Gloss=PUNCT
+62	//	//	PUNCT	_	_	50	punct	_	AlignBegin=256517|AlignEnd=256547|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__89
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = de would &//
+# text_en = They would…
+# text_ortho = De would...
+1	de	dem	PRON	_	Case=Nom|Number=Plur|Person=3|PronType=Prs	2	subj	_	AlignBegin=256547|AlignEnd=256652|Gloss=NOM.PL.3
+2	would	would	AUX	_	_	0	root@scrap	_	AlignBegin=256652|AlignEnd=256724|Gloss=will.COND
+3	&//	//	PUNCT	_	_	2	punct	_	AlignBegin=256724|AlignEnd=256754|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__90
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = any means < # de go help me //= de go help me //
+# text_en = By any means, they would definitely help me.
+# text_ortho = Any means, de go help me, de go help me.
+1	any	any	DET	_	_	2	det	_	AlignBegin=256754|AlignEnd=257078|Gloss=any
+2	means	means	NOUN	_	Number=Plur	6	mod:periph	_	AlignBegin=257078|AlignEnd=257502|Gloss=means.PL
+3	<	<	PUNCT	_	_	2	punct	_	AlignBegin=257502|AlignEnd=257532|Gloss=PUNCT
+4	#	#	PUNCT	_	_	2	punct	_	AlignBegin=257532|AlignEnd=257860|Gloss=PUNCT
+5	de	dem	PRON	_	Case=Nom|Number=Plur|Person=3|PronType=Prs	6	subj	_	AlignBegin=257860|AlignEnd=257944|Gloss=NOM.PL.3
+6	go	go	AUX	_	Aspect=Prosp	0	root	_	AlignBegin=257944|AlignEnd=258082|Gloss=PROSP
+7	help	help	VERB	_	_	6	comp:aux	_	AlignBegin=258082|AlignEnd=258382|Gloss=help
+8	me	me	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	7	comp:obj	_	AlignBegin=258382|AlignEnd=258472|Gloss=ACC.SG.1
+9	//=	//=	PUNCT	_	_	11	punct	_	AlignBegin=258472|AlignEnd=258502|Gloss=PUNCT
+10	de	dem	PRON	_	Case=Nom|Number=Plur|Person=3|PronType=Prs	11	subj	_	AlignBegin=258502|AlignEnd=258602|Gloss=NOM.PL.3
+11	go	go	AUX	_	Aspect=Prosp	6	parataxis:conj	_	AlignBegin=258602|AlignEnd=258753|Gloss=PROSP
+12	help	help	VERB	_	_	11	comp:aux	_	AlignBegin=258753|AlignEnd=259002|Gloss=help
+13	me	me	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	12	comp:obj	_	AlignBegin=259002|AlignEnd=259183|Gloss=ACC.SG.1
+14	//	//	PUNCT	_	_	6	punct	_	AlignBegin=259183|AlignEnd=259213|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__91
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # school start //= # lecture start //= # no news //= { noting |r noting } //
+# text_en = School started, lectures started, no news, nothing at all.
+# text_ortho = School start, lecture start, no news, noting, noting.
+1	#	#	PUNCT	_	_	3	punct	_	AlignBegin=259213|AlignEnd=260220|Gloss=PUNCT
+2	school	school	NOUN	_	_	3	subj	_	AlignBegin=260220|AlignEnd=260638|Gloss=school
+3	start	start	VERB	_	_	0	root	_	AlignBegin=260638|AlignEnd=261010|Gloss=start
+4	//=	//=	PUNCT	_	_	3	punct	_	AlignBegin=261010|AlignEnd=261039|Gloss=PUNCT
+5	#	#	PUNCT	_	_	7	punct	_	AlignBegin=261039|AlignEnd=261229|Gloss=PUNCT
+6	lecture	lecture	NOUN	_	_	7	subj	_	AlignBegin=261229|AlignEnd=261690|Gloss=lecture
+7	start	start	VERB	_	_	3	parataxis:conj	_	AlignBegin=261690|AlignEnd=262162|Gloss=start
+8	//=	//=	PUNCT	_	_	11	punct	_	AlignBegin=262162|AlignEnd=262192|Gloss=PUNCT
+9	#	#	PUNCT	_	_	11	punct	_	AlignBegin=262192|AlignEnd=262916|Gloss=PUNCT
+10	no	no	PART	_	Polarity=Neg	11	mod	_	AlignBegin=262916|AlignEnd=263122|Gloss=NEG
+11	news	news	NOUN	_	Number=Plur	7	parataxis:conj	_	AlignBegin=263122|AlignEnd=263546|Gloss=news.PL
+12	//=	//=	PUNCT	_	_	14	punct	_	AlignBegin=263546|AlignEnd=263576|Gloss=PUNCT
+13	{	{	PUNCT	_	_	14	punct	_	AlignBegin=263546|AlignEnd=263576|Gloss=PUNCT
+14	noting	noting	PRON	_	_	11	parataxis:conj	_	AlignBegin=263576|AlignEnd=263916|Gloss=nothing
+15	|r	|r	PUNCT	_	_	16	punct	_	AlignBegin=263916|AlignEnd=263946|Gloss=PUNCT
+16	noting	noting	PRON	_	_	14	compound:redup	_	AlignBegin=263946|AlignEnd=264352|Gloss=nothing
+17	}	}	PUNCT	_	_	14	punct	_	AlignBegin=264352|AlignEnd=264382|Gloss=PUNCT
+18	//	//	PUNCT	_	_	3	punct	_	AlignBegin=264352|AlignEnd=264382|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__92
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # I say [ toh # maybe # I no go get admission dis ] &//
+# text_en = I said, well, maybe I won't get in…
+# text_ortho = I say toh maybe I no go get admission dis...
+1	#	#	PUNCT	_	_	3	punct	_	AlignBegin=264382|AlignEnd=264782|Gloss=PUNCT
+2	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	3	subj	_	AlignBegin=264782|AlignEnd=264862|Gloss=NOM.SG.1
+3	say	say	VERB	_	_	0	root	_	AlignBegin=264862|AlignEnd=265052|Gloss=say
+4	[	[	PUNCT	_	_	11	punct	_	AlignBegin=265052|AlignEnd=265082|Gloss=PUNCT
+5	toh	toh	INTJ	_	_	11	discourse	_	AlignBegin=265082|AlignEnd=265472|Gloss=alright
+6	#	#	PUNCT	_	_	11	punct	_	AlignBegin=265500|AlignEnd=265902|Gloss=PUNCT
+7	maybe	maybe	ADV	_	_	11	mod:periph	_	AlignBegin=265902|AlignEnd=266564|Gloss=maybe
+8	#	#	PUNCT	_	_	11	punct	_	AlignBegin=266564|AlignEnd=266754|Gloss=PUNCT
+9	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	11	subj	_	AlignBegin=266754|AlignEnd=266842|Gloss=NOM.SG.1
+10	no	no	PART	_	Polarity=Neg	11	mod	_	AlignBegin=266842|AlignEnd=267062|Gloss=NEG
+11	go	go	AUX	_	Aspect=Prosp	3	parataxis:obj	_	AlignBegin=267062|AlignEnd=267102|Gloss=PROSP
+12	get	get	VERB	_	_	11	comp:aux	_	AlignBegin=267102|AlignEnd=267492|Gloss=get
+13	admission	admission	NOUN	_	_	12	comp:obj	_	AlignBegin=267492|AlignEnd=267912|Gloss=admission
+14	dis	dis	DET	_	Number=Sing|PronType=Dem	12	mod@scrap	_	AlignBegin=267912|AlignEnd=268022|Gloss=SG.PROX.DEM
+15	]	]	PUNCT	_	_	11	punct	_	AlignBegin=268022|AlignEnd=268052|Gloss=PUNCT
+16	&//	//	PUNCT	_	_	3	punct	_	AlignBegin=268022|AlignEnd=268052|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__93
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = in fact < # I go forget about dis school //
+# text_en = In fact, I'll forget about school.
+# text_ortho = In fact, I go forget about dis school.
+1	in	in	ADP	_	_	6	mod:periph	_	AlignBegin=268052|AlignEnd=268152|EXTPOS=ADV|Gloss=in
+2	fact	fact	NOUN	_	_	1	unk@fixed	_	AlignBegin=268152|AlignEnd=268484|Gloss=fact
+3	<	<	PUNCT	_	_	1	punct	_	AlignBegin=268484|AlignEnd=268514|Gloss=PUNCT
+4	#	#	PUNCT	_	_	6	punct	_	AlignBegin=268514|AlignEnd=268811|Gloss=PUNCT
+5	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	6	subj	_	AlignBegin=268811|AlignEnd=269001|Gloss=NOM.SG.1
+6	go	go	AUX	_	Aspect=Prosp	0	root	_	AlignBegin=269001|AlignEnd=269101|Gloss=PROSP
+7	forget	forget	VERB	_	_	6	comp:aux	_	AlignBegin=269101|AlignEnd=269431|Gloss=forget
+8	about	about	ADP	_	_	7	comp:obl	_	AlignBegin=269431|AlignEnd=269688|Gloss=about
+9	dis	dis	DET	_	Number=Sing|PronType=Dem	10	det	_	AlignBegin=269688|AlignEnd=269892|Gloss=SG.PROX.DEM
+10	school	school	NOUN	_	_	8	comp:obj	_	AlignBegin=269892|AlignEnd=270021|Gloss=school
+11	//	//	PUNCT	_	_	6	punct	_	AlignBegin=270021|AlignEnd=270051|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__94
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = I no go write JAMB again //
+# text_en = I won't take the JAMB again.
+# text_ortho = I no go write JAMB again.
+1	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	3	subj	_	AlignBegin=270051|AlignEnd=270161|Gloss=NOM.SG.1
+2	no	no	PART	_	Polarity=Neg	3	mod	_	AlignBegin=270161|AlignEnd=270341|Gloss=NEG
+3	go	go	AUX	_	Aspect=Prosp	0	root	_	AlignBegin=270341|AlignEnd=270431|Gloss=PROSP
+4	write	write	VERB	_	_	3	comp:aux	_	AlignBegin=270431|AlignEnd=270835|Gloss=write
+5	JAMB	JAMB	PROPN	_	_	4	comp:obj	_	AlignBegin=270835|AlignEnd=271108|Gloss=JAMB
+6	again	again	ADV	_	_	3	mod	_	AlignBegin=271108|AlignEnd=271491|Gloss=again
+7	//	//	PUNCT	_	_	3	punct	_	AlignBegin=271491|AlignEnd=271522|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__95
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # mah just face { work || my work } //
+# text_en = Let me just do my work.
+# text_ortho = Mah just face work... my work.
+1	#	#	PUNCT	_	_	2	punct	_	AlignBegin=271522|AlignEnd=271842|Gloss=PUNCT
+2	mah	make	AUX	_	Mood=Opt	0	root	_	AlignBegin=271842|AlignEnd=271994|Gloss=SBJV
+3	just	just	ADV	_	_	4	mod	_	AlignBegin=271994|AlignEnd=272247|Gloss=just
+4	face	face	VERB	_	_	2	comp:aux	_	AlignBegin=272247|AlignEnd=272517|Gloss=face
+5	{	{	PUNCT	_	_	6	punct	_	AlignBegin=272517|AlignEnd=272547|Gloss=PUNCT
+6	work	work	NOUN	_	_	4	comp:obj	_	AlignBegin=272547|AlignEnd=272841|Gloss=work
+7	||	||	PUNCT	_	_	9	punct	_	AlignBegin=272841|AlignEnd=272871|Gloss=PUNCT
+8	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	9	mod:poss	_	AlignBegin=272871|AlignEnd=273061|Gloss=SG.1.POSS
+9	work	work	NOUN	_	_	6	conj:dicto	_	AlignBegin=273061|AlignEnd=273301|Gloss=work
+10	}	}	PUNCT	_	_	6	punct	_	AlignBegin=273301|AlignEnd=273331|Gloss=PUNCT
+11	//	//	PUNCT	_	_	2	punct	_	AlignBegin=273301|AlignEnd=273331|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__96
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = mah dey do my work for house //
+# text_en = Let me just keep doing my work at home.
+# text_ortho = Mah dey do my work for house.
+1	mah	make	AUX	_	Mood=Opt	0	root	_	AlignBegin=273331|AlignEnd=273501|Gloss=SBJV
+2	dey	dey	AUX	_	Aspect=Imp	1	comp:aux	_	AlignBegin=273501|AlignEnd=273641|Gloss=IPFV
+3	do	do	VERB	_	_	2	comp:aux	_	AlignBegin=273641|AlignEnd=273761|Gloss=do
+4	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	5	mod:poss	_	AlignBegin=273761|AlignEnd=273961|Gloss=SG.1.POSS
+5	work	work	NOUN	_	_	3	comp:obj	_	AlignBegin=273961|AlignEnd=274194|Gloss=work
+6	for	for	ADP	_	_	3	mod	_	AlignBegin=274194|AlignEnd=274294|Gloss=for
+7	house	house	NOUN	_	_	6	comp:obj	_	AlignBegin=274294|AlignEnd=274690|Gloss=house
+8	//	//	PUNCT	_	_	1	punct	_	AlignBegin=274690|AlignEnd=274720|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__97
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # for God wey like me < I no know sey [ God still like me ] //
+# text_en = For God who loves me, I didn't know if God still liked me.
+# text_ortho = For God wey like me, I no know sey God still like me.
+1	#	#	PUNCT	_	_	10	punct	_	AlignBegin=274720|AlignEnd=275761|Gloss=PUNCT
+2	for	for	ADP	_	_	10	mod:periph	_	AlignBegin=275761|AlignEnd=275892|Gloss=for
+3	God	God	PROPN	_	_	2	comp:obj	_	AlignBegin=275892|AlignEnd=276170|Gloss=God
+4	wey	wey	SCONJ	_	_	3	mod@relcl	_	AlignBegin=276170|AlignEnd=276332|Gloss=REL
+5	like	like	ADP	_	_	4	comp:obj	_	AlignBegin=276332|AlignEnd=276633|Gloss=like
+6	me	me	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	5	comp:obj	_	AlignBegin=276633|AlignEnd=276684|Gloss=NOM.SG.1
+7	<	<	PUNCT	_	_	2	punct	_	AlignBegin=276684|AlignEnd=276714|Gloss=PUNCT
+8	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	10	subj	_	AlignBegin=276714|AlignEnd=276790|Gloss=NOM.SG.1
+9	no	no	PART	_	Polarity=Neg	10	mod	_	AlignBegin=276790|AlignEnd=276890|Gloss=NEG
+10	know	know	VERB	_	_	0	root	_	AlignBegin=276890|AlignEnd=277017|Gloss=know
+11	sey	sey	SCONJ	_	_	10	comp:obj	_	AlignBegin=277017|AlignEnd=277167|Gloss=COMP
+12	[	[	PUNCT	_	_	15	punct	_	AlignBegin=277167|AlignEnd=277432|Gloss=PUNCT
+13	God	God	PROPN	_	_	15	subj	_	AlignBegin=277167|AlignEnd=277432|Gloss=God
+14	still	still	ADV	_	_	15	mod	_	AlignBegin=277432|AlignEnd=277723|Gloss=still
+15	like	like	VERB	_	_	11	comp:obj	_	AlignBegin=277723|AlignEnd=278045|Gloss=like
+16	me	me	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	15	comp:obj	_	AlignBegin=278045|AlignEnd=278182|Gloss=ACC.SG.1
+17	]	]	PUNCT	_	_	10	punct	_	AlignBegin=278182|AlignEnd=278212|Gloss=PUNCT
+18	//	//	PUNCT	_	_	10	punct	_	AlignBegin=278182|AlignEnd=278212|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__98
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # di day wey I complete two weeks for my shop # where I dey do my work < # na so >+ I just receive call //+ # unexpected call from unexpected person //
+# text_en = The day I finished two weeks at the shop I was working at, I got a call, an unexpected call from an unexpected person.
+# text_ortho = Di day wey I complete two weeks for my shop where I dey do my work, na so, I just receive call, unexpected call from unexpected person.
+1	#	#	PUNCT	_	_	21	punct	_	AlignBegin=278212|AlignEnd=278598|Gloss=PUNCT
+2	di	the	DET	_	Definite=Def|PronType=Art	3	det	_	AlignBegin=278598|AlignEnd=278707|Gloss=DEF.ART
+3	day	day	NOUN	_	_	21	dislocated	_	AlignBegin=278707|AlignEnd=278823|Gloss=day
+4	wey	wey	SCONJ	_	_	3	mod@relcl	_	AlignBegin=278823|AlignEnd=278912|Gloss=REL
+5	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	6	subj	_	AlignBegin=278912|AlignEnd=279001|Gloss=NOM.SG.1
+6	complete	complete	VERB	_	_	4	comp:obj	_	AlignBegin=279001|AlignEnd=279654|Gloss=complete
+7	two	two	NUM	_	NumType=Card	8	det:num	_	AlignBegin=279654|AlignEnd=279933|Gloss=two.CARD
+8	weeks	week	NOUN	_	Number=Plur	6	comp:obj	_	AlignBegin=279933|AlignEnd=280228|Gloss=week.PL
+9	for	for	ADP	_	_	6	mod	_	AlignBegin=280228|AlignEnd=280536|Gloss=for
+10	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	11	mod:poss	_	AlignBegin=280536|AlignEnd=280950|Gloss=SG.1.POSS
+11	shop	shop	NOUN	_	_	9	comp:obj	_	AlignBegin=280950|AlignEnd=281471|Gloss=shop
+12	#	#	PUNCT	_	_	13	punct	_	AlignBegin=281471|AlignEnd=281878|Gloss=PUNCT
+13	where	where	ADV	_	PronType=Int	11	mod	_	AlignBegin=281878|AlignEnd=281958|Gloss=where.Q
+14	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	15	subj	_	AlignBegin=281958|AlignEnd=282098|Gloss=NOM.SG.1
+15	dey	dey	AUX	_	Aspect=Imp	13	mod@relcl	_	AlignBegin=282098|AlignEnd=282248|Gloss=IPFV
+16	do	do	VERB	_	_	15	comp:aux	_	AlignBegin=282248|AlignEnd=282420|Gloss=do
+17	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	18	mod:poss	_	AlignBegin=282420|AlignEnd=282598|Gloss=SG.1.POSS
+18	work	work	NOUN	_	_	16	comp:obj	_	AlignBegin=282598|AlignEnd=282932|Gloss=work
+19	<	<	PUNCT	_	_	3	punct	_	AlignBegin=282932|AlignEnd=282962|Gloss=PUNCT
+20	#	#	PUNCT	_	_	21	punct	_	AlignBegin=282962|AlignEnd=283636|Gloss=PUNCT
+21	na	na	PART	_	PartType=Cop	0	root	_	AlignBegin=283636|AlignEnd=283726|Gloss=be
+22	so	so	ADV	_	_	21	comp:pred	_	AlignBegin=283726|AlignEnd=283829|Gloss=so
+23	>+	>+	PUNCT	_	_	26	punct	_	AlignBegin=283829|AlignEnd=283859|Gloss=PUNCT
+24	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	26	subj	_	AlignBegin=283859|AlignEnd=283967|Gloss=NOM.SG.1
+25	just	just	ADV	_	_	26	mod	_	AlignBegin=283967|AlignEnd=284206|Gloss=just
+26	receive	receive	VERB	_	_	21	comp:cleft	_	AlignBegin=284206|AlignEnd=284656|Gloss=receive
+27	call	call	NOUN	_	_	26	comp:obj	_	AlignBegin=284656|AlignEnd=284868|Gloss=call
+28	//+	//+	PUNCT	_	_	31	punct	_	AlignBegin=284868|AlignEnd=284897|Gloss=PUNCT
+29	#	#	PUNCT	_	_	31	punct	_	AlignBegin=284897|AlignEnd=285132|Gloss=PUNCT
+30	unexpected	unexpected	ADJ	_	_	31	mod	_	AlignBegin=285132|AlignEnd=285856|Gloss=unexpected
+31	call	call	NOUN	_	_	26	dislocated	_	AlignBegin=285856|AlignEnd=286096|Gloss=call
+32	from	from	ADP	_	_	31	mod	_	AlignBegin=286096|AlignEnd=286306|Gloss=from
+33	unexpected	unexpected	ADJ	_	_	34	mod	_	AlignBegin=286306|AlignEnd=287138|Gloss=unexpected
+34	person	person	NOUN	_	_	32	comp:obj	_	AlignBegin=287138|AlignEnd=287492|Gloss=person
+35	//	//	PUNCT	_	_	21	punct	_	AlignBegin=287492|AlignEnd=287522|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__99
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # de say [ hello !// # na Charity dey ?//= na Charity >+ I dey speak to ?//] //
+# text_en = "They said ""hello, is this Charity, is this Charity I am speaking to?"""
+# text_ortho = "De say ""hello, na Charity dey, na Charity, I dey speak to?"""
+1	#	#	PUNCT	_	_	3	punct	_	AlignBegin=287522|AlignEnd=287946|Gloss=PUNCT
+2	de	dem	PRON	_	Case=Nom|Number=Plur|Person=3|PronType=Prs	3	subj	_	AlignBegin=287946|AlignEnd=288013|Gloss=NOM.PL.3
+3	say	say	VERB	_	_	0	root	_	AlignBegin=288013|AlignEnd=288212|Gloss=say
+4	[	[	PUNCT	_	_	5	punct	_	AlignBegin=288212|AlignEnd=288242|Gloss=PUNCT
+5	hello	hello	INTJ	_	_	3	parataxis:obj	_	AlignBegin=288242|AlignEnd=288792|Gloss=hello
+6	!//	!//	PUNCT	_	_	8	punct	_	AlignBegin=288820|AlignEnd=289384|Gloss=PUNCT
+7	#	#	PUNCT	_	_	8	punct	_	AlignBegin=288820|AlignEnd=289384|Gloss=PUNCT
+8	na	na	PART	_	PartType=Cop	5	parataxis:conj	_	AlignBegin=289384|AlignEnd=289552|Gloss=be
+9	Charity	Charity	PROPN	_	_	8	comp:pred	_	AlignBegin=289552|AlignEnd=290002|Gloss=Charity
+10	dey	dey	VERB	_	VerbType=Cop	8	comp:cleft	_	AlignBegin=290002|AlignEnd=290142|Gloss=be
+11	?//=	?//=	PUNCT	_	_	12	punct	_	AlignBegin=290142|AlignEnd=290172|Gloss=PUNCT
+12	na	na	PART	_	PartType=Cop	8	parataxis:conj	_	AlignBegin=290172|AlignEnd=290372|Gloss=be
+13	Charity	Charity	PROPN	_	_	12	comp:pred	_	AlignBegin=290372|AlignEnd=290658|Gloss=Charity
+14	>+	>+	PUNCT	_	_	16	punct	_	AlignBegin=290658|AlignEnd=290688|Gloss=PUNCT
+15	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	16	subj	_	AlignBegin=290688|AlignEnd=290753|Gloss=NOM.SG.1
+16	dey	dey	AUX	_	Aspect=Imp	12	comp:cleft	_	AlignBegin=290753|AlignEnd=290854|Gloss=IPFV
+17	speak	speak	VERB	_	_	16	comp:aux	_	AlignBegin=290854|AlignEnd=291172|Gloss=speak
+18	to	to	ADP	_	_	17	comp:obl	_	AlignBegin=291172|AlignEnd=291262|Gloss=to
+19	?//]	?//]	PUNCT	_	_	12	punct	_	AlignBegin=291262|AlignEnd=291292|Gloss=PUNCT
+20	//	//	PUNCT	_	_	3	punct	_	AlignBegin=291262|AlignEnd=291292|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__100
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = I say yes //
+# text_en = I said yes.
+# text_ortho = I say yes.
+1	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	2	subj	_	AlignBegin=291292|AlignEnd=291432|Gloss=NOM.SG.1
+2	say	say	VERB	_	_	0	root	_	AlignBegin=291432|AlignEnd=291622|Gloss=say
+3	yes	yes	INTJ	_	_	2	parataxis:obj	_	AlignBegin=291622|AlignEnd=292000|Gloss=yes
+4	//	//	PUNCT	_	_	2	punct	_	AlignBegin=292000|AlignEnd=292030|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__101
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # e say [ abeg # come school { now |r now |r now |r now |r now |r now } //= come collect your admission letter //= you don get admission //] //
+# text_en = "They said, ""please, come to the school right now, come and get your admission letter, you've been accepted."""
+# text_ortho = "E say ""abeg come school now, now, now, now, now, now, come collect your admission letter, you don get admission."""
+1	#	#	PUNCT	_	_	3	punct	_	AlignBegin=292030|AlignEnd=292332|Gloss=PUNCT
+2	e	im	PRON	_	Case=Nom|Number=Sing|Person=3|PronType=Prs	3	subj	_	AlignBegin=292332|AlignEnd=292426|Gloss=NOM.SG.3
+3	say	say	VERB	_	_	0	root	_	AlignBegin=292426|AlignEnd=292496|Gloss=say
+4	[	[	PUNCT	_	_	7	punct	_	AlignBegin=292496|AlignEnd=292526|Gloss=PUNCT
+5	abeg	abeg	INTJ	_	_	7	discourse	_	AlignBegin=292526|AlignEnd=292932|Gloss=please
+6	#	#	PUNCT	_	_	7	punct	_	AlignBegin=292964|AlignEnd=293394|Gloss=PUNCT
+7	come	come	VERB	_	_	3	parataxis:obj	_	AlignBegin=293394|AlignEnd=293596|Gloss=come
+8	school	school	NOUN	_	_	7	comp:obj	_	AlignBegin=293596|AlignEnd=293902|Gloss=school
+9	{	{	PUNCT	_	_	10	punct	_	AlignBegin=293902|AlignEnd=293932|Gloss=PUNCT
+10	now	now	ADV	_	_	7	mod	_	AlignBegin=293932|AlignEnd=294162|Gloss=now
+11	|r	|r	PUNCT	_	_	12	punct	_	AlignBegin=294162|AlignEnd=294192|Gloss=PUNCT
+12	now	now	ADV	_	_	10	compound:redup	_	AlignBegin=294192|AlignEnd=294372|Gloss=now
+13	|r	|r	PUNCT	_	_	14	punct	_	AlignBegin=294372|AlignEnd=294402|Gloss=PUNCT
+14	now	now	ADV	_	_	12	compound:redup	_	AlignBegin=294402|AlignEnd=294538|Gloss=now
+15	|r	|r	PUNCT	_	_	16	punct	_	AlignBegin=294538|AlignEnd=294568|Gloss=PUNCT
+16	now	now	ADV	_	_	14	compound:redup	_	AlignBegin=294568|AlignEnd=294692|Gloss=now
+17	|r	|r	PUNCT	_	_	18	punct	_	AlignBegin=294692|AlignEnd=294722|Gloss=PUNCT
+18	now	now	ADV	_	_	16	compound:redup	_	AlignBegin=294722|AlignEnd=294863|Gloss=now
+19	|r	|r	PUNCT	_	_	20	punct	_	AlignBegin=294863|AlignEnd=294893|Gloss=PUNCT
+20	now	now	ADV	_	_	18	compound:redup	_	AlignBegin=294893|AlignEnd=294992|Gloss=now
+21	}	}	PUNCT	_	_	10	punct	_	AlignBegin=294992|AlignEnd=295022|Gloss=PUNCT
+22	//=	//=	PUNCT	_	_	23	punct	_	AlignBegin=294992|AlignEnd=295022|Gloss=PUNCT
+23	come	con	AUX	_	Aspect=Cons	3	parataxis:conj	_	AlignBegin=295022|AlignEnd=295182|Gloss=CONS
+24	collect	collect	VERB	_	_	23	comp:aux	_	AlignBegin=295182|AlignEnd=295402|Gloss=collect
+25	your	your	PRON	_	Number=Plur|Person=2|Poss=Yes	27	mod:poss	_	AlignBegin=295402|AlignEnd=295443|Gloss=PL.2.POSS
+26	admission	admission	NOUN	_	_	27	compound	_	AlignBegin=295443|AlignEnd=295952|Gloss=admission
+27	letter	letter	NOUN	_	_	24	comp:obj	_	AlignBegin=295952|AlignEnd=296192|Gloss=letter
+28	//=	//=	PUNCT	_	_	30	punct	_	AlignBegin=296192|AlignEnd=296222|Gloss=PUNCT
+29	you	you	PRON	_	Case=Nom|Person=2|PronType=Prs	30	subj	_	AlignBegin=296222|AlignEnd=296282|Gloss=NOM.2
+30	don	don	AUX	_	Aspect=Perf	23	parataxis:conj	_	AlignBegin=296282|AlignEnd=296472|Gloss=PRF
+31	get	get	VERB	_	_	30	comp:aux	_	AlignBegin=296472|AlignEnd=296542|Gloss=get
+32	admission	admission	NOUN	_	_	31	comp:obj	_	AlignBegin=296542|AlignEnd=297072|Gloss=admission
+33	//]	//]	PUNCT	_	_	7	punct	_	AlignBegin=297072|AlignEnd=297102|Gloss=PUNCT
+34	//	//	PUNCT	_	_	3	punct	_	AlignBegin=297072|AlignEnd=297102|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__102
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # aha # I say [ me < how comes ?//] //
+# text_en = " Ha, I said ""me, how come?"""
+# text_ortho = "Aha I say ""me, how comes?"""
+1	#	#	PUNCT	_	_	5	punct	_	AlignBegin=297102|AlignEnd=297331|Gloss=PUNCT
+2	aha	aha	INTJ	_	_	5	discourse	_	AlignBegin=297331|AlignEnd=297557|Gloss=ah
+3	#	#	PUNCT	_	_	5	punct	_	AlignBegin=297587|AlignEnd=297780|Gloss=PUNCT
+4	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	5	subj	_	AlignBegin=297780|AlignEnd=297878|Gloss=NOM.SG.1
+5	say	say	VERB	_	_	0	root	_	AlignBegin=297878|AlignEnd=298100|Gloss=say
+6	[	[	PUNCT	_	_	9	punct	_	AlignBegin=298100|AlignEnd=298460|Gloss=PUNCT
+7	me	me	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	9	dislocated	_	AlignBegin=298100|AlignEnd=298460|Gloss=ACC.SG.1
+8	<	<	PUNCT	_	_	7	punct	_	AlignBegin=298460|AlignEnd=298490|Gloss=PUNCT
+9	how	how	ADV	_	PronType=Int	5	parataxis:obj	10:@mod	AlignBegin=298490|AlignEnd=298750|Gloss=how.Q
+10	comes	come	VERB	_	Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin	9	comp:cleft	_	AlignBegin=298750|AlignEnd=299189|Gloss=come.IND.SG.3.PRS.FIN
+11	?//]	?//]	PUNCT	_	_	9	punct	_	AlignBegin=299189|AlignEnd=299219|Gloss=PUNCT
+12	//	//	PUNCT	_	_	5	punct	_	AlignBegin=299189|AlignEnd=299219|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__103
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # de say [ do fast |c and come //= you go fit even start lecture { today |r today } sef //] //
+# text_en = "They said ""hurry up and come, you could even start classes today, really."""
+# text_ortho = "De say ""do fast, and come, you go fit even start lecture today, today sef."""
+1	#	#	PUNCT	_	_	3	punct	_	AlignBegin=299219|AlignEnd=299554|Gloss=PUNCT
+2	de	dem	PRON	_	Case=Nom|Number=Plur|Person=3|PronType=Prs	3	subj	_	AlignBegin=299554|AlignEnd=299635|Gloss=NOM.PL.3
+3	say	say	VERB	_	_	0	root	_	AlignBegin=299635|AlignEnd=299800|Gloss=say
+4	[	[	PUNCT	_	_	5	punct	_	AlignBegin=299800|AlignEnd=299830|Gloss=PUNCT
+5	do	do	VERB	_	_	3	parataxis:obj	_	AlignBegin=299830|AlignEnd=299990|Gloss=do
+6	fast	fast	ADJ	_	_	5	mod	_	AlignBegin=299990|AlignEnd=300260|Gloss=fast
+7	|c	|c	PUNCT	_	_	9	punct	_	AlignBegin=300260|AlignEnd=300290|Gloss=PUNCT
+8	and	and	CCONJ	_	_	9	cc	_	AlignBegin=300290|AlignEnd=300440|Gloss=and
+9	come	come	VERB	_	_	5	conj:coord	_	AlignBegin=300440|AlignEnd=300710|Gloss=come
+10	//=	//=	PUNCT	_	_	12	punct	_	AlignBegin=300710|AlignEnd=300740|Gloss=PUNCT
+11	you	you	PRON	_	Case=Nom|Person=2|PronType=Prs	12	subj	_	AlignBegin=300740|AlignEnd=300830|Gloss=NOM.2
+12	go	go	AUX	_	Aspect=Prosp	5	parataxis:conj	_	AlignBegin=300830|AlignEnd=300910|Gloss=PROSP
+13	fit	fit	AUX	_	Mood=Pot	12	comp:aux	_	AlignBegin=300910|AlignEnd=301061|Gloss=ABIL
+14	even	even	ADV	_	_	15	mod	_	AlignBegin=301061|AlignEnd=301292|Gloss=even
+15	start	start	VERB	_	_	13	comp:aux	_	AlignBegin=301292|AlignEnd=301705|Gloss=start
+16	lecture	lecture	NOUN	_	_	15	comp:obj	_	AlignBegin=301705|AlignEnd=302130|Gloss=lecture
+17	{	{	PUNCT	_	_	18	punct	_	AlignBegin=302130|AlignEnd=302160|Gloss=PUNCT
+18	today	today	NOUN	_	_	15	mod	_	AlignBegin=302160|AlignEnd=302420|Gloss=today
+19	|r	|r	PUNCT	_	_	20	punct	_	AlignBegin=302420|AlignEnd=302450|Gloss=PUNCT
+20	today	today	NOUN	_	_	18	compound:redup	_	AlignBegin=302450|AlignEnd=302724|Gloss=today
+21	}	}	PUNCT	_	_	18	punct	_	AlignBegin=302724|AlignEnd=302754|Gloss=PUNCT
+22	sef	sef	PART	_	PartType=Disc	20	mod:emph	_	AlignBegin=302754|AlignEnd=303027|Gloss=FOC
+23	//]	//]	PUNCT	_	_	15	punct	_	AlignBegin=303027|AlignEnd=303057|Gloss=PUNCT
+24	//	//	PUNCT	_	_	3	punct	_	AlignBegin=303027|AlignEnd=303057|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__104
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = # na so >+ I just &//
+# text_en = That was how I just…
+# text_ortho = Na so, I just...
+1	#	#	PUNCT	_	_	2	punct	_	AlignBegin=303057|AlignEnd=303497|Gloss=PUNCT
+2	na	na	PART	_	PartType=Cop	0	root	_	AlignBegin=303497|AlignEnd=303617|Gloss=be
+3	so	so	ADV	_	_	5	discourse	_	AlignBegin=303617|AlignEnd=303800|Gloss=so
+4	>+	>+	PUNCT	_	_	5	punct	_	AlignBegin=303800|AlignEnd=303830|Gloss=PUNCT
+5	I	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	2	comp:pred	_	AlignBegin=303830|AlignEnd=303977|Gloss=NOM.SG.1
+6	just	just	ADV	_	_	5	mod	_	AlignBegin=303977|AlignEnd=304397|Gloss=just
+7	&//	&//	PUNCT	_	_	2	punct	_	AlignBegin=304397|AlignEnd=304427|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__105
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = { my oga wo- || my oga wey } # { me |c and him } < we dey work togeder < # e just dey happy for me sey aha //
+# text_en = My boss wo…, my boss I was working with, he was just happy for me that... wow!
+# text_ortho = My oga wo-... my oga wey me, and him, we dey work togeder, e just dey happy for me sey...aha.
+1	{	{	PUNCT	_	_	3	punct	_	AlignBegin=304397|AlignEnd=304427|Gloss=PUNCT
+2	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	3	mod:poss	_	AlignBegin=304427|AlignEnd=304577|Gloss=SG.1.POSS
+3	oga	oga	NOUN	_	_	26	dislocated	_	AlignBegin=304577|AlignEnd=304859|Gloss=boss
+4	wo-	X	X	_	_	3	mod	_	AlignBegin=304859|AlignEnd=304997|Gloss=X
+5	||	||	PUNCT	_	_	7	punct	_	AlignBegin=304997|AlignEnd=305027|Gloss=PUNCT
+6	my	my	PRON	_	Number=Sing|Person=1|Poss=Yes	7	mod:poss	_	AlignBegin=305027|AlignEnd=305200|Gloss=SG.1.POSS
+7	oga	oga	NOUN	_	_	3	conj:dicto	_	AlignBegin=305200|AlignEnd=305445|Gloss=boss
+8	wey	wey	SCONJ	_	_	7	mod@relcl	_	AlignBegin=305445|AlignEnd=305772|Gloss=REL
+9	}	}	PUNCT	_	_	3	punct	_	AlignBegin=305772|AlignEnd=305804|Gloss=PUNCT
+10	#	#	PUNCT	_	_	19	punct	_	AlignBegin=305804|AlignEnd=306111|Gloss=PUNCT
+11	{	{	PUNCT	_	_	12	punct	_	AlignBegin=306081|AlignEnd=306111|Gloss=PUNCT
+12	me	me	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	19	dislocated	_	AlignBegin=306111|AlignEnd=306193|Gloss=NOM.SG.1
+13	|c	|c	PUNCT	_	_	15	punct	_	AlignBegin=306193|AlignEnd=306223|Gloss=PUNCT
+14	and	and	CCONJ	_	_	15	cc	_	AlignBegin=306223|AlignEnd=306417|Gloss=and
+15	him	him	PRON	_	Case=Acc|Gender=Masc|Number=Sing|Person=3|PronType=Prs	12	conj:coord	_	AlignBegin=306417|AlignEnd=306467|Gloss=ACC.M.SG.3
+16	}	}	PUNCT	_	_	12	punct	_	AlignBegin=306467|AlignEnd=306497|Gloss=PUNCT
+17	<	<	PUNCT	_	_	12	punct	_	AlignBegin=306467|AlignEnd=306497|Gloss=PUNCT
+18	we	we	PRON	_	Case=Nom|Number=Plur|Person=1|PronType=Prs	19	subj	_	AlignBegin=306497|AlignEnd=306557|Gloss=NOM.PL.1
+19	dey	dey	AUX	_	Aspect=Imp	8	comp:obj	_	AlignBegin=306557|AlignEnd=306657|Gloss=IPFV
+20	work	work	VERB	_	_	19	comp:aux	_	AlignBegin=306657|AlignEnd=306907|Gloss=work
+21	togeder	togeder	ADV	_	_	20	mod	_	AlignBegin=306907|AlignEnd=307403|Gloss=together
+22	<	<	PUNCT	_	_	3	punct	_	AlignBegin=307403|AlignEnd=307433|Gloss=PUNCT
+23	#	#	PUNCT	_	_	3	punct	_	AlignBegin=307433|AlignEnd=307775|Gloss=PUNCT
+24	e	im	PRON	_	Case=Nom|Number=Sing|Person=3|PronType=Prs	26	subj	_	AlignBegin=307775|AlignEnd=307855|Gloss=NOM.SG.3
+25	just	just	ADV	_	_	26	mod	_	AlignBegin=307855|AlignEnd=308103|Gloss=just
+26	dey	dey	VERB	_	VerbType=Cop	0	root	_	AlignBegin=308103|AlignEnd=308239|Gloss=be
+27	happy	happy	ADJ	_	_	26	comp:pred	_	AlignBegin=308239|AlignEnd=308595|Gloss=happy
+28	for	for	ADP	_	_	27	mod	_	AlignBegin=308595|AlignEnd=308845|Gloss=for
+29	me	me	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	28	comp:obj	_	AlignBegin=308845|AlignEnd=309075|Gloss=ACC.SG.1
+30	sey	sey	SCONJ	_	_	27	comp:obj@scrap	_	AlignBegin=309075|AlignEnd=309219|Gloss=COMP
+31	aha	aha	INTJ	_	_	26	discourse	_	AlignBegin=309249|AlignEnd=309585|Gloss=ah
+32	//	//	PUNCT	_	_	26	punct	_	AlignBegin=309585|AlignEnd=309615|Gloss=PUNCT
+
+# sent_id = ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG__106
+# sound_url = http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/ABJ_GWA_03_Cost-Of-Living-In-Abuja_MG.mp3
+# speaker_id = Sp3
+# text = e even give me transport |c say [ oya { go school |r go school } //] //
+# text_en = He even gave me the transport fare saying I should go to school right away.
+# text_ortho = E even give me transport, say oya go school, go school.
+1	e	im	PRON	_	Case=Nom|Number=Sing|Person=3|PronType=Prs	3	subj	_	AlignBegin=309615|AlignEnd=309722|Gloss=NOM.SG.3
+2	even	even	ADV	_	_	3	mod	_	AlignBegin=309722|AlignEnd=309885|Gloss=even
+3	give	give	VERB	_	_	0	root	_	AlignBegin=309885|AlignEnd=309982|Gloss=give
+4	me	me	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	3	comp:obj	_	AlignBegin=309982|AlignEnd=310098|Gloss=ACC.SG.1
+5	transport	transport	NOUN	_	_	3	comp:obj	_	AlignBegin=310098|AlignEnd=310675|Gloss=transport
+6	|c	|c	PUNCT	_	_	7	punct	_	AlignBegin=310098|AlignEnd=310675|Gloss=PUNCT
+7	say	say	VERB	_	_	3	conj:coord	_	AlignBegin=310675|AlignEnd=310775|Gloss=say
+8	[	[	PUNCT	_	_	11	punct	_	AlignBegin=310775|AlignEnd=310805|Gloss=PUNCT
+9	oya	oya	INTJ	_	_	11	discourse	_	AlignBegin=310805|AlignEnd=310985|Gloss=come_on
+10	{	{	PUNCT	_	_	11	punct	_	AlignBegin=310985|AlignEnd=311015|Gloss=PUNCT
+11	go	go	VERB	_	_	7	comp:obj@x	_	AlignBegin=311015|AlignEnd=311175|Gloss=go
+12	school	school	NOUN	_	_	11	comp:obj	_	AlignBegin=311175|AlignEnd=311395|Gloss=school
+13	|r	|r	PUNCT	_	_	14	punct	_	AlignBegin=311395|AlignEnd=311425|Gloss=PUNCT
+14	go	go	VERB	_	_	11	compound:redup	_	AlignBegin=311425|AlignEnd=311565|Gloss=go
+15	school	school	NOUN	_	_	14	comp:obj	_	AlignBegin=311565|AlignEnd=311902|Gloss=school
+16	}	}	PUNCT	_	_	11	punct	_	AlignBegin=311902|AlignEnd=311932|Gloss=PUNCT
+17	//]	//]	PUNCT	_	_	11	punct	_	AlignBegin=311902|AlignEnd=311932|Gloss=PUNCT
+18	//	//	PUNCT	_	_	3	punct	_	AlignBegin=311902|AlignEnd=311932|Gloss=PUNCT
