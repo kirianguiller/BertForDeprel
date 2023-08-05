@@ -11,8 +11,8 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-def tarjan(tree):
-    """"""
+def tarjan(tree: NDArray[np.float64]):
+    """tree is 1D. TODO: explain what this does."""
 
     indices = -np.ones_like(tree)
     lowlinks = -np.ones_like(tree)
@@ -30,11 +30,13 @@ def tarjan(tree):
         onstack[i] = True
         dependents = np.where(np.equal(tree, i))[0]
         for j in dependents:
+            # TODO: correct typing here requires specifying the shape of tree, which is
+            # not well supported yet.
             if indices[j] == -1:
                 strong_connect(j)
-                lowlinks[i] = min(lowlinks[i], lowlinks[j])
+                lowlinks[i] = min(lowlinks[i], lowlinks[j])  # type: ignore
             elif onstack[j]:
-                lowlinks[i] = min(lowlinks[i], indices[j])
+                lowlinks[i] = min(lowlinks[i], indices[j])  # type: ignore
 
         # There's a cycle!
         if lowlinks[i] == indices[i]:
@@ -57,7 +59,7 @@ def tarjan(tree):
     return cycles
 
 
-def chuliu_edmonds(scores):
+def chuliu_edmonds(scores: NDArray[np.float64]):
     """scores: NDArray : 2D array of scores, where scores[i, j] is the score of the ith
     token being dependent on the jth token"""
     np.fill_diagonal(scores, -float("inf"))  # prevent self-loops
