@@ -162,7 +162,7 @@ class EvalResultAccumulator:
             "LAS_epoch": round(float(LAS_epoch), ndigits),
             "LAS_chuliu_epoch": round(float(LAS_chuliu_epoch), ndigits),
             "acc_head_epoch": round(float(acc_head_epoch), ndigits),
-            "acc_deprel_epoch": acc_deprel_epoch,
+            "acc_deprel_epoch": round(acc_deprel_epoch, ndigits),
             "acc_uposs_epoch": round(float(acc_uposs_epoch), ndigits),
             "acc_xposs_epoch": round(float(acc_xposs_epoch), ndigits),
             "acc_feats_epoch": round(float(acc_feats_epoch), ndigits),

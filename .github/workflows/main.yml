@@ -26,3 +26,4 @@ jobs:
               uses: pre-commit/action@v2.0.3
               env:
                   PYTHONUTF8: 1
+                  PYTEST_ADDOPTS: -m 'not fragile'

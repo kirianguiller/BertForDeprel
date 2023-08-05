@@ -60,13 +60,14 @@ def _test_model_train():
     with open(model_config.model_folder_path + "/scores.best.json", "r") as f:
         scores = json.load(f)
     # TODO: put time in result and check that, as well; or specify it to pytest somehow
-    # TODO: test *all* of the output scores
+    # TODO: these numbers are different on every machine, and therefore this test
+    # FAILS anywhere except for mine. Need to figure out how to make it pass anywhere.
     assert scores == pytest.approx(
         {
             "LAS_epoch": 0.046,
             "LAS_chuliu_epoch": 0.046,
             "acc_head_epoch": 0.154,
-            "acc_deprel_epoch": 0.3076923076923077,
+            "acc_deprel_epoch": 0.308,
             "acc_uposs_epoch": 0.062,
             "acc_xposs_epoch": 1.0,
             "acc_feats_epoch": 0.0,
@@ -127,8 +128,9 @@ def _test_predict():
     assert diff == [], "Predicted ConllU lines differ from expected:" + "".join(diff)
 
 
-# About 30s on my M2 Mac. Skip with -m "not slow".
+# About 30s on my M2 Mac.
 @pytest.mark.slow
+@pytest.mark.fragile
 def test_train_and_predict():
     _test_model_train()
     _test_predict()

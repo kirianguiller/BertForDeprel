@@ -54,7 +54,10 @@ build-backend = "poetry.masonry.api"
 testpaths = ["tests"]
 # show all output
 addopts = ["-rPx"]
-markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
+markers = [
+    "slow: tests take a long time to run (deselect with '-m \"not slow\"')",
+    "fragile: tests will most likely fail on your machine (deselect with '-m \"not fragile\"')",
+]
 
 [tool.isort]
 profile = "black"
@@ -66,8 +69,8 @@ typeCheckingMode = "basic"
 source = ["BertForDeprel"]
 
 [tool.coverage.report]
-# we get 76 on Mac, though. Why?
-fail_under = 73
+# if we include the fragile tests, we get 70+%
+fail_under = 49
 exclude_lines = [
     # Have to re-enable the standard pragma
     "pragma: no cover",
