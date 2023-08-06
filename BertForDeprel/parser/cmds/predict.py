@@ -273,6 +273,8 @@ class Predict(CMD):
                 f"sents in {round(timer() - start, 2)} secs`"
             )
 
+            return predicted_sentences
+
     def __load_model(self, args, model_params):
         print("Loading model...")
         model = BertForDeprel(model_params)

@@ -53,7 +53,7 @@ build-backend = "poetry.masonry.api"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 # show all output
-addopts = ["-rPx"]
+addopts = ["-rPx", "-vv"]
 markers = [
     "slow: tests take a long time to run (deselect with '-m \"not slow\"')",
     "fragile: tests will most likely fail on your machine (deselect with '-m \"not fragile\"')",

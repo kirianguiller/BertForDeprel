@@ -1,0 +1,1183 @@
+[
+    {
+        "metaJson": {
+            "sent_id": "JOS_12_How-To-Prepare-Gote-Soup_MG__26",
+            "sound_url": "http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/JOS_12_How-To-Prepare-Gote-Soup_MG.mp3",
+            "speaker_id": "Sp126",
+            "text": "# na only di acha >+ go # go di oder # ehn # dish //",
+            "text_en": "It's only the acha, that will go to the other uh... dish.",
+            "text_ortho": "Na only di acha, go go di oder ehn dish."
+        },
+        "treeJson": {
+            "nodesJson": {
+                "1": {
+                    "ID": "1",
+                    "FORM": "#",
+                    "LEMMA": "#",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 2,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "149460",
+                        "AlignEnd": "149900",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "2": {
+                    "ID": "2",
+                    "FORM": "na",
+                    "LEMMA": "na",
+                    "UPOS": "PART",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "PartType": "Cop"
+                    },
+                    "HEAD": 0,
+                    "DEPREL": "root",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "149900",
+                        "AlignEnd": "150120",
+                        "Gloss": "be"
+                    }
+                },
+                "3": {
+                    "ID": "3",
+                    "FORM": "only",
+                    "LEMMA": "only",
+                    "UPOS": "ADV",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 5,
+                    "DEPREL": "mod",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "150120",
+                        "AlignEnd": "150350",
+                        "Gloss": "only"
+                    }
+                },
+                "4": {
+                    "ID": "4",
+                    "FORM": "di",
+                    "LEMMA": "the",
+                    "UPOS": "DET",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Definite": "Def",
+                        "PronType": "Art"
+                    },
+                    "HEAD": 5,
+                    "DEPREL": "det",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "150350",
+                        "AlignEnd": "150457",
+                        "Gloss": "DEF.ART"
+                    }
+                },
+                "5": {
+                    "ID": "5",
+                    "FORM": "acha",
+                    "LEMMA": "acha",
+                    "UPOS": "NOUN",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 2,
+                    "DEPREL": "comp:pred",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "150457",
+                        "AlignEnd": "150770",
+                        "Gloss": "digitaria_exilis"
+                    }
+                },
+                "6": {
+                    "ID": "6",
+                    "FORM": ">+",
+                    "LEMMA": ">+",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 7,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "150770",
+                        "AlignEnd": "150800",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "7": {
+                    "ID": "7",
+                    "FORM": "go",
+                    "LEMMA": "go",
+                    "UPOS": "AUX",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Aspect": "Prosp"
+                    },
+                    "HEAD": 2,
+                    "DEPREL": "comp:cleft",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "150800",
+                        "AlignEnd": "151040",
+                        "Gloss": "PROSP"
+                    }
+                },
+                "8": {
+                    "ID": "8",
+                    "FORM": "#",
+                    "LEMMA": "#",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 9,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "151040",
+                        "AlignEnd": "151260",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "9": {
+                    "ID": "9",
+                    "FORM": "go",
+                    "LEMMA": "go",
+                    "UPOS": "VERB",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 7,
+                    "DEPREL": "comp:aux",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "151260",
+                        "AlignEnd": "151430",
+                        "Gloss": "go"
+                    }
+                },
+                "10": {
+                    "ID": "10",
+                    "FORM": "di",
+                    "LEMMA": "the",
+                    "UPOS": "DET",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Definite": "Def",
+                        "PronType": "Art"
+                    },
+                    "HEAD": 15,
+                    "DEPREL": "det",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "151430",
+                        "AlignEnd": "151610",
+                        "Gloss": "DEF.ART"
+                    }
+                },
+                "11": {
+                    "ID": "11",
+                    "FORM": "oder",
+                    "LEMMA": "oder",
+                    "UPOS": "ADJ",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 15,
+                    "DEPREL": "mod",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "151610",
+                        "AlignEnd": "152200",
+                        "Gloss": "other"
+                    }
+                },
+                "12": {
+                    "ID": "12",
+                    "FORM": "#",
+                    "LEMMA": "#",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 13,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "152200",
+                        "AlignEnd": "152920",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "13": {
+                    "ID": "13",
+                    "FORM": "ehn",
+                    "LEMMA": "ehn",
+                    "UPOS": "INTJ",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 11,
+                    "DEPREL": "discourse",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "152920",
+                        "AlignEnd": "153370",
+                        "Gloss": "ehn"
+                    }
+                },
+                "14": {
+                    "ID": "14",
+                    "FORM": "#",
+                    "LEMMA": "#",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 11,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "153370",
+                        "AlignEnd": "153610",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "15": {
+                    "ID": "15",
+                    "FORM": "dish",
+                    "LEMMA": "dish",
+                    "UPOS": "NOUN",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 9,
+                    "DEPREL": "comp:obj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "153610",
+                        "AlignEnd": "153990",
+                        "Gloss": "dish"
+                    }
+                },
+                "16": {
+                    "ID": "16",
+                    "FORM": "//",
+                    "LEMMA": "//",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 2,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "153990",
+                        "AlignEnd": "154020",
+                        "Gloss": "PUNCT"
+                    }
+                }
+            },
+            "groupsJson": {}
+        }
+    },
+    {
+        "metaJson": {
+            "sent_id": "JOS_12_How-To-Prepare-Gote-Soup_MG__27",
+            "sound_url": "http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/JOS_12_How-To-Prepare-Gote-Soup_MG.mp3",
+            "speaker_id": "Sp126",
+            "text": "# den you pour it |c do it again about two three time //",
+            "text_en": "Then you will pour it, do it again for about two or three times.",
+            "text_ortho": "Den you pour it, do it again about two three time."
+        },
+        "treeJson": {
+            "nodesJson": {
+                "1": {
+                    "ID": "1",
+                    "FORM": "#",
+                    "LEMMA": "#",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 4,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "154020",
+                        "AlignEnd": "154540",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "2": {
+                    "ID": "2",
+                    "FORM": "den",
+                    "LEMMA": "den",
+                    "UPOS": "ADV",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 4,
+                    "DEPREL": "mod:periph",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "154540",
+                        "AlignEnd": "154730",
+                        "Gloss": "den"
+                    }
+                },
+                "3": {
+                    "ID": "3",
+                    "FORM": "you",
+                    "LEMMA": "you",
+                    "UPOS": "PRON",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Case": "Nom",
+                        "Person": "2",
+                        "PronType": "Prs"
+                    },
+                    "HEAD": 4,
+                    "DEPREL": "subj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "154730",
+                        "AlignEnd": "154885",
+                        "Gloss": "NOM.2"
+                    }
+                },
+                "4": {
+                    "ID": "4",
+                    "FORM": "pour",
+                    "LEMMA": "pour",
+                    "UPOS": "VERB",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 0,
+                    "DEPREL": "root",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "154885",
+                        "AlignEnd": "155140",
+                        "Gloss": "pour"
+                    }
+                },
+                "5": {
+                    "ID": "5",
+                    "FORM": "it",
+                    "LEMMA": "it",
+                    "UPOS": "PRON",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Case": "Nom",
+                        "Gender": "Neut",
+                        "Number": "Sing",
+                        "Person": "3",
+                        "PronType": "Prs"
+                    },
+                    "HEAD": 4,
+                    "DEPREL": "comp:obj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "155140",
+                        "AlignEnd": "155470",
+                        "Gloss": "NOM.NT.SG.3"
+                    }
+                },
+                "6": {
+                    "ID": "6",
+                    "FORM": "|c",
+                    "LEMMA": "|c",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 7,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "155470",
+                        "AlignEnd": "155500",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "7": {
+                    "ID": "7",
+                    "FORM": "do",
+                    "LEMMA": "do",
+                    "UPOS": "VERB",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 4,
+                    "DEPREL": "conj:coord",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "155500",
+                        "AlignEnd": "155761",
+                        "Gloss": "do"
+                    }
+                },
+                "8": {
+                    "ID": "8",
+                    "FORM": "it",
+                    "LEMMA": "it",
+                    "UPOS": "PRON",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Case": "Nom",
+                        "Gender": "Neut",
+                        "Number": "Sing",
+                        "Person": "3",
+                        "PronType": "Prs"
+                    },
+                    "HEAD": 7,
+                    "DEPREL": "comp:obj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "155761",
+                        "AlignEnd": "155880",
+                        "Gloss": "NOM.NT.SG.3"
+                    }
+                },
+                "9": {
+                    "ID": "9",
+                    "FORM": "again",
+                    "LEMMA": "again",
+                    "UPOS": "ADV",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 7,
+                    "DEPREL": "mod",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "155880",
+                        "AlignEnd": "156150",
+                        "Gloss": "again"
+                    }
+                },
+                "10": {
+                    "ID": "10",
+                    "FORM": "about",
+                    "LEMMA": "about",
+                    "UPOS": "ADP",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 7,
+                    "DEPREL": "mod",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "156150",
+                        "AlignEnd": "156450",
+                        "Gloss": "about"
+                    }
+                },
+                "11": {
+                    "ID": "11",
+                    "FORM": "two",
+                    "LEMMA": "two",
+                    "UPOS": "NUM",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "NumType": "Card"
+                    },
+                    "HEAD": 13,
+                    "DEPREL": "det:num",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "156450",
+                        "AlignEnd": "156682",
+                        "Gloss": "two.CARD"
+                    }
+                },
+                "12": {
+                    "ID": "12",
+                    "FORM": "three",
+                    "LEMMA": "three",
+                    "UPOS": "NUM",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "NumType": "Card"
+                    },
+                    "HEAD": 11,
+                    "DEPREL": "conj:coord",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "156682",
+                        "AlignEnd": "156982",
+                        "Gloss": "three.CARD"
+                    }
+                },
+                "13": {
+                    "ID": "13",
+                    "FORM": "time",
+                    "LEMMA": "time",
+                    "UPOS": "NOUN",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 10,
+                    "DEPREL": "comp:obj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "156982",
+                        "AlignEnd": "157310",
+                        "Gloss": "time"
+                    }
+                },
+                "14": {
+                    "ID": "14",
+                    "FORM": "//",
+                    "LEMMA": "//",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 4,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "157310",
+                        "AlignEnd": "157340",
+                        "Gloss": "PUNCT"
+                    }
+                }
+            },
+            "groupsJson": {}
+        }
+    },
+    {
+        "metaJson": {
+            "sent_id": "JOS_12_How-To-Prepare-Gote-Soup_MG__28",
+            "sound_url": "http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/JOS_12_How-To-Prepare-Gote-Soup_MG.mp3",
+            "speaker_id": "Sp126",
+            "text": "# make you make sure sey # [ all di sand don comot ] //",
+            "text_en": "You should make sure that all the sand has come off.",
+            "text_ortho": "Make you make sure sey all di sand don comot."
+        },
+        "treeJson": {
+            "nodesJson": {
+                "1": {
+                    "ID": "1",
+                    "FORM": "#",
+                    "LEMMA": "#",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 2,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "157340",
+                        "AlignEnd": "157620",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "2": {
+                    "ID": "2",
+                    "FORM": "make",
+                    "LEMMA": "make",
+                    "UPOS": "AUX",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Mood": "Opt"
+                    },
+                    "HEAD": 0,
+                    "DEPREL": "root",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "157620",
+                        "AlignEnd": "157820",
+                        "Gloss": "SBJV"
+                    }
+                },
+                "3": {
+                    "ID": "3",
+                    "FORM": "you",
+                    "LEMMA": "you",
+                    "UPOS": "PRON",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Case": "Nom",
+                        "Person": "2",
+                        "PronType": "Prs"
+                    },
+                    "HEAD": 4,
+                    "DEPREL": "subj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "157820",
+                        "AlignEnd": "157932",
+                        "Gloss": "NOM.2"
+                    }
+                },
+                "4": {
+                    "ID": "4",
+                    "FORM": "make",
+                    "LEMMA": "make",
+                    "UPOS": "VERB",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 2,
+                    "DEPREL": "comp:aux",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "157932",
+                        "AlignEnd": "158150",
+                        "Gloss": "make"
+                    }
+                },
+                "5": {
+                    "ID": "5",
+                    "FORM": "sure",
+                    "LEMMA": "sure",
+                    "UPOS": "ADJ",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 4,
+                    "DEPREL": "comp:obj@lvc",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "158150",
+                        "AlignEnd": "158460",
+                        "Gloss": "sure"
+                    }
+                },
+                "6": {
+                    "ID": "6",
+                    "FORM": "sey",
+                    "LEMMA": "sey",
+                    "UPOS": "SCONJ",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 4,
+                    "DEPREL": "comp:obj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "158460",
+                        "AlignEnd": "158960",
+                        "Gloss": "COMP"
+                    }
+                },
+                "7": {
+                    "ID": "7",
+                    "FORM": "#",
+                    "LEMMA": "#",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 12,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "158960",
+                        "AlignEnd": "159200",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "8": {
+                    "ID": "8",
+                    "FORM": "[",
+                    "LEMMA": "[",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 12,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "159170",
+                        "AlignEnd": "159200",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "9": {
+                    "ID": "9",
+                    "FORM": "all",
+                    "LEMMA": "all",
+                    "UPOS": "ADV",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 11,
+                    "DEPREL": "mod",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "159200",
+                        "AlignEnd": "159422",
+                        "Gloss": "all"
+                    }
+                },
+                "10": {
+                    "ID": "10",
+                    "FORM": "di",
+                    "LEMMA": "the",
+                    "UPOS": "DET",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Definite": "Def",
+                        "PronType": "Art"
+                    },
+                    "HEAD": 11,
+                    "DEPREL": "det",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "159422",
+                        "AlignEnd": "159740",
+                        "Gloss": "DEF.ART"
+                    }
+                },
+                "11": {
+                    "ID": "11",
+                    "FORM": "sand",
+                    "LEMMA": "sand",
+                    "UPOS": "NOUN",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 12,
+                    "DEPREL": "subj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "159740",
+                        "AlignEnd": "160106",
+                        "Gloss": "sand"
+                    }
+                },
+                "12": {
+                    "ID": "12",
+                    "FORM": "don",
+                    "LEMMA": "don",
+                    "UPOS": "AUX",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Aspect": "Perf"
+                    },
+                    "HEAD": 6,
+                    "DEPREL": "comp:obj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "160106",
+                        "AlignEnd": "160322",
+                        "Gloss": "PRF"
+                    }
+                },
+                "13": {
+                    "ID": "13",
+                    "FORM": "comot",
+                    "LEMMA": "comot",
+                    "UPOS": "VERB",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 12,
+                    "DEPREL": "comp:aux",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "160322",
+                        "AlignEnd": "160930",
+                        "Gloss": "get_out"
+                    }
+                },
+                "14": {
+                    "ID": "14",
+                    "FORM": "]",
+                    "LEMMA": "]",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 12,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "160930",
+                        "AlignEnd": "160960",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "15": {
+                    "ID": "15",
+                    "FORM": "//",
+                    "LEMMA": "//",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 2,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "160930",
+                        "AlignEnd": "160960",
+                        "Gloss": "PUNCT"
+                    }
+                }
+            },
+            "groupsJson": {}
+        }
+    },
+    {
+        "metaJson": {
+            "sent_id": "JOS_12_How-To-Prepare-Gote-Soup_MG__29",
+            "sound_url": "http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/JOS_12_How-To-Prepare-Gote-Soup_MG.mp3",
+            "speaker_id": "Sp126",
+            "text": "# if you finish dat one < # den you pour it //",
+            "text_en": "If you finish that, then you will pour it.",
+            "text_ortho": "If you finish dat one, den you pour it."
+        },
+        "treeJson": {
+            "nodesJson": {
+                "1": {
+                    "ID": "1",
+                    "FORM": "#",
+                    "LEMMA": "#",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 11,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "160960",
+                        "AlignEnd": "161960",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "2": {
+                    "ID": "2",
+                    "FORM": "if",
+                    "LEMMA": "if",
+                    "UPOS": "SCONJ",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 11,
+                    "DEPREL": "mod:periph",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "161960",
+                        "AlignEnd": "162116",
+                        "Gloss": "if"
+                    }
+                },
+                "3": {
+                    "ID": "3",
+                    "FORM": "you",
+                    "LEMMA": "you",
+                    "UPOS": "PRON",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Case": "Nom",
+                        "Person": "2",
+                        "PronType": "Prs"
+                    },
+                    "HEAD": 4,
+                    "DEPREL": "subj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "162116",
+                        "AlignEnd": "162165",
+                        "Gloss": "NOM.2"
+                    }
+                },
+                "4": {
+                    "ID": "4",
+                    "FORM": "finish",
+                    "LEMMA": "finish",
+                    "UPOS": "VERB",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 2,
+                    "DEPREL": "comp:obj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "162165",
+                        "AlignEnd": "162500",
+                        "Gloss": "finish"
+                    }
+                },
+                "5": {
+                    "ID": "5",
+                    "FORM": "dat",
+                    "LEMMA": "dat",
+                    "UPOS": "DET",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Number": "Sing",
+                        "PronType": "Dem"
+                    },
+                    "HEAD": 6,
+                    "DEPREL": "det",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "162500",
+                        "AlignEnd": "162733",
+                        "Gloss": "SG.DIST.DEM"
+                    }
+                },
+                "6": {
+                    "ID": "6",
+                    "FORM": "one",
+                    "LEMMA": "one",
+                    "UPOS": "NOUN",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 4,
+                    "DEPREL": "comp:obj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "162733",
+                        "AlignEnd": "163070",
+                        "Gloss": "one"
+                    }
+                },
+                "7": {
+                    "ID": "7",
+                    "FORM": "<",
+                    "LEMMA": "<",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 2,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "163070",
+                        "AlignEnd": "163100",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "8": {
+                    "ID": "8",
+                    "FORM": "#",
+                    "LEMMA": "#",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 2,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "163100",
+                        "AlignEnd": "163440",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "9": {
+                    "ID": "9",
+                    "FORM": "den",
+                    "LEMMA": "den",
+                    "UPOS": "ADV",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 11,
+                    "DEPREL": "mod:periph",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "163440",
+                        "AlignEnd": "163670",
+                        "Gloss": "den"
+                    }
+                },
+                "10": {
+                    "ID": "10",
+                    "FORM": "you",
+                    "LEMMA": "you",
+                    "UPOS": "PRON",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Case": "Nom",
+                        "Person": "2",
+                        "PronType": "Prs"
+                    },
+                    "HEAD": 11,
+                    "DEPREL": "subj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "163670",
+                        "AlignEnd": "163872",
+                        "Gloss": "NOM.2"
+                    }
+                },
+                "11": {
+                    "ID": "11",
+                    "FORM": "pour",
+                    "LEMMA": "pour",
+                    "UPOS": "VERB",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 0,
+                    "DEPREL": "root",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "163872",
+                        "AlignEnd": "164337",
+                        "Gloss": "pour"
+                    }
+                },
+                "12": {
+                    "ID": "12",
+                    "FORM": "it",
+                    "LEMMA": "it",
+                    "UPOS": "PRON",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Case": "Nom",
+                        "Gender": "Neut",
+                        "Number": "Sing",
+                        "Person": "3",
+                        "PronType": "Prs"
+                    },
+                    "HEAD": 11,
+                    "DEPREL": "comp:obj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "164337",
+                        "AlignEnd": "164620",
+                        "Gloss": "NOM.NT.SG.3"
+                    }
+                },
+                "13": {
+                    "ID": "13",
+                    "FORM": "//",
+                    "LEMMA": "//",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 11,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "164620",
+                        "AlignEnd": "164663",
+                        "Gloss": "PUNCT"
+                    }
+                }
+            },
+            "groupsJson": {}
+        }
+    },
+    {
+        "metaJson": {
+            "sent_id": "JOS_12_How-To-Prepare-Gote-Soup_MG__30",
+            "sound_url": "http://www.tal.univ-paris3.fr/trameur/iTrameur-naija/mp3/JOS_12_How-To-Prepare-Gote-Soup_MG.mp3",
+            "speaker_id": "Sp126",
+            "text": "# den you go dey stir //",
+            "text_en": "Then you'll stir it.",
+            "text_ortho": "Den you go dey stir."
+        },
+        "treeJson": {
+            "nodesJson": {
+                "1": {
+                    "ID": "1",
+                    "FORM": "#",
+                    "LEMMA": "#",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 4,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "164620",
+                        "AlignEnd": "165440",
+                        "Gloss": "PUNCT"
+                    }
+                },
+                "2": {
+                    "ID": "2",
+                    "FORM": "den",
+                    "LEMMA": "den",
+                    "UPOS": "ADV",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 4,
+                    "DEPREL": "mod:periph",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "165440",
+                        "AlignEnd": "165589",
+                        "Gloss": "den"
+                    }
+                },
+                "3": {
+                    "ID": "3",
+                    "FORM": "you",
+                    "LEMMA": "you",
+                    "UPOS": "PRON",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Case": "Nom",
+                        "Person": "2",
+                        "PronType": "Prs"
+                    },
+                    "HEAD": 4,
+                    "DEPREL": "subj",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "165589",
+                        "AlignEnd": "165734",
+                        "Gloss": "NOM.2"
+                    }
+                },
+                "4": {
+                    "ID": "4",
+                    "FORM": "go",
+                    "LEMMA": "go",
+                    "UPOS": "AUX",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Aspect": "Prosp"
+                    },
+                    "HEAD": 0,
+                    "DEPREL": "root",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "165734",
+                        "AlignEnd": "165899",
+                        "Gloss": "PROSP"
+                    }
+                },
+                "5": {
+                    "ID": "5",
+                    "FORM": "dey",
+                    "LEMMA": "dey",
+                    "UPOS": "AUX",
+                    "XPOS": "_",
+                    "FEATS": {
+                        "Aspect": "Imp"
+                    },
+                    "HEAD": 4,
+                    "DEPREL": "comp:aux",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "165899",
+                        "AlignEnd": "166045",
+                        "Gloss": "IPFV"
+                    }
+                },
+                "6": {
+                    "ID": "6",
+                    "FORM": "stir",
+                    "LEMMA": "stir",
+                    "UPOS": "VERB",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 5,
+                    "DEPREL": "comp:aux",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "166045",
+                        "AlignEnd": "166530",
+                        "Gloss": "stir"
+                    }
+                },
+                "7": {
+                    "ID": "7",
+                    "FORM": "//",
+                    "LEMMA": "//",
+                    "UPOS": "PUNCT",
+                    "XPOS": "_",
+                    "FEATS": {},
+                    "HEAD": 4,
+                    "DEPREL": "punct",
+                    "DEPS": {},
+                    "MISC": {
+                        "AlignBegin": "166530",
+                        "AlignEnd": "166560",
+                        "Gloss": "PUNCT"
+                    }
+                }
+            },
+            "groupsJson": {}
+        }
+    }
+]

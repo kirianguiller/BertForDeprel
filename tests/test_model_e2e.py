@@ -1,6 +1,5 @@
 import json
 from dataclasses import dataclass
-from difflib import unified_diff
 from pathlib import Path
 from typing import Optional
 
@@ -18,7 +17,7 @@ PATH_TEST_DATA_FOLDER = PARENT / "data"
 # (currently 2 minutes on MPS)
 PATH_TEST_CONLLU = PATH_TEST_DATA_FOLDER / "naija.test.conllu"
 PATH_TRAIN_CONLLU = PATH_TEST_DATA_FOLDER / "naija.train.conllu"
-PATH_EXPECTED_PREDICTIONS = PATH_TEST_DATA_FOLDER / "naija.predictions.expected.conllu"
+PATH_EXPECTED_PREDICTIONS = PATH_TEST_DATA_FOLDER / "naija.predictions.expected.json"
 
 
 @dataclass
@@ -56,6 +55,9 @@ def _test_model_train():
 
     train = Train()
     # TODO: should return scores, timing, model config, and model output path
+    # yield timing, epoch number, scores, current model and current best scores and
+    # model for each epoch; return total timing, epochs, and best scores and model
+    # TODO: create simpler API
     train(train_args, model_config)
     with open(model_config.model_folder_path + "/scores.best.json", "r") as f:
         scores = json.load(f)
@@ -117,15 +119,13 @@ def _test_predict():
     predict_args = PredictArgs()
     predict_args.conf = model_config
     predict_args.outpath = model_config.model_folder_path
-    # TODO: should return output
-    predict(predict_args, model_config)
+    # TODO: create simpler API
+    actual = predict(predict_args, model_config)
 
     with open(PATH_EXPECTED_PREDICTIONS, "r") as f:
-        expected_lines = f.readlines()
-    with open(predict_args.outpath + "/naija.test.predicted.conllu", "r") as f:
-        actual_lines = f.readlines()
-    diff = list(unified_diff(expected_lines, actual_lines))
-    assert diff == [], "Predicted ConllU lines differ from expected:" + "".join(diff)
+        expected = json.load(f)
+
+    assert actual == expected
 
 
 # About 30s on my M2 Mac.
