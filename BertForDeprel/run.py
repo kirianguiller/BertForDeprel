@@ -1,7 +1,8 @@
 import argparse
 import json
 import os
-from parser.cmds import Predict, Train
+from parser.cmds import PredictCmd
+from parser.cmds import Train as TrainCmd
 from parser.cmds.cmd import CMD
 from parser.utils.gpu_utils import get_devices_configuration
 from parser.utils.types import AnnotationSchema_T, ModelParams_T
@@ -12,7 +13,7 @@ import torch
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create the Biaffine Parser model.")
     subparsers = parser.add_subparsers(title="Commands", dest="mode")
-    subcommands: Dict[str, CMD] = {"predict": Predict(), "train": Train()}
+    subcommands: Dict[str, CMD] = {"predict": PredictCmd(), "train": TrainCmd()}
     for name, subcommand in subcommands.items():
         subparser = subcommand.add_subparser(name, subparsers)
         subparser.add_argument("--conf", "-c", help="path to config file (.json)")
@@ -80,4 +81,4 @@ if __name__ == "__main__":
 
     print(f"Running subcommand '{args.mode}'")
     cmd = subcommands[args.mode]
-    cmd(args, model_params)
+    cmd.run(args, model_params)

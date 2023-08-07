@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from argparse import ArgumentParser, _SubParsersAction
+from argparse import ArgumentParser, Namespace, _SubParsersAction
 from typing import TYPE_CHECKING, Any
 
 from ..utils.types import ModelParams_T
@@ -12,7 +12,7 @@ else:
 
 
 class CMD(ABC):
-    def __call__(self, args, model_params: ModelParams_T):
+    def run(self, args: Namespace, model_params: ModelParams_T):
         # TODO: why are we saving these?
         self.args = args
 

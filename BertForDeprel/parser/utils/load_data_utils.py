@@ -2,6 +2,7 @@ import os
 from dataclasses import dataclass
 from typing import Dict, List, Literal, Self, Tuple, TypeVar
 
+import torch
 from conllup.conllup import (
     _featuresConllToJson,
     _featuresJsonToConll,
@@ -106,7 +107,7 @@ class SequencePredictionBatch_T:
     # tensors representing sequences (shorter sequences are padded).
     max_sentence_length: int
 
-    def to(self, device: str, is_eval=False) -> Self:
+    def to(self, device: torch.device, is_eval=False) -> Self:
         """Returns a new training batch with the tensors sent to the specified device.
         For use during model training or prediction (is_eval=False) or evaluation
         (is_eval=True).
@@ -158,7 +159,7 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
         self.feats = feats
         self.lemma_scripts = lemma_scripts
 
-    def to(self, device: str, is_eval=False):
+    def to(self, device: torch.device, is_eval=False):
         """Returns a new training batch with the tensors sent to the specified device.
         For use during model training (is_eval=False) or evaluation (is_eval=True)."""
         return SequenceTrainingBatch_T(
@@ -233,6 +234,7 @@ class ConlluDataset(Dataset):
             f"{self.UNK_token_id} (UNK), {self.tokenizer.pad_token_id} (PAD)"
         )
 
+        # TODO: move inside a new annotation_schema class
         self.dep2i, _ = self._compute_labels2i(
             self.model_params.annotation_schema.deprels
         )

@@ -1,4 +1,4 @@
-from .predict import Predict
+from .predict import PredictCmd
 from .train import Train
 
-__all__ = ["Predict", "Train"]
+__all__ = ["PredictCmd", "Train"]

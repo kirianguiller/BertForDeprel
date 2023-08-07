@@ -100,8 +100,8 @@ def apply_lemma_rule(form: str, lemma_rule: str) -> str:
 
     if ";" not in lemma_rule:
         print(
-            f"error: unable to apply lemma rule '{lemma_rule}' because it does not "
-            "contain a ';'"
+            f"warning: unable to apply lemma rule '{lemma_rule}' because it does not "
+            f"contain a ';'. Returning form '{form}' as lemma.",
         )
         return form
 
@@ -143,7 +143,8 @@ def apply_lemma_rule(form: str, lemma_rule: str) -> str:
         # TODO: what exceptions might occur here? Should we really catch them?
         except Exception:
             print(
-                f"error: unable to apply lemma rule '{rule}' to '{form}'",
+                f"warning: unable to apply lemma rule '{rule}' to form '{form}'; "
+                f"returning '{form}' as lemma.",
                 file=sys.stderr,
             )
             lemma = form

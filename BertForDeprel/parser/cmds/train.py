@@ -72,8 +72,8 @@ class Train(CMD):
 
         return subparser
 
-    def __call__(self, args, model_params: ModelParams_T):
-        super().__call__(args, model_params)
+    def run(self, args, model_params: ModelParams_T):
+        super().run(args, model_params)
         if args.model_folder_path:
             model_params.model_folder_path = args.model_folder_path
 

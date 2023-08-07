@@ -1,5 +1,5 @@
 import os
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from timeit import default_timer as timer
 from typing import List, Tuple
 
@@ -14,6 +14,7 @@ from ..modules.BertForDepRel import BertForDeprel
 from ..modules.BertForDepRelOutput import BertForDeprelBatchOutput
 from ..utils.annotation_schema_utils import resolve_conllu_paths
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
+from ..utils.gpu_utils import get_devices_configuration
 from ..utils.load_data_utils import (
     ConlluDataset,
     CopyOption,
@@ -24,7 +25,7 @@ from ..utils.scores_and_losses_utils import _deprel_pred_for_heads
 from ..utils.types import ModelParams_T
 
 
-class Predict(CMD):
+class PredictCmd(CMD):
     def add_subparser(self, name: str, parser: SubparsersType) -> ArgumentParser:
         subparser = parser.add_parser(
             name, help="Use a trained model to make predictions."
@@ -43,11 +44,6 @@ class Predict(CMD):
             "--overwrite",
             action="store_true",
             help="whether to overwrite predicted file if already existing",
-        )
-        subparser.add_argument(
-            "--write_preds_in_misc",
-            action="store_true",
-            help="whether to include punctuation",
         )
         subparser.add_argument(
             "--keep_heads",
@@ -88,6 +84,166 @@ class Predict(CMD):
 
         return subparser
 
+    def run(self, args: Namespace, model_params: ModelParams_T):
+        super().run(args, model_params)
+        in_to_out_paths, partial_pred_config, device, multi_gpu = self.__validate_args(
+            args
+        )
+
+        predictor = Predictor(model_params, args.num_workers, device, multi_gpu)
+
+        print("Starting Predictions ...")
+        for in_path, out_path in in_to_out_paths.items():
+            print(f"Loading dataset from {in_path}...")
+            pred_dataset = ConlluDataset(in_path, model_params, "predict")
+            predicted_sentences, elapsed_seconds = predictor.predict(
+                pred_dataset, partial_pred_config
+            )
+
+            writeConlluFile(out_path, predicted_sentences, overwrite=args.overwrite)
+
+            print(
+                f"Finished predicting `{out_path}, wrote {len(predicted_sentences)} "
+                f"sents in {elapsed_seconds} secs`"
+            )
+
+            return predicted_sentences
+
+    def __validate_args(self, args: Namespace):
+        if not args.conf:
+            raise Exception(
+                "Path to model xxx.config.json must be provided as --conf parameter"
+            )
+
+        if args.num_workers < 0:
+            raise Exception("num_workers must be greater than or equal to 0")
+
+        output_dir = args.outpath
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir)
+
+        unvalidated_input_paths = []
+        if os.path.isdir(args.inpath):
+            unvalidated_input_paths = resolve_conllu_paths(args.inpath)
+        elif os.path.isfile(args.inpath):
+            unvalidated_input_paths.append(args.inpath)
+        else:
+            raise BaseException(
+                f"args.inpath must be a folder or a file; was {args.inpath}"
+            )
+
+        in_to_out_paths = {}
+        for input_path in unvalidated_input_paths:
+            output_path = os.path.join(
+                output_dir,
+                # TODO: just use Path objects instead
+                input_path.split("/")[-1].replace(".conll", args.suffix + ".conll"),
+            )
+
+            if not args.overwrite:
+                if os.path.isfile(output_path):
+                    print(
+                        f"file '{output_path}' already exists and overwrite!=False, "
+                        "skipping ..."
+                    )
+                    continue
+            in_to_out_paths[input_path] = output_path
+
+        partial_pred_config = PartialPredictionConfig(
+            keep_upos=args.keep_upos,
+            keep_xpos=args.keep_xpos,
+            keep_feats=args.keep_feats,
+            keep_deprels=args.keep_deprels,
+            keep_heads=args.keep_heads,
+            keep_lemmas=args.keep_lemmas,
+        )
+
+        device, _, multi_gpu = get_devices_configuration(args.gpu_ids)
+
+        return in_to_out_paths, partial_pred_config, device, multi_gpu
+
+
+class Predictor:
+    def __init__(
+        self,
+        model_params: ModelParams_T,
+        num_workers: int,
+        device: torch.device = torch.device("cpu"),
+        multi_gpu=False,
+    ):
+        """num_workers: how many subprocesses to use for data loading. 0 means that the
+        data will be loaded in the main process."""
+
+        self.model_params = model_params
+        self.data_loader_params = {
+            "batch_size": model_params.batch_size,
+            "num_workers": num_workers,
+        }
+        self.device = device
+        self.multi_gpu = multi_gpu
+        self.model = self.__load_model()
+
+    def __load_model(self) -> nn.Module:
+        print("Loading model...")
+        model = BertForDeprel(self.model_params)
+        model.load_pretrained()
+        model.eval()
+        model.to(self.device)
+        if self.multi_gpu:
+            print("Sending model to multiple GPUs...")
+            model = nn.DataParallel(model)
+        return model
+
+    def predict(
+        self, pred_dataset: ConlluDataset, partial_pred_config=PartialPredictionConfig()
+    ) -> Tuple[List[sentenceJson_T], float]:
+        pred_loader = DataLoader(
+            pred_dataset,
+            collate_fn=pred_dataset.collate_fn_predict,
+            shuffle=False,
+            batch_size=self.data_loader_params["batch_size"],
+            num_workers=self.data_loader_params["num_workers"],
+        )
+        print(
+            f"Loaded {len(pred_dataset):5} sentences, "
+            f"({len(pred_loader):3} batches)"
+        )
+        start = timer()
+        predicted_sentences: List[sentenceJson_T] = []
+        parsed_sentence_counter = 0
+        batch: SequencePredictionBatch_T
+        with torch.no_grad():
+            for batch in pred_loader:
+                batch = batch.to(self.device)
+                preds = self.model.forward(batch).detach()
+
+                time_from_start = 0
+                parsing_speed = 0
+                for predicted_sentence in self.__prediction_iterator(
+                    batch, preds, pred_dataset, partial_pred_config
+                ):
+                    predicted_sentences.append(predicted_sentence)
+
+                    parsed_sentence_counter += 1
+                    time_from_start = timer() - start
+                    parsing_speed = int(
+                        round(
+                            ((parsed_sentence_counter + 1) / time_from_start) / 100,
+                            2,
+                        )
+                        * 100
+                    )
+
+                print(
+                    "Predicting: "
+                    f"{100 * (parsed_sentence_counter + 1)/len(pred_dataset):.2f}%"
+                    f" complete. {time_from_start:.2f} seconds in file "
+                    f"({parsing_speed} sents/sec)."
+                )
+        end = timer()
+        elapsed_seconds = round(end - start, 2)
+        return predicted_sentences, elapsed_seconds
+
     # TODO Next: explain this as much as possible
     # Then: combine this and the model eval chuliu_heads_pred method; it's the
     # same except for the constraint logic
@@ -100,7 +256,6 @@ class Predict(CMD):
         pred_dataset: ConlluDataset,
         n_sentence: int,
         idx_converter_sentence: Tensor,
-        device: str,
     ):
         head_true_like = heads_pred_sentence.max(dim=0).indices
         chuliu_heads_pred = head_true_like.clone().cpu().numpy()
@@ -154,7 +309,6 @@ class Predict(CMD):
         preds: BertForDeprelBatchOutput,
         pred_dataset: ConlluDataset,
         partial_pred_config: PartialPredictionConfig,
-        device: str,
     ):
         idx_batch = batch.idx
 
@@ -180,7 +334,6 @@ class Predict(CMD):
                 keep_heads=partial_pred_config.keep_heads,
                 n_sentence=n_sentence,
                 idx_converter_sentence=raw_sentence_preds.idx_converter,
-                device=device,
             )
 
             # predictions for tokens that begin words are used as the predictions for
@@ -210,131 +363,3 @@ class Predict(CMD):
                 lemma_scripts_pred_list,
                 partial_pred_config=partial_pred_config,
             )
-
-    def __call__(self, args, model_params: ModelParams_T):
-        super().__call__(args, model_params)
-        in_to_out_paths, partial_pred_config, data_loader_params = self.__validate_args(
-            args, model_params
-        )
-        model = self.__load_model(args, model_params)
-
-        print("Starting Predictions ...")
-        for in_path, out_path in in_to_out_paths.items():
-            print(f"Loading dataset from {in_path}...")
-            pred_dataset = ConlluDataset(in_path, model_params, "predict")
-
-            pred_loader = DataLoader(
-                pred_dataset,
-                collate_fn=pred_dataset.collate_fn_predict,
-                shuffle=False,
-                **data_loader_params,
-            )
-            print(
-                f"Loaded {len(pred_dataset):5} sentences, "
-                f"({len(pred_loader):3} batches)"
-            )
-            start = timer()
-            predicted_sentences: List[sentenceJson_T] = []
-            parsed_sentence_counter = 0
-            batch: SequencePredictionBatch_T
-            with torch.no_grad():
-                for batch in pred_loader:
-                    batch = batch.to(args.device)
-                    preds = model.forward(batch).detach()
-
-                    time_from_start = 0
-                    parsing_speed = 0
-                    for predicted_sentence in self.__prediction_iterator(
-                        batch, preds, pred_dataset, partial_pred_config, args.device
-                    ):
-                        predicted_sentences.append(predicted_sentence)
-
-                        parsed_sentence_counter += 1
-                        time_from_start = timer() - start
-                        parsing_speed = int(
-                            round(
-                                ((parsed_sentence_counter + 1) / time_from_start) / 100,
-                                2,
-                            )
-                            * 100
-                        )
-
-                    print(
-                        "Predicting: "
-                        f"{100 * (parsed_sentence_counter + 1)/len(pred_dataset):.2f}%"
-                        f" complete. {time_from_start:.2f} seconds in file "
-                        f"({parsing_speed} sents/sec)."
-                    )
-
-            writeConlluFile(out_path, predicted_sentences, overwrite=args.overwrite)
-
-            print(
-                f"Finished predicting `{out_path}, wrote {parsed_sentence_counter} "
-                f"sents in {round(timer() - start, 2)} secs`"
-            )
-
-            return predicted_sentences
-
-    def __load_model(self, args, model_params):
-        print("Loading model...")
-        model = BertForDeprel(model_params)
-        model.load_pretrained()
-        model.eval()
-        model.to(args.device)
-        if args.multi_gpu:
-            print("Sending model to multiple GPUs...")
-            model = nn.DataParallel(model)
-        return model
-
-    def __validate_args(self, args, model_params: ModelParams_T):
-        if not args.conf:
-            raise Exception(
-                "Path to model xxx.config.json must be provided as --conf parameter"
-            )
-
-        output_dir = args.outpath
-        if not os.path.isdir(output_dir):
-            os.makedirs(output_dir)
-
-        unvalidated_input_paths = []
-        if os.path.isdir(args.inpath):
-            unvalidated_input_paths = resolve_conllu_paths(args.inpath)
-        elif os.path.isfile(args.inpath):
-            unvalidated_input_paths.append(args.inpath)
-        else:
-            raise BaseException(
-                f"args.inpath must be a folder or a file; was {args.inpath}"
-            )
-
-        in_to_out_paths = {}
-        for input_path in unvalidated_input_paths:
-            output_path = os.path.join(
-                output_dir,
-                # TODO: just use Path objects instead
-                input_path.split("/")[-1].replace(".conll", args.suffix + ".conll"),
-            )
-
-            if not args.overwrite:
-                if os.path.isfile(output_path):
-                    print(
-                        f"file '{output_path}' already exists and overwrite!=False, "
-                        "skipping ..."
-                    )
-                    continue
-            in_to_out_paths[input_path] = output_path
-
-        partial_pred_config = PartialPredictionConfig(
-            keep_upos=args.keep_upos,
-            keep_xpos=args.keep_xpos,
-            keep_feats=args.keep_feats,
-            keep_deprels=args.keep_deprels,
-            keep_heads=args.keep_heads,
-            keep_lemmas=args.keep_lemmas,
-        )
-
-        data_loader_params = {
-            "batch_size": model_params.batch_size,
-            "num_workers": args.num_workers,
-        }
-
-        return in_to_out_paths, partial_pred_config, data_loader_params

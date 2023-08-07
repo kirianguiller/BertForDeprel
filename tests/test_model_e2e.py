@@ -1,4 +1,6 @@
 import json
+import sys
+from argparse import Namespace
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -6,22 +8,22 @@ from typing import Optional
 import pytest
 import torch
 
-from BertForDeprel.parser.cmds.predict import Predict
+from BertForDeprel.parser.cmds.predict import Predictor
 from BertForDeprel.parser.cmds.train import Train
+from BertForDeprel.parser.utils.load_data_utils import ConlluDataset
 from BertForDeprel.parser.utils.types import AnnotationSchema_T, ModelParams_T
 
 PARENT = Path(__file__).parent
 PATH_TEST_DATA_FOLDER = PARENT / "data"
 
-# TODO: make dataset smaller so it can run in a reasonable amount of time
-# (currently 2 minutes on MPS)
 PATH_TEST_CONLLU = PATH_TEST_DATA_FOLDER / "naija.test.conllu"
 PATH_TRAIN_CONLLU = PATH_TEST_DATA_FOLDER / "naija.train.conllu"
 PATH_EXPECTED_PREDICTIONS = PATH_TEST_DATA_FOLDER / "naija.predictions.expected.json"
+PATH_MODELS_DIR = PATH_TEST_DATA_FOLDER / "models"
 
 
 @dataclass
-class TrainArgs:
+class TrainArgs(Namespace):
     ftrain: str = str(PATH_TRAIN_CONLLU)
     ftest: str = str(PATH_TEST_CONLLU)
     num_workers: int = 1
@@ -45,7 +47,7 @@ def _test_model_train():
     torch.manual_seed(42)
     train_args = TrainArgs()
     model_config = ModelParams_T(
-        model_folder_path=str(PATH_TEST_DATA_FOLDER / "models"),
+        model_folder_path=str(PATH_MODELS_DIR),
         max_epoch=1,
         patience=0,
         batch_size=16,
@@ -58,7 +60,7 @@ def _test_model_train():
     # yield timing, epoch number, scores, current model and current best scores and
     # model for each epoch; return total timing, epochs, and best scores and model
     # TODO: create simpler API
-    train(train_args, model_config)
+    train.run(train_args, model_config)
     with open(model_config.model_folder_path + "/scores.best.json", "r") as f:
         scores = json.load(f)
     # TODO: put time in result and check that, as well; or specify it to pytest somehow
@@ -87,45 +89,32 @@ def _test_model_train():
     )
 
 
-class PredictArgs:
-    def __init__(self):
-        self.inpath = str(PATH_TEST_CONLLU)
-        self.suffix = ".predicted"
-        self.conf: ModelParams_T
-        self.outpath: str
-        self.overwrite = True
-        self.keep_upos = False
-        self.keep_xpos = False
-        self.keep_feats = False
-        self.keep_deprels = False
-        self.keep_heads = False
-        self.keep_lemmas = False
-        self.num_workers = 1
-        self.device = None
-        self.train_on_gpu = False
-        self.multi_gpu = False
-
-
 def _test_predict():
-    predict = Predict()
+    # TODO: Next: figure out why this is failing.
     model_config = ModelParams_T()
-    with open(PATH_TEST_DATA_FOLDER / "models" / "config.json", "r") as f:
+    with open(PATH_MODELS_DIR / "config.json", "r") as f:
         config_dict = json.load(f)
         model_config.__dict__.update(config_dict)
         annotation_schema = AnnotationSchema_T()
         annotation_schema.__dict__.update(config_dict["annotation_schema"])
         model_config.annotation_schema = annotation_schema
 
-    predict_args = PredictArgs()
-    predict_args.conf = model_config
-    predict_args.outpath = model_config.model_folder_path
-    # TODO: create simpler API
-    actual = predict(predict_args, model_config)
+    predictor = Predictor(model_config, 1)
+    # TODO: don't pass full model config; just annotation_schema and
+    # max_position_embeddings
+    pred_dataset = ConlluDataset(str(PATH_TEST_CONLLU), model_config, "predict")
+    actual, elapsed_seconds = predictor.predict(pred_dataset)
 
     with open(PATH_EXPECTED_PREDICTIONS, "r") as f:
         expected = json.load(f)
 
     assert actual == expected
+    # On my M2, it's <7s.
+    if elapsed_seconds > 10:
+        print(
+            f"WARNING: Prediction took a long time: {elapsed_seconds} seconds.",
+            file=sys.stderr,
+        )
 
 
 # About 30s on my M2 Mac.
