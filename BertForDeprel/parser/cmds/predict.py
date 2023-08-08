@@ -158,6 +158,7 @@ class PredictCmd(CMD):
             keep_lemmas=args.keep_lemmas,
         )
 
+        # TODO: should be done in run.py for all commands
         device, _, multi_gpu = get_devices_configuration(args.gpu_ids)
 
         return in_to_out_paths, partial_pred_config, device, multi_gpu

@@ -246,6 +246,7 @@ class Trainer:
     def __init__(
         self,
         model_params: ModelParams_T,
+        # TODO: pass around single device config, not (device, multi_gpu)
         device: torch.device = torch.device("cpu"),
         multi_gpu=False,
         pretrain_model_params: Optional[ModelParams_T] = None,

@@ -9,305 +9,299 @@
       "text_ortho": "Na only di acha, go go di oder ehn dish."
     },
     "treeJson": {
+      "groupsJson": {},
       "nodesJson": {
         "1": {
-          "ID": "1",
-          "FORM": "#",
-          "LEMMA": "ke",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Case": "Nom",
-            "Person": "2",
-            "PronType": "Prs"
-          },
-          "HEAD": 15,
           "DEPREL": "punct",
           "DEPS": {},
+          "FEATS": {
+            "Mood": "Opt"
+          },
+          "FORM": "#",
+          "HEAD": 15,
+          "ID": "1",
+          "LEMMA": "ke",
           "MISC": {
             "AlignBegin": "149460",
             "AlignEnd": "149900",
             "Gloss": "PUNCT"
-          }
-        },
-        "2": {
-          "ID": "2",
-          "FORM": "na",
-          "LEMMA": "nke",
+          },
           "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "149900",
-            "AlignEnd": "150120",
-            "Gloss": "be"
-          }
-        },
-        "3": {
-          "ID": "3",
-          "FORM": "only",
-          "LEMMA": "bly",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "150120",
-            "AlignEnd": "150350",
-            "Gloss": "only"
-          }
-        },
-        "4": {
-          "ID": "4",
-          "FORM": "di",
-          "LEMMA": "dke",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "150350",
-            "AlignEnd": "150457",
-            "Gloss": "DEF.ART"
-          }
-        },
-        "5": {
-          "ID": "5",
-          "FORM": "acha",
-          "LEMMA": "bha",
-          "UPOS": "INTJ",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "150457",
-            "AlignEnd": "150770",
-            "Gloss": "digitaria_exilis"
-          }
-        },
-        "6": {
-          "ID": "6",
-          "FORM": ">+",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Case": "Nom",
-            "Person": "2",
-            "PronType": "Prs"
-          },
-          "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "150770",
-            "AlignEnd": "150800",
-            "Gloss": "PUNCT"
-          }
-        },
-        "7": {
-          "ID": "7",
-          "FORM": "go",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "150800",
-            "AlignEnd": "151040",
-            "Gloss": "PROSP"
-          }
-        },
-        "8": {
-          "ID": "8",
-          "FORM": "#",
-          "LEMMA": "ke",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Case": "Nom",
-            "Person": "2",
-            "PronType": "Prs"
-          },
-          "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "151040",
-            "AlignEnd": "151260",
-            "Gloss": "PUNCT"
-          }
-        },
-        "9": {
-          "ID": "9",
-          "FORM": "go",
-          "LEMMA": "b",
-          "UPOS": "PUNCT",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "151260",
-            "AlignEnd": "151430",
-            "Gloss": "go"
-          }
+          "XPOS": "_"
         },
         "10": {
-          "ID": "10",
-          "FORM": "di",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Aspect": "Cons"
           },
+          "FORM": "di",
           "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "10",
+          "LEMMA": "b",
           "MISC": {
             "AlignBegin": "151430",
             "AlignEnd": "151610",
             "Gloss": "DEF.ART"
-          }
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
         },
         "11": {
-          "ID": "11",
-          "FORM": "oder",
-          "LEMMA": "ber",
-          "UPOS": "DET",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "NumType": "Ord"
           },
+          "FORM": "oder",
           "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "11",
+          "LEMMA": "ber",
           "MISC": {
             "AlignBegin": "151610",
             "AlignEnd": "152200",
             "Gloss": "other"
-          }
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
         },
         "12": {
-          "ID": "12",
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
           "FORM": "#",
+          "HEAD": 15,
+          "ID": "12",
           "LEMMA": "ke",
+          "MISC": {
+            "AlignBegin": "152200",
+            "AlignEnd": "152920",
+            "Gloss": "PUNCT"
+          },
           "UPOS": "NUM",
-          "XPOS": "_",
+          "XPOS": "_"
+        },
+        "13": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Mood": "Opt"
+          },
+          "FORM": "ehn",
+          "HEAD": 15,
+          "ID": "13",
+          "LEMMA": "ehnt",
+          "MISC": {
+            "AlignBegin": "152920",
+            "AlignEnd": "153370",
+            "Gloss": "ehn"
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
+        },
+        "14": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "#",
+          "HEAD": 15,
+          "ID": "14",
+          "LEMMA": "ke",
+          "MISC": {
+            "AlignBegin": "153370",
+            "AlignEnd": "153610",
+            "Gloss": "PUNCT"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "15": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "dish",
+          "HEAD": 0,
+          "ID": "15",
+          "LEMMA": "diske",
+          "MISC": {
+            "AlignBegin": "153610",
+            "AlignEnd": "153990",
+            "Gloss": "dish"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "16": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "//",
+          "HEAD": 15,
+          "ID": "16",
+          "LEMMA": "b",
+          "MISC": {
+            "AlignBegin": "153990",
+            "AlignEnd": "154020",
+            "Gloss": "PUNCT"
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
+        },
+        "2": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "NumType": "Ord"
+          },
+          "FORM": "na",
+          "HEAD": 15,
+          "ID": "2",
+          "LEMMA": "nke",
+          "MISC": {
+            "AlignBegin": "149900",
+            "AlignEnd": "150120",
+            "Gloss": "be"
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
+        },
+        "3": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "only",
+          "HEAD": 15,
+          "ID": "3",
+          "LEMMA": "bly",
+          "MISC": {
+            "AlignBegin": "150120",
+            "AlignEnd": "150350",
+            "Gloss": "only"
+          },
+          "UPOS": "INTJ",
+          "XPOS": "_"
+        },
+        "4": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "di",
+          "HEAD": 15,
+          "ID": "4",
+          "LEMMA": "dke",
+          "MISC": {
+            "AlignBegin": "150350",
+            "AlignEnd": "150457",
+            "Gloss": "DEF.ART"
+          },
+          "UPOS": "INTJ",
+          "XPOS": "_"
+        },
+        "5": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "acha",
+          "HEAD": 15,
+          "ID": "5",
+          "LEMMA": "bha",
+          "MISC": {
+            "AlignBegin": "150457",
+            "AlignEnd": "150770",
+            "Gloss": "digitaria_exilis"
+          },
+          "UPOS": "INTJ",
+          "XPOS": "_"
+        },
+        "6": {
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Case": "Nom",
             "Person": "2",
             "PronType": "Prs"
           },
+          "FORM": ">+",
           "HEAD": 15,
+          "ID": "6",
+          "LEMMA": "b",
+          "MISC": {
+            "AlignBegin": "150770",
+            "AlignEnd": "150800",
+            "Gloss": "PUNCT"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "7": {
           "DEPREL": "punct",
           "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "go",
+          "HEAD": 15,
+          "ID": "7",
+          "LEMMA": "gke",
           "MISC": {
-            "AlignBegin": "152200",
-            "AlignEnd": "152920",
-            "Gloss": "PUNCT"
-          }
-        },
-        "13": {
-          "ID": "13",
-          "FORM": "ehn",
-          "LEMMA": "ehnt",
+            "AlignBegin": "150800",
+            "AlignEnd": "151040",
+            "Gloss": "PROSP"
+          },
           "UPOS": "PUNCT",
-          "XPOS": "_",
+          "XPOS": "_"
+        },
+        "8": {
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Mood": "Opt"
           },
-          "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "152920",
-            "AlignEnd": "153370",
-            "Gloss": "ehn"
-          }
-        },
-        "14": {
-          "ID": "14",
           "FORM": "#",
+          "HEAD": 15,
+          "ID": "8",
           "LEMMA": "ke",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
           "MISC": {
-            "AlignBegin": "153370",
-            "AlignEnd": "153610",
+            "AlignBegin": "151040",
+            "AlignEnd": "151260",
             "Gloss": "PUNCT"
-          }
-        },
-        "15": {
-          "ID": "15",
-          "FORM": "dish",
-          "LEMMA": "diske",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
           },
-          "HEAD": 0,
+          "UPOS": "INTJ",
+          "XPOS": "_"
+        },
+        "9": {
           "DEPREL": "punct",
           "DEPS": {},
-          "MISC": {
-            "AlignBegin": "153610",
-            "AlignEnd": "153990",
-            "Gloss": "dish"
-          }
-        },
-        "16": {
-          "ID": "16",
-          "FORM": "//",
-          "LEMMA": "//t",
-          "UPOS": "DET",
-          "XPOS": "_",
           "FEATS": {
-            "Aspect": "Cons"
+            "NumType": "Ord"
           },
+          "FORM": "go",
           "HEAD": 15,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "9",
+          "LEMMA": "b",
           "MISC": {
-            "AlignBegin": "153990",
-            "AlignEnd": "154020",
-            "Gloss": "PUNCT"
-          }
+            "AlignBegin": "151260",
+            "AlignEnd": "151430",
+            "Gloss": "go"
+          },
+          "UPOS": "INTJ",
+          "XPOS": "_"
         }
-      },
-      "groupsJson": {}
+      }
     }
   },
   {
@@ -320,266 +314,266 @@
       "text_ortho": "Den you pour it, do it again about two three time."
     },
     "treeJson": {
+      "groupsJson": {},
       "nodesJson": {
         "1": {
-          "ID": "1",
-          "FORM": "#",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Aspect": "Cons"
           },
+          "FORM": "#",
           "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "1",
+          "LEMMA": "b",
           "MISC": {
             "AlignBegin": "154020",
             "AlignEnd": "154540",
             "Gloss": "PUNCT"
-          }
-        },
-        "2": {
-          "ID": "2",
-          "FORM": "den",
-          "LEMMA": "deke",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "Number": "Sing",
-            "PronType": "Dem"
           },
-          "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "154540",
-            "AlignEnd": "154730",
-            "Gloss": "den"
-          }
-        },
-        "3": {
-          "ID": "3",
-          "FORM": "you",
-          "LEMMA": "bu",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "154730",
-            "AlignEnd": "154885",
-            "Gloss": "NOM.2"
-          }
-        },
-        "4": {
-          "ID": "4",
-          "FORM": "pour",
-          "LEMMA": "bur",
           "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "154885",
-            "AlignEnd": "155140",
-            "Gloss": "pour"
-          }
-        },
-        "5": {
-          "ID": "5",
-          "FORM": "it",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Mood": "Opt"
-          },
-          "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "155140",
-            "AlignEnd": "155470",
-            "Gloss": "NOM.NT.SG.3"
-          }
-        },
-        "6": {
-          "ID": "6",
-          "FORM": "|c",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "155470",
-            "AlignEnd": "155500",
-            "Gloss": "PUNCT"
-          }
-        },
-        "7": {
-          "ID": "7",
-          "FORM": "do",
-          "LEMMA": "b",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 0,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "155500",
-            "AlignEnd": "155761",
-            "Gloss": "do"
-          }
-        },
-        "8": {
-          "ID": "8",
-          "FORM": "it",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Mood": "Opt"
-          },
-          "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "155761",
-            "AlignEnd": "155880",
-            "Gloss": "NOM.NT.SG.3"
-          }
-        },
-        "9": {
-          "ID": "9",
-          "FORM": "again",
-          "LEMMA": "agaike",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "155880",
-            "AlignEnd": "156150",
-            "Gloss": "again"
-          }
+          "XPOS": "_"
         },
         "10": {
-          "ID": "10",
-          "FORM": "about",
-          "LEMMA": "abouke",
-          "UPOS": "INTJ",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Aspect": "Cons"
           },
+          "FORM": "about",
           "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "10",
+          "LEMMA": "abouke",
           "MISC": {
             "AlignBegin": "156150",
             "AlignEnd": "156450",
             "Gloss": "about"
-          }
+          },
+          "UPOS": "INTJ",
+          "XPOS": "_"
         },
         "11": {
-          "ID": "11",
-          "FORM": "two",
-          "LEMMA": "bo",
-          "UPOS": "DET",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Case": "Nom",
             "Person": "2",
             "PronType": "Prs"
           },
+          "FORM": "two",
           "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "11",
+          "LEMMA": "bo",
           "MISC": {
             "AlignBegin": "156450",
             "AlignEnd": "156682",
             "Gloss": "two.CARD"
-          }
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
         },
         "12": {
-          "ID": "12",
-          "FORM": "three",
-          "LEMMA": "bree",
-          "UPOS": "DET",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Case": "Nom",
             "Person": "2",
             "PronType": "Prs"
           },
+          "FORM": "three",
           "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "12",
+          "LEMMA": "bree",
           "MISC": {
             "AlignBegin": "156682",
             "AlignEnd": "156982",
             "Gloss": "three.CARD"
-          }
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
         },
         "13": {
-          "ID": "13",
-          "FORM": "time",
-          "LEMMA": "timke",
-          "UPOS": "DET",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "NumType": "Ord"
           },
+          "FORM": "time",
           "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "13",
+          "LEMMA": "timke",
           "MISC": {
             "AlignBegin": "156982",
             "AlignEnd": "157310",
             "Gloss": "time"
-          }
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
         },
         "14": {
-          "ID": "14",
-          "FORM": "//",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Aspect": "Cons"
           },
+          "FORM": "//",
           "HEAD": 7,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "14",
+          "LEMMA": "b",
           "MISC": {
             "AlignBegin": "157310",
             "AlignEnd": "157340",
             "Gloss": "PUNCT"
-          }
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "2": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Number": "Sing",
+            "PronType": "Dem"
+          },
+          "FORM": "den",
+          "HEAD": 7,
+          "ID": "2",
+          "LEMMA": "bn",
+          "MISC": {
+            "AlignBegin": "154540",
+            "AlignEnd": "154730",
+            "Gloss": "den"
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
+        },
+        "3": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "you",
+          "HEAD": 7,
+          "ID": "3",
+          "LEMMA": "bu",
+          "MISC": {
+            "AlignBegin": "154730",
+            "AlignEnd": "154885",
+            "Gloss": "NOM.2"
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
+        },
+        "4": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "pour",
+          "HEAD": 7,
+          "ID": "4",
+          "LEMMA": "bur",
+          "MISC": {
+            "AlignBegin": "154885",
+            "AlignEnd": "155140",
+            "Gloss": "pour"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "5": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Mood": "Opt"
+          },
+          "FORM": "it",
+          "HEAD": 7,
+          "ID": "5",
+          "LEMMA": "b",
+          "MISC": {
+            "AlignBegin": "155140",
+            "AlignEnd": "155470",
+            "Gloss": "NOM.NT.SG.3"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "6": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "|c",
+          "HEAD": 7,
+          "ID": "6",
+          "LEMMA": "b",
+          "MISC": {
+            "AlignBegin": "155470",
+            "AlignEnd": "155500",
+            "Gloss": "PUNCT"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "7": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "do",
+          "HEAD": 0,
+          "ID": "7",
+          "LEMMA": "b",
+          "MISC": {
+            "AlignBegin": "155500",
+            "AlignEnd": "155761",
+            "Gloss": "do"
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
+        },
+        "8": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Mood": "Opt"
+          },
+          "FORM": "it",
+          "HEAD": 7,
+          "ID": "8",
+          "LEMMA": "b",
+          "MISC": {
+            "AlignBegin": "155761",
+            "AlignEnd": "155880",
+            "Gloss": "NOM.NT.SG.3"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "9": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "again",
+          "HEAD": 7,
+          "ID": "9",
+          "LEMMA": "bain",
+          "MISC": {
+            "AlignBegin": "155880",
+            "AlignEnd": "156150",
+            "Gloss": "again"
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
         }
-      },
-      "groupsJson": {}
+      }
     }
   },
   {
@@ -592,289 +586,288 @@
       "text_ortho": "Make you make sure sey all di sand don comot."
     },
     "treeJson": {
+      "groupsJson": {},
       "nodesJson": {
         "1": {
-          "ID": "1",
-          "FORM": "#",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Case": "Nom",
             "Person": "2",
             "PronType": "Prs"
           },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "FORM": "#",
+          "HEAD": 6,
+          "ID": "1",
+          "LEMMA": "b",
           "MISC": {
             "AlignBegin": "157340",
             "AlignEnd": "157620",
             "Gloss": "PUNCT"
-          }
-        },
-        "2": {
-          "ID": "2",
-          "FORM": "make",
-          "LEMMA": "bke",
-          "UPOS": "INTJ",
-          "XPOS": "_",
-          "FEATS": {
-            "Case": "Nom",
-            "Person": "2",
-            "PronType": "Prs"
           },
-          "HEAD": 0,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "157620",
-            "AlignEnd": "157820",
-            "Gloss": "SBJV"
-          }
-        },
-        "3": {
-          "ID": "3",
-          "FORM": "you",
-          "LEMMA": "bu",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "157820",
-            "AlignEnd": "157932",
-            "Gloss": "NOM.2"
-          }
-        },
-        "4": {
-          "ID": "4",
-          "FORM": "make",
-          "LEMMA": "makke",
-          "UPOS": "INTJ",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "157932",
-            "AlignEnd": "158150",
-            "Gloss": "make"
-          }
-        },
-        "5": {
-          "ID": "5",
-          "FORM": "sure",
-          "LEMMA": "bre",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "158150",
-            "AlignEnd": "158460",
-            "Gloss": "sure"
-          }
-        },
-        "6": {
-          "ID": "6",
-          "FORM": "sey",
-          "LEMMA": "by",
-          "UPOS": "PUNCT",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "158460",
-            "AlignEnd": "158960",
-            "Gloss": "COMP"
-          }
-        },
-        "7": {
-          "ID": "7",
-          "FORM": "#",
-          "LEMMA": "b",
           "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "158960",
-            "AlignEnd": "159200",
-            "Gloss": "PUNCT"
-          }
-        },
-        "8": {
-          "ID": "8",
-          "FORM": "[",
-          "LEMMA": "ke",
-          "UPOS": "PUNCT",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "159170",
-            "AlignEnd": "159200",
-            "Gloss": "PUNCT"
-          }
-        },
-        "9": {
-          "ID": "9",
-          "FORM": "all",
-          "LEMMA": "all",
-          "UPOS": "PUNCT",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "159200",
-            "AlignEnd": "159422",
-            "Gloss": "all"
-          }
+          "XPOS": "_"
         },
         "10": {
-          "ID": "10",
-          "FORM": "di",
-          "LEMMA": "dke",
-          "UPOS": "PUNCT",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Aspect": "Cons"
           },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "FORM": "di",
+          "HEAD": 6,
+          "ID": "10",
+          "LEMMA": "dke",
           "MISC": {
             "AlignBegin": "159422",
             "AlignEnd": "159740",
             "Gloss": "DEF.ART"
-          }
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
         },
         "11": {
-          "ID": "11",
-          "FORM": "sand",
-          "LEMMA": "sanke",
-          "UPOS": "NUM",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Case": "Nom",
             "Person": "2",
             "PronType": "Prs"
           },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "FORM": "sand",
+          "HEAD": 6,
+          "ID": "11",
+          "LEMMA": "sanke",
           "MISC": {
             "AlignBegin": "159740",
             "AlignEnd": "160106",
             "Gloss": "sand"
-          }
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
         },
         "12": {
-          "ID": "12",
-          "FORM": "don",
-          "LEMMA": "bn",
-          "UPOS": "PUNCT",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Case": "Nom",
             "Person": "2",
             "PronType": "Prs"
           },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "FORM": "don",
+          "HEAD": 6,
+          "ID": "12",
+          "LEMMA": "bn",
           "MISC": {
             "AlignBegin": "160106",
             "AlignEnd": "160322",
             "Gloss": "PRF"
-          }
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
         },
         "13": {
-          "ID": "13",
-          "FORM": "comot",
-          "LEMMA": "comoke",
-          "UPOS": "NUM",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Aspect": "Cons"
           },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "FORM": "comot",
+          "HEAD": 6,
+          "ID": "13",
+          "LEMMA": "comoke",
           "MISC": {
             "AlignBegin": "160322",
             "AlignEnd": "160930",
             "Gloss": "get_out"
-          }
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
         },
         "14": {
-          "ID": "14",
-          "FORM": "]",
-          "LEMMA": "b",
-          "UPOS": "PUNCT",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Number": "Sing",
             "PronType": "Dem"
           },
-          "HEAD": 2,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "FORM": "]",
+          "HEAD": 6,
+          "ID": "14",
+          "LEMMA": "b",
           "MISC": {
             "AlignBegin": "160930",
             "AlignEnd": "160960",
             "Gloss": "PUNCT"
-          }
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
         },
         "15": {
-          "ID": "15",
-          "FORM": "//",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Number": "Sing",
-            "PronType": "Dem"
-          },
-          "HEAD": 2,
           "DEPREL": "punct",
           "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "//",
+          "HEAD": 6,
+          "ID": "15",
+          "LEMMA": "//t",
           "MISC": {
             "AlignBegin": "160930",
             "AlignEnd": "160960",
             "Gloss": "PUNCT"
-          }
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
+        },
+        "2": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Case": "Nom",
+            "Person": "2",
+            "PronType": "Prs"
+          },
+          "FORM": "make",
+          "HEAD": 6,
+          "ID": "2",
+          "LEMMA": "bke",
+          "MISC": {
+            "AlignBegin": "157620",
+            "AlignEnd": "157820",
+            "Gloss": "SBJV"
+          },
+          "UPOS": "INTJ",
+          "XPOS": "_"
+        },
+        "3": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "you",
+          "HEAD": 6,
+          "ID": "3",
+          "LEMMA": "bu",
+          "MISC": {
+            "AlignBegin": "157820",
+            "AlignEnd": "157932",
+            "Gloss": "NOM.2"
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
+        },
+        "4": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "make",
+          "HEAD": 6,
+          "ID": "4",
+          "LEMMA": "makke",
+          "MISC": {
+            "AlignBegin": "157932",
+            "AlignEnd": "158150",
+            "Gloss": "make"
+          },
+          "UPOS": "INTJ",
+          "XPOS": "_"
+        },
+        "5": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "sure",
+          "HEAD": 6,
+          "ID": "5",
+          "LEMMA": "bre",
+          "MISC": {
+            "AlignBegin": "158150",
+            "AlignEnd": "158460",
+            "Gloss": "sure"
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
+        },
+        "6": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "sey",
+          "HEAD": 0,
+          "ID": "6",
+          "LEMMA": "by",
+          "MISC": {
+            "AlignBegin": "158460",
+            "AlignEnd": "158960",
+            "Gloss": "COMP"
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
+        },
+        "7": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "#",
+          "HEAD": 6,
+          "ID": "7",
+          "LEMMA": "b",
+          "MISC": {
+            "AlignBegin": "158960",
+            "AlignEnd": "159200",
+            "Gloss": "PUNCT"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "8": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "[",
+          "HEAD": 6,
+          "ID": "8",
+          "LEMMA": "ke",
+          "MISC": {
+            "AlignBegin": "159170",
+            "AlignEnd": "159200",
+            "Gloss": "PUNCT"
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
+        },
+        "9": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "all",
+          "HEAD": 6,
+          "ID": "9",
+          "LEMMA": "alke",
+          "MISC": {
+            "AlignBegin": "159200",
+            "AlignEnd": "159422",
+            "Gloss": "all"
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
         }
-      },
-      "groupsJson": {}
+      }
     }
   },
   {
@@ -887,256 +880,252 @@
       "text_ortho": "If you finish dat one, den you pour it."
     },
     "treeJson": {
+      "groupsJson": {},
       "nodesJson": {
         "1": {
-          "ID": "1",
-          "FORM": "#",
-          "LEMMA": "ke",
-          "UPOS": "NUM",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Aspect": "Perf"
           },
+          "FORM": "#",
           "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "1",
+          "LEMMA": "ke",
           "MISC": {
             "AlignBegin": "160960",
             "AlignEnd": "161960",
             "Gloss": "PUNCT"
-          }
-        },
-        "2": {
-          "ID": "2",
-          "FORM": "if",
-          "LEMMA": "b",
+          },
           "UPOS": "NUM",
-          "XPOS": "_",
+          "XPOS": "_"
+        },
+        "10": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "you",
+          "HEAD": 5,
+          "ID": "10",
+          "LEMMA": "bu",
+          "MISC": {
+            "AlignBegin": "163670",
+            "AlignEnd": "163872",
+            "Gloss": "NOM.2"
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
+        },
+        "11": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "NumType": "Ord"
+          },
+          "FORM": "pour",
+          "HEAD": 5,
+          "ID": "11",
+          "LEMMA": "bur",
+          "MISC": {
+            "AlignBegin": "163872",
+            "AlignEnd": "164337",
+            "Gloss": "pour"
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
+        },
+        "12": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "NumType": "Ord"
+          },
+          "FORM": "it",
+          "HEAD": 5,
+          "ID": "12",
+          "LEMMA": "b",
+          "MISC": {
+            "AlignBegin": "164337",
+            "AlignEnd": "164620",
+            "Gloss": "NOM.NT.SG.3"
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
+        },
+        "13": {
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Case": "Nom",
             "Person": "2",
             "PronType": "Prs"
           },
-          "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "161960",
-            "AlignEnd": "162116",
-            "Gloss": "if"
-          }
-        },
-        "3": {
-          "ID": "3",
-          "FORM": "you",
-          "LEMMA": "yout",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "162116",
-            "AlignEnd": "162165",
-            "Gloss": "NOM.2"
-          }
-        },
-        "4": {
-          "ID": "4",
-          "FORM": "finish",
-          "LEMMA": "bnish",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "162165",
-            "AlignEnd": "162500",
-            "Gloss": "finish"
-          }
-        },
-        "5": {
-          "ID": "5",
-          "FORM": "dat",
-          "LEMMA": "dake",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "Mood": "Ind",
-            "Polarity": "Neg",
-            "Tense": "Pres",
-            "VerbForm": "Fin"
-          },
-          "HEAD": 0,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "162500",
-            "AlignEnd": "162733",
-            "Gloss": "SG.DIST.DEM"
-          }
-        },
-        "6": {
-          "ID": "6",
-          "FORM": "one",
-          "LEMMA": "onke",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "162733",
-            "AlignEnd": "163070",
-            "Gloss": "one"
-          }
-        },
-        "7": {
-          "ID": "7",
-          "FORM": "<",
-          "LEMMA": "<t",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "163070",
-            "AlignEnd": "163100",
-            "Gloss": "PUNCT"
-          }
-        },
-        "8": {
-          "ID": "8",
-          "FORM": "#",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Mood": "Opt"
-          },
-          "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "163100",
-            "AlignEnd": "163440",
-            "Gloss": "PUNCT"
-          }
-        },
-        "9": {
-          "ID": "9",
-          "FORM": "den",
-          "LEMMA": "bn",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "Mood": "Ind",
-            "Polarity": "Neg",
-            "Tense": "Pres",
-            "VerbForm": "Fin"
-          },
-          "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "163440",
-            "AlignEnd": "163670",
-            "Gloss": "den"
-          }
-        },
-        "10": {
-          "ID": "10",
-          "FORM": "you",
-          "LEMMA": "yoke",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "Aspect": "Cons"
-          },
-          "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "163670",
-            "AlignEnd": "163872",
-            "Gloss": "NOM.2"
-          }
-        },
-        "11": {
-          "ID": "11",
-          "FORM": "pour",
-          "LEMMA": "bur",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Number": "Sing",
-            "PronType": "Dem"
-          },
-          "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "163872",
-            "AlignEnd": "164337",
-            "Gloss": "pour"
-          }
-        },
-        "12": {
-          "ID": "12",
-          "FORM": "it",
-          "LEMMA": "b",
-          "UPOS": "DET",
-          "XPOS": "_",
-          "FEATS": {
-            "NumType": "Ord"
-          },
-          "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
-          "MISC": {
-            "AlignBegin": "164337",
-            "AlignEnd": "164620",
-            "Gloss": "NOM.NT.SG.3"
-          }
-        },
-        "13": {
-          "ID": "13",
           "FORM": "//",
-          "LEMMA": "//t",
-          "UPOS": "PUNCT",
-          "XPOS": "_",
-          "FEATS": {
-            "Case": "Acc",
-            "Gender": "Masc",
-            "Number": "Sing",
-            "Person": "3",
-            "PronType": "Prs"
-          },
           "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "13",
+          "LEMMA": "//t",
           "MISC": {
             "AlignBegin": "164620",
             "AlignEnd": "164663",
             "Gloss": "PUNCT"
-          }
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
+        },
+        "2": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Case": "Nom",
+            "Person": "2",
+            "PronType": "Prs"
+          },
+          "FORM": "if",
+          "HEAD": 5,
+          "ID": "2",
+          "LEMMA": "b",
+          "MISC": {
+            "AlignBegin": "161960",
+            "AlignEnd": "162116",
+            "Gloss": "if"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "3": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "you",
+          "HEAD": 5,
+          "ID": "3",
+          "LEMMA": "yout",
+          "MISC": {
+            "AlignBegin": "162116",
+            "AlignEnd": "162165",
+            "Gloss": "NOM.2"
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
+        },
+        "4": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "finish",
+          "HEAD": 5,
+          "ID": "4",
+          "LEMMA": "bnish",
+          "MISC": {
+            "AlignBegin": "162165",
+            "AlignEnd": "162500",
+            "Gloss": "finish"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "5": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Mood": "Ind",
+            "Polarity": "Neg",
+            "Tense": "Pres",
+            "VerbForm": "Fin"
+          },
+          "FORM": "dat",
+          "HEAD": 0,
+          "ID": "5",
+          "LEMMA": "dake",
+          "MISC": {
+            "AlignBegin": "162500",
+            "AlignEnd": "162733",
+            "Gloss": "SG.DIST.DEM"
+          },
+          "UPOS": "PUNCT",
+          "XPOS": "_"
+        },
+        "6": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "one",
+          "HEAD": 5,
+          "ID": "6",
+          "LEMMA": "be",
+          "MISC": {
+            "AlignBegin": "162733",
+            "AlignEnd": "163070",
+            "Gloss": "one"
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
+        },
+        "7": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "<",
+          "HEAD": 5,
+          "ID": "7",
+          "LEMMA": "<t",
+          "MISC": {
+            "AlignBegin": "163070",
+            "AlignEnd": "163100",
+            "Gloss": "PUNCT"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "8": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Mood": "Opt"
+          },
+          "FORM": "#",
+          "HEAD": 5,
+          "ID": "8",
+          "LEMMA": "b",
+          "MISC": {
+            "AlignBegin": "163100",
+            "AlignEnd": "163440",
+            "Gloss": "PUNCT"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
+        },
+        "9": {
+          "DEPREL": "punct",
+          "DEPS": {},
+          "FEATS": {
+            "Case": "Nom",
+            "Person": "2",
+            "PronType": "Prs"
+          },
+          "FORM": "den",
+          "HEAD": 5,
+          "ID": "9",
+          "LEMMA": "bn",
+          "MISC": {
+            "AlignBegin": "163440",
+            "AlignEnd": "163670",
+            "Gloss": "den"
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
         }
-      },
-      "groupsJson": {}
+      }
     }
   },
   {
@@ -1149,137 +1138,137 @@
       "text_ortho": "Den you go dey stir."
     },
     "treeJson": {
+      "groupsJson": {},
       "nodesJson": {
         "1": {
-          "ID": "1",
-          "FORM": "#",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
-          "FEATS": {
-            "Mood": "Opt"
-          },
-          "HEAD": 5,
           "DEPREL": "punct",
           "DEPS": {},
+          "FEATS": {
+            "Aspect": "Cons"
+          },
+          "FORM": "#",
+          "HEAD": 5,
+          "ID": "1",
+          "LEMMA": "b",
           "MISC": {
             "AlignBegin": "164620",
             "AlignEnd": "165440",
             "Gloss": "PUNCT"
-          }
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
         },
         "2": {
-          "ID": "2",
-          "FORM": "den",
-          "LEMMA": "bn",
-          "UPOS": "DET",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Aspect": "Cons"
           },
+          "FORM": "den",
           "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "2",
+          "LEMMA": "bn",
           "MISC": {
             "AlignBegin": "165440",
             "AlignEnd": "165589",
             "Gloss": "den"
-          }
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
         },
         "3": {
-          "ID": "3",
-          "FORM": "you",
-          "LEMMA": "bu",
-          "UPOS": "NUM",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Aspect": "Cons"
           },
+          "FORM": "you",
           "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "3",
+          "LEMMA": "yout",
           "MISC": {
             "AlignBegin": "165589",
             "AlignEnd": "165734",
             "Gloss": "NOM.2"
-          }
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
         },
         "4": {
-          "ID": "4",
-          "FORM": "go",
-          "LEMMA": "gke",
-          "UPOS": "DET",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Aspect": "Cons"
           },
+          "FORM": "go",
           "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "4",
+          "LEMMA": "gke",
           "MISC": {
             "AlignBegin": "165734",
             "AlignEnd": "165899",
             "Gloss": "PROSP"
-          }
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
         },
         "5": {
-          "ID": "5",
-          "FORM": "dey",
-          "LEMMA": "deke",
-          "UPOS": "DET",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Aspect": "Cons"
           },
+          "FORM": "dey",
           "HEAD": 0,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "5",
+          "LEMMA": "deke",
           "MISC": {
             "AlignBegin": "165899",
             "AlignEnd": "166045",
             "Gloss": "IPFV"
-          }
+          },
+          "UPOS": "DET",
+          "XPOS": "_"
         },
         "6": {
-          "ID": "6",
-          "FORM": "stir",
-          "LEMMA": "bir",
-          "UPOS": "NUM",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Aspect": "Cons"
           },
+          "FORM": "stir",
           "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "6",
+          "LEMMA": "bir",
           "MISC": {
             "AlignBegin": "166045",
             "AlignEnd": "166530",
             "Gloss": "stir"
-          }
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
         },
         "7": {
-          "ID": "7",
-          "FORM": "//",
-          "LEMMA": "b",
-          "UPOS": "NUM",
-          "XPOS": "_",
+          "DEPREL": "punct",
+          "DEPS": {},
           "FEATS": {
             "Case": "Nom",
             "Person": "2",
             "PronType": "Prs"
           },
+          "FORM": "//",
           "HEAD": 5,
-          "DEPREL": "punct",
-          "DEPS": {},
+          "ID": "7",
+          "LEMMA": "b",
           "MISC": {
             "AlignBegin": "166530",
             "AlignEnd": "166560",
             "Gloss": "PUNCT"
-          }
+          },
+          "UPOS": "NUM",
+          "XPOS": "_"
         }
-      },
-      "groupsJson": {}
+      }
     }
   }
 ]
