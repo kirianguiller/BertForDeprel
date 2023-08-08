@@ -54,6 +54,6 @@ def get_devices_configuration(gpu_ids):
         device = torch.device("mps")
     else:
         device = torch.device("cpu")
-    print(f"Using device device: {device}")
+    print(f"Using device: {device}")
 
     return device, use_gpu, multi_gpu

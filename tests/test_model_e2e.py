@@ -9,7 +9,7 @@ import pytest
 import torch
 
 from BertForDeprel.parser.cmds.predict import Predictor
-from BertForDeprel.parser.cmds.train import Train
+from BertForDeprel.parser.cmds.train import TrainCmd
 from BertForDeprel.parser.utils.load_data_utils import ConlluDataset
 from BertForDeprel.parser.utils.types import AnnotationSchema_T, ModelParams_T
 
@@ -55,42 +55,58 @@ def _test_model_train():
         embedding_type="xlm-roberta-large",
     )
 
-    train = Train()
-    # TODO: should return scores, timing, model config, and model output path
-    # yield timing, epoch number, scores, current model and current best scores and
-    # model for each epoch; return total timing, epochs, and best scores and model
-    # TODO: create simpler API
+    train = TrainCmd()
     train.run(train_args, model_config)
-    with open(model_config.model_folder_path + "/scores.best.json", "r") as f:
+    with open(model_config.model_folder_path + "/scores.history.json", "r") as f:
         scores = json.load(f)
     # TODO: put time in result and check that, as well; or specify it to pytest somehow
     # TODO: these numbers are different on every machine, and therefore this test
     # FAILS anywhere except for mine. Need to figure out how to make it pass anywhere.
     assert scores == pytest.approx(
-        {
-            "LAS_epoch": 0.046,
-            "LAS_chuliu_epoch": 0.046,
-            "acc_head_epoch": 0.154,
-            "acc_deprel_epoch": 0.308,
-            "acc_uposs_epoch": 0.062,
-            "acc_xposs_epoch": 1.0,
-            "acc_feats_epoch": 0.0,
-            "acc_lemma_scripts_epoch": 0.0,
-            "loss_head_epoch": 3.04,
-            "loss_deprel_epoch": 3.37,
-            "loss_xposs_epoch": 0.434,
-            "loss_feats_epoch": 3.24,
-            "loss_lemma_scripts_epoch": 3.185,
-            "loss_epoch": 16.202,
-            "n_sentences_train": 39,
-            "n_sentences_test": 5,
-            "epoch": 1,
-        }
+        [
+            {
+                "LAS_epoch": 0.0,
+                "LAS_chuliu_epoch": 0.0,
+                "acc_head_epoch": 0.077,
+                "acc_deprel_epoch": 0.0,
+                "acc_uposs_epoch": 0.046,
+                "acc_xposs_epoch": 1.0,
+                "acc_feats_epoch": 0.0,
+                "acc_lemma_scripts_epoch": 0.0,
+                "loss_head_epoch": 3.045,
+                "loss_deprel_epoch": 3.611,
+                "loss_xposs_epoch": 0.531,
+                "loss_feats_epoch": 3.367,
+                "loss_lemma_scripts_epoch": 3.452,
+                "loss_epoch": 17.016,
+                "n_sentences_train": 39,
+                "n_sentences_test": 5,
+                "epoch": 0,
+            },
+            {
+                "LAS_epoch": 0.046,
+                "LAS_chuliu_epoch": 0.046,
+                "acc_head_epoch": 0.154,
+                "acc_deprel_epoch": 0.308,
+                "acc_uposs_epoch": 0.062,
+                "acc_xposs_epoch": 1.0,
+                "acc_feats_epoch": 0.0,
+                "acc_lemma_scripts_epoch": 0.0,
+                "loss_head_epoch": 3.04,
+                "loss_deprel_epoch": 3.37,
+                "loss_xposs_epoch": 0.434,
+                "loss_feats_epoch": 3.24,
+                "loss_lemma_scripts_epoch": 3.185,
+                "loss_epoch": 16.202,
+                "n_sentences_train": 39,
+                "n_sentences_test": 5,
+                "epoch": 1,
+            },
+        ]
     )
 
 
 def _test_predict():
-    # TODO: Next: figure out why this is failing.
     model_config = ModelParams_T()
     with open(PATH_MODELS_DIR / "config.json", "r") as f:
         config_dict = json.load(f)

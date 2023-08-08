@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 from datetime import datetime
 from typing import Optional
 
+import torch
 from torch import nn
 from torch.utils.data import DataLoader, random_split
 
@@ -14,7 +15,7 @@ from ..utils.load_data_utils import ConlluDataset
 from ..utils.types import DataclassJSONEncoder, ModelParams_T
 
 
-class Train(CMD):
+class TrainCmd(CMD):
     def add_subparser(self, name: str, parser: SubparsersType) -> ArgumentParser:
         subparser = parser.add_parser(name, help="Train a model.")
         subparser.add_argument(
@@ -67,7 +68,7 @@ class Train(CMD):
         subparser.add_argument(
             "--overwrite_pretrain_classifiers",
             action="store_true",
-            help="erase pretraines classifier heads and recompute annotation schema",
+            help="erase pretrained classifier heads and recompute annotation schema",
         )
 
         return subparser
@@ -166,25 +167,128 @@ class Train(CMD):
                 dataset=dataset, lengths=[train_size, test_size]
             )  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
 
-        params_train = {
-            "batch_size": model_params.batch_size,
-            "num_workers": args.num_workers,
-            "shuffle": True,
-        }
-
-        train_loader = DataLoader(
-            train_dataset, collate_fn=dataset.collate_fn_train, **params_train
+        path_scores_history = os.path.join(
+            model_params.model_folder_path, "scores.history.json"
+        )
+        path_scores_best = os.path.join(
+            model_params.model_folder_path, "scores.best.json"
         )
 
-        params_test = {
-            "batch_size": model_params.batch_size,
-            "num_workers": args.num_workers,
+        total_timer_start = datetime.now()
+
+        trainer = Trainer(
+            model_params,
+            args.device,
+            args.multi_gpu,
+            pretrain_model_params,
+            args.overwrite_pretrain_classifiers,
+        )
+
+        # set to infinity
+        best_loss = float("inf")
+        best_LAS = float("-inf")
+        best_epoch_results = None
+        epochs_without_improvement = 0
+        history = []
+        for epoch_results in trainer.train(
+            train_dataset, test_dataset, args.batch_size_eval
+        ):
+            history.append(epoch_results)
+            with open(path_scores_history, "w") as outfile:
+                outfile.write(json.dumps(history, indent=4, cls=DataclassJSONEncoder))
+
+            loss_epoch = epoch_results["loss_epoch"]
+            LAS_epoch = epoch_results["LAS_epoch"]
+            if loss_epoch < best_loss or LAS_epoch > best_LAS:
+                epochs_without_improvement = 0
+                if loss_epoch < best_loss:
+                    best_loss = loss_epoch
+                    print("best epoch (on cumul loss) so far")
+
+                if LAS_epoch > best_LAS:
+                    best_LAS = LAS_epoch
+                    print("best epoch (on LAS) so far")
+
+                print("Saving model")
+                trainer.model.save_model(epoch_results["epoch"])  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+                with open(path_scores_best, "w") as outfile:
+                    outfile.write(
+                        json.dumps(epoch_results, indent=4, cls=DataclassJSONEncoder)
+                    )
+                best_epoch_results = epoch_results
+            else:
+                epochs_without_improvement += 1
+                print(
+                    "no improvement since {} epoch".format(epochs_without_improvement)
+                )
+                if epochs_without_improvement >= model_params.patience:
+                    print(
+                        "Earlystopping ({} epochs without improvement)".format(
+                            model_params.patience
+                        )
+                    )
+                    print("\nbest result : ", best_epoch_results)
+                    break
+
+        total_timer_end = datetime.now()
+        total_time_elapsed = total_timer_end - total_timer_start
+
+        print("Training ended. Total time elapsed = {}".format(total_time_elapsed))
+
+        path_finished_state_file = os.path.join(
+            model_params.model_folder_path, ".finished"
+        )
+        with open(path_finished_state_file, "w") as outfile:
+            outfile.write("")
+
+
+class Trainer:
+    def __init__(
+        self,
+        model_params: ModelParams_T,
+        device: torch.device = torch.device("cpu"),
+        multi_gpu=False,
+        pretrain_model_params: Optional[ModelParams_T] = None,
+        overwrite_pretrain_classifiers=True,
+        num_workers=1,
+    ):
+        self.model_params = model_params
+        self.device = device
+        self.dataloader_params = {
+            "batch_size": self.model_params.batch_size,
+            "num_workers": num_workers,
             "shuffle": True,
         }
-        if args.batch_size_eval:
-            params_test["batch_size"] = args.batch_size_eval
+
+        print("Creating model for training...")
+        self.model = BertForDeprel(
+            model_params,
+            pretrain_model_params=pretrain_model_params,
+            overwrite_pretrain_classifiers=overwrite_pretrain_classifiers,
+        )
+
+        self.model = self.model.to(self.device)
+
+        if multi_gpu:
+            print("MODEL TO MULTI GPU")
+            self.model = nn.DataParallel(self.model)
+
+    def train(
+        self,
+        train_dataset: ConlluDataset,
+        test_dataset: ConlluDataset,
+        batch_size_eval=0,
+    ):
+        train_loader = DataLoader(
+            train_dataset,
+            collate_fn=train_dataset.collate_fn_train,
+            **self.dataloader_params,
+        )
+        params_test = self.dataloader_params.copy()
+        if batch_size_eval:
+            params_test["batch_size"] = batch_size_eval
         test_loader = DataLoader(
-            test_dataset, collate_fn=dataset.collate_fn_train, **params_test
+            test_dataset, collate_fn=train_dataset.collate_fn_train, **params_test
         )
 
         print(
@@ -196,93 +300,20 @@ class Train(CMD):
             f"{len(test_loader):3} batches, "
         )
 
-        print("Create the model")
-        model = BertForDeprel(
-            model_params,
-            pretrain_model_params=pretrain_model_params,
-            overwrite_pretrain_classifiers=args.overwrite_pretrain_classifiers,
-        )
-
         n_epoch_start = 0
-        model.to(args.device)
 
-        if args.multi_gpu:
-            print("MODEL TO MULTI GPU")
-            model = nn.DataParallel(model)
+        no_train_results = self.model.eval_epoch(test_loader, self.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+        no_train_results["n_sentences_train"] = len(train_dataset)
+        no_train_results["n_sentences_test"] = len(test_dataset)
+        no_train_results["epoch"] = n_epoch_start
 
-        # scheduler = get_linear_schedule_with_warmup(args.optimizer,
-        #   args.batch_per_epoch * 5, args.batch_per_epoch*args.epochs)
+        yield no_train_results
 
-        total_timer_start = datetime.now()
-        epochs_no_improve = 0
-        n_epoch = 0
-
-        results = model.eval_epoch(test_loader, args.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
-        results["n_sentences_train"] = len(train_dataset)
-        results["n_sentences_test"] = len(test_dataset)
-        results["epoch"] = n_epoch_start
-
-        history = []
-        history.append(results)
-        best_loss = results["loss_epoch"]
-        best_LAS = results["LAS_epoch"]
-        best_epoch_results = results
-        path_scores_history = os.path.join(
-            model_params.model_folder_path, "scores.history.json"
-        )
-        path_scores_best = os.path.join(
-            model_params.model_folder_path, "scores.best.json"
-        )
-        for n_epoch in range(n_epoch_start + 1, model_params.max_epoch + 1):
+        for n_epoch in range(n_epoch_start + 1, self.model_params.max_epoch + 1):
             print(f"-----   Epoch {n_epoch}   -----")
-            model.train_epoch(train_loader, args.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
-            results = model.eval_epoch(test_loader, args.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+            self.model.train_epoch(train_loader, self.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+            results = self.model.eval_epoch(test_loader, self.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
             results["n_sentences_train"] = len(train_dataset)
             results["n_sentences_test"] = len(test_dataset)
             results["epoch"] = n_epoch
-
-            history.append(results)
-            with open(path_scores_history, "w") as outfile:
-                outfile.write(json.dumps(history, indent=4, cls=DataclassJSONEncoder))
-
-            # history = update_history(history, results, n_epoch, args)
-            loss_epoch = results["loss_epoch"]
-            LAS_epoch = results["LAS_epoch"]
-            if loss_epoch < best_loss or LAS_epoch > best_LAS:
-                epochs_no_improve = 0
-                if loss_epoch < best_loss:
-                    best_loss = loss_epoch
-                    print("best epoch (on cumul loss) so far, saving model...")
-
-                if LAS_epoch > best_LAS:
-                    best_LAS = LAS_epoch
-                    print("best epoch (on LAS) so far, saving model...")
-
-                model.save_model(n_epoch)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
-                with open(path_scores_best, "w") as outfile:
-                    outfile.write(
-                        json.dumps(results, indent=4, cls=DataclassJSONEncoder)
-                    )
-                best_epoch_results = results
-
-            else:
-                epochs_no_improve += 1
-                print("no improvement since {} epoch".format(epochs_no_improve))
-                if epochs_no_improve >= model_params.patience:
-                    print(
-                        "Earlystopping ({} epochs without improvement)".format(
-                            model_params.patience
-                        )
-                    )
-                    print("\nbest result : ", best_epoch_results)
-                    break
-        total_timer_end = datetime.now()
-        total_time_elapsed = total_timer_end - total_timer_start
-
-        print("Training ended. Total time elapsed = {}".format(total_time_elapsed))
-
-        path_finished_state_file = os.path.join(
-            model_params.model_folder_path, ".finished"
-        )
-        with open(path_finished_state_file, "w") as outfile:
-            outfile.write("")
+            yield results

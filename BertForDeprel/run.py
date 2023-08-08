@@ -1,8 +1,7 @@
 import argparse
 import json
 import os
-from parser.cmds import PredictCmd
-from parser.cmds import Train as TrainCmd
+from parser.cmds import PredictCmd, TrainCmd
 from parser.cmds.cmd import CMD
 from parser.utils.gpu_utils import get_devices_configuration
 from parser.utils.types import AnnotationSchema_T, ModelParams_T
