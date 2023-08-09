@@ -1,31 +1,12 @@
 # TODO's
 
-Next: make sure a train/test API of any kind exists, then write a basic sanity check that sets the random seed and makes sure the results come back the same. Make sure to test speed as well. Then develop in peace 😌.
-
-Expected characteristics:
-
-time p3 BertForDeprel/run.py train --conf En-GUM/config.json --ftrain ~/Downloads/ud-treebanks-v2.12/UD_English-GUM/en_gum-ud-train.conllu --ftest ~/Downloads/ud-treebanks-v2.12/UD_English-GUM/en_gum-ud-test.conllu | tee En-GUM/train_out.txt
-
-On my MP1:
-0 should trake 90ish to evaluate
-1 should take 346.49 to train (25 sent/sec), 60ish to eval (19 sent/sec)
-
-time p3 BertForDeprel/run.py predict --overwrite --conf En-GUM-basic/model/config.json --inpath ~/Downloads/ud-treebanks-v2.12/UD_English-GUM/en_gum-ud-test.conllu --outpath En-GUM-basic/ | tee En-GUM-basic/predict_out.txt
-
-On my MP1:
-Should take 41.31ish (27sent/sec)
-
----
-
-Address 2 "TODO: Next" refactoring items in the code.
-
-Next: Output prediction accuracy when the input file is annotated already. Verify that performance matches expectations.
+Next: How does Trankit save memory by only loading XLM-Roberta once?
 Then: build Flask server - prediction is currently hardcoded to read from and write to conllu files - need to load model in an init method and use it for subsequent requests
 
 Update readme with new build info: poetry, poe commands, pytest, verification, pre-commit, etc.
 
 -   Try XLM-RoBERTa-XL, which is 2 years newer than xlm-roberta
--   train_adapter is always called! This might be activating some dropouts or similar, which would be detrimental to performance.
+-   train_adapter is always called; only needed during training. Doesn't actually hurt anything for us, since in our prediction code we use `with torch.no_grad():`
 -   Try CANINE embeddings, which would probably remove many OOV's
 -   Support CUR_DIR variable for the directory containing the config file
 -   Progress bar for batches in training epochs

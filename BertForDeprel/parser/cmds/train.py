@@ -303,7 +303,7 @@ class Trainer:
 
         n_epoch_start = 0
 
-        no_train_results = self.model.eval_epoch(test_loader, self.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+        no_train_results = self.model.eval_on_dataset(test_loader, self.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
         no_train_results["n_sentences_train"] = len(train_dataset)
         no_train_results["n_sentences_test"] = len(test_dataset)
         no_train_results["epoch"] = n_epoch_start
@@ -313,7 +313,7 @@ class Trainer:
         for n_epoch in range(n_epoch_start + 1, self.model_params.max_epoch + 1):
             print(f"-----   Epoch {n_epoch}   -----")
             self.model.train_epoch(train_loader, self.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
-            results = self.model.eval_epoch(test_loader, self.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+            results = self.model.eval_on_dataset(test_loader, self.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
             results["n_sentences_train"] = len(train_dataset)
             results["n_sentences_test"] = len(test_dataset)
             results["epoch"] = n_epoch

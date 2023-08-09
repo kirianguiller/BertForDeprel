@@ -313,7 +313,8 @@ class BertForDeprel(Module):
             f"{processed_sentence_counter} sentence at {parsing_speed} sents/sec)"
         )
 
-    def eval_epoch(self, loader, device):
+    def eval_on_dataset(self, loader, device):
+        """Evaluate the model's performance on the given gold-annotated data."""
         self.eval()
         with torch.no_grad():
             dataset_size = len(loader)
@@ -360,6 +361,7 @@ class BertForDeprel(Module):
 
         return results
 
+    # TODO: combine with Predictor.__get_constrained_dependencies
     def chuliu_heads_pred(
         self, batch: SequenceTrainingBatch_T, model_output: BertForDeprelBatchOutput
     ) -> torch.Tensor:
@@ -398,6 +400,8 @@ class BertForDeprel(Module):
         # TODO: what is this return value?
         return chuliu_heads_pred
 
+    # TODO: config should be stored in file with model; config.json should just be for
+    # debugging
     def save_model(self, epoch):
         trainable_weight_names = [
             n for n, p in self.llm_layer.named_parameters() if p.requires_grad

@@ -4,9 +4,11 @@ from pathlib import Path
 
 import pytest
 import torch
+from torch.utils.data import DataLoader
 
 from BertForDeprel.parser.cmds.predict import Predictor
 from BertForDeprel.parser.cmds.train import Trainer
+from BertForDeprel.parser.modules.BertForDepRel import BertForDeprel
 from BertForDeprel.parser.utils.gpu_utils import get_devices_configuration
 from BertForDeprel.parser.utils.load_data_utils import ConlluDataset
 from BertForDeprel.parser.utils.types import AnnotationSchema_T, ModelParams_T
@@ -99,7 +101,8 @@ def _test_model_train():
     )
 
 
-def _test_predict():
+# TODO: this should be taken care of in the API somehow. Way too mechanical.
+def _get_model_config():
     model_config = ModelParams_T()
     with open(PATH_MODELS_DIR / "config.json", "r") as f:
         config_dict = json.load(f)
@@ -107,6 +110,12 @@ def _test_predict():
         annotation_schema = AnnotationSchema_T()
         annotation_schema.__dict__.update(config_dict["annotation_schema"])
         model_config.annotation_schema = annotation_schema
+
+    return model_config
+
+
+def _test_predict():
+    model_config = _get_model_config()
 
     predictor = Predictor(model_config, 1)
     # TODO: don't pass full model config; just annotation_schema and
@@ -126,9 +135,53 @@ def _test_predict():
         )
 
 
+def _test_eval():
+    """There is no eval API, per se, but this demonstrates how to do it. TODO: it's
+    pretty convoluted."""
+    model_config = _get_model_config()
+    device, _, _ = get_devices_configuration("-1")
+
+    model = BertForDeprel(model_config)
+    model.load_pretrained()
+    model.eval()
+    model = model.to(device)
+
+    test_dataset = ConlluDataset(str(PATH_TEST_CONLLU), model_config, "train")
+    test_loader = DataLoader(
+        test_dataset,
+        collate_fn=test_dataset.collate_fn_train,
+        batch_size=16,
+        num_workers=1,
+    )
+
+    results = model.eval_on_dataset(test_loader, device)
+
+    # TODO: these are different on each machine, and therefore this test FAILS anywhere
+    # but mine.
+    assert results == pytest.approx(
+        {
+            "LAS_epoch": 0.015,
+            "LAS_chuliu_epoch": 0.015,
+            "acc_head_epoch": 0.123,
+            "acc_deprel_epoch": 0.308,
+            "acc_uposs_epoch": 0.046,
+            "acc_xposs_epoch": 1.0,
+            "acc_feats_epoch": 0.0,
+            "acc_lemma_scripts_epoch": 0.0,
+            "loss_head_epoch": 3.041,
+            "loss_deprel_epoch": 3.37,
+            "loss_xposs_epoch": 0.415,
+            "loss_feats_epoch": 3.228,
+            "loss_lemma_scripts_epoch": 3.133,
+            "loss_epoch": 16.117,
+        }
+    )
+
+
 # About 30s on my M2 Mac.
 @pytest.mark.slow
 @pytest.mark.fragile
 def test_train_and_predict():
-    # _test_model_train()
+    _test_model_train()
     _test_predict()
+    _test_eval()
