@@ -1,22 +1,22 @@
+from dataclasses import dataclass
+
 import torch.backends.mps
 import torch.cuda
 
 
+@dataclass
+class DeviceConfig:
+    device: torch.device
+    multi_gpu: bool
+
+
 def get_devices_configuration(gpu_ids):
-    def get_gpu_devices(gpu_ids: str):
-        gpus = []
-
-        for gpu in gpu_ids.split(","):
-            gpus.append(gpu)
-
-        return gpus
-
-    gpus = get_gpu_devices(gpu_ids)
+    gpus = gpu_ids.split(",")
 
     use_gpu = False
     multi_gpu = False
     if torch.cuda.is_available():
-        if len(gpus) == 0:
+        if len(gpus) == 1:
             gpu = gpus[0]
             if gpu == "-1":
                 use_gpu = False
@@ -26,7 +26,6 @@ def get_devices_configuration(gpu_ids):
                 gpu = "0"
                 use_gpu = True
                 multi_gpu = True
-
             else:
                 use_gpu = True
         else:
@@ -56,4 +55,4 @@ def get_devices_configuration(gpu_ids):
         device = torch.device("cpu")
     print(f"Using device: {device}")
 
-    return device, use_gpu, multi_gpu
+    return DeviceConfig(device, multi_gpu)

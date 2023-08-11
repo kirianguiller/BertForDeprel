@@ -66,9 +66,7 @@ if __name__ == "__main__":
     print(f"Set the seed for generating random numbers to {args.seed}")
     torch.manual_seed(args.seed)
 
-    args.device, args.train_on_gpu, args.multi_gpu = get_devices_configuration(
-        args.gpu_ids
-    )
+    args.device_config = get_devices_configuration(args.gpu_ids)
 
     print("Override the default configs with parsed arguments")
 

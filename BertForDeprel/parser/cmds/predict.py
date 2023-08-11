@@ -14,7 +14,7 @@ from ..modules.BertForDepRel import BertForDeprel
 from ..modules.BertForDepRelOutput import BertForDeprelBatchOutput
 from ..utils.annotation_schema_utils import resolve_conllu_paths
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
-from ..utils.gpu_utils import get_devices_configuration
+from ..utils.gpu_utils import DeviceConfig
 from ..utils.load_data_utils import (
     ConlluDataset,
     CopyOption,
@@ -92,11 +92,9 @@ class PredictCmd(CMD):
 
     def run(self, args: Namespace, model_params: ModelParams_T):
         super().run(args, model_params)
-        in_to_out_paths, partial_pred_config, device, multi_gpu = self.__validate_args(
-            args
-        )
+        in_to_out_paths, partial_pred_config = self.__validate_args(args)
 
-        predictor = Predictor(model_params, args.num_workers, device, multi_gpu)
+        predictor = Predictor(model_params, args.num_workers, args.device_config)
 
         print("Starting Predictions ...")
         for in_path, out_path in in_to_out_paths.items():
@@ -161,10 +159,7 @@ class PredictCmd(CMD):
             keep_lemmas=args.keep_lemmas,
         )
 
-        # TODO: should be done in run.py for all commands
-        device, _, multi_gpu = get_devices_configuration(args.gpu_ids)
-
-        return in_to_out_paths, partial_pred_config, device, multi_gpu
+        return in_to_out_paths, partial_pred_config
 
 
 class Predictor:
@@ -172,8 +167,7 @@ class Predictor:
         self,
         model_params: ModelParams_T,
         num_workers: int,
-        device: torch.device = torch.device("cpu"),
-        multi_gpu=False,
+        device_config: DeviceConfig = DeviceConfig(torch.device("cpu"), False),
     ):
         """num_workers: how many subprocesses to use for data loading. 0 means that the
         data will be loaded in the main process."""
@@ -183,8 +177,7 @@ class Predictor:
             "batch_size": model_params.batch_size,
             "num_workers": num_workers,
         }
-        self.device = device
-        self.multi_gpu = multi_gpu
+        self.device_config = device_config
         self.model = self.__load_model()
 
     def __load_model(self) -> nn.Module:
@@ -192,8 +185,8 @@ class Predictor:
         model = BertForDeprel(self.model_params)
         model.load_pretrained()
         model.eval()
-        model.to(self.device)
-        if self.multi_gpu:
+        model.to(self.device_config.device)
+        if self.device_config.multi_gpu:
             print("Sending model to multiple GPUs...")
             model = nn.DataParallel(model)
         return model
@@ -218,7 +211,7 @@ class Predictor:
         batch: SequencePredictionBatch_T
         with torch.no_grad():
             for batch in pred_loader:
-                batch = batch.to(self.device)
+                batch = batch.to(self.device_config.device)
                 preds = self.model.forward(batch).detach()
 
                 time_from_start = 0

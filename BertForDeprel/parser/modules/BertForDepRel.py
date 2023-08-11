@@ -216,15 +216,13 @@ class BertForDeprel(Module):
         # TODO: user gets to choose the type here, so it's wrong to
         # assume XLMRobertaModel
         self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(embedding_type)
+        self.llm_layer.config
         adapter_config = PfeifferConfig(reduction_factor=4, non_linearity="gelu")
         adapter_name = "Pfeiffer_gelu"
         self.llm_layer.add_adapter(adapter_name, config=adapter_config)
         # TODO: this should only be set when the mode is "train";
         self.llm_layer.train_adapter([adapter_name])
         self.llm_layer.set_active_adapters([adapter_name])
-        self.llm_layer.config.max_position_embeddings = (
-            self.model_params.max_position_embeddings
-        )
 
     def _set_criterions_and_optimizer(self):
         self.criterion = CrossEntropyLoss(ignore_index=-1)

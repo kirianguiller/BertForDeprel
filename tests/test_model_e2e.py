@@ -33,7 +33,7 @@ def _test_model_train():
         embedding_type="xlm-roberta-large",
     )
 
-    device, _, multi_gpu = get_devices_configuration("-1")
+    device_config = get_devices_configuration("-1")
     train_dataset = ConlluDataset(
         PATH_TRAIN_CONLLU,
         model_config,
@@ -45,9 +45,7 @@ def _test_model_train():
     # because the former sets the annotation schema in our model config,
     # and the latter uses it to set up the model (reversing the ordering results in
     # errors related to length-0 tensors). That is really clumsy and annoying.
-    trainer = Trainer(
-        model_config, device, multi_gpu, overwrite_pretrain_classifiers=False
-    )
+    trainer = Trainer(model_config, device_config, overwrite_pretrain_classifiers=False)
 
     scores = list(trainer.train(train_dataset, test_dataset))
 
@@ -132,12 +130,12 @@ def _test_eval():
     """There is no eval API, per se, but this demonstrates how to do it. TODO: it's
     pretty convoluted."""
     model_config = _get_model_config()
-    device, _, _ = get_devices_configuration("-1")
+    device_config = get_devices_configuration("-1")
 
     model = BertForDeprel(model_config)
     model.load_pretrained()
     model.eval()
-    model = model.to(device)
+    model = model.to(device_config.device)
 
     test_dataset = ConlluDataset(PATH_TEST_CONLLU, model_config, "train")
     test_loader = DataLoader(
@@ -147,7 +145,7 @@ def _test_eval():
         num_workers=1,
     )
 
-    results = model.eval_on_dataset(test_loader, device)
+    results = model.eval_on_dataset(test_loader, device_config.device)
 
     # TODO: these are different on each machine, and therefore this test FAILS anywhere
     # but mine.

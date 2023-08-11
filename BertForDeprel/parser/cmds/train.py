@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader, random_split
 from ..cmds.cmd import CMD, SubparsersType
 from ..modules.BertForDepRel import BertForDeprel
 from ..utils.annotation_schema_utils import get_annotation_schema_from_input_folder
+from ..utils.gpu_utils import DeviceConfig
 from ..utils.load_data_utils import ConlluDataset
 from ..utils.types import ConfigJSONEncoder, ModelParams_T
 
@@ -182,8 +183,7 @@ class TrainCmd(CMD):
 
         trainer = Trainer(
             model_params,
-            args.device,
-            args.multi_gpu,
+            args.device_config,
             pretrain_model_params,
             args.overwrite_pretrain_classifiers,
         )
@@ -250,14 +250,13 @@ class Trainer:
         self,
         model_params: ModelParams_T,
         # TODO: pass around single device config, not (device, multi_gpu)
-        device: torch.device = torch.device("cpu"),
-        multi_gpu=False,
+        device_config: DeviceConfig = DeviceConfig(torch.device("cpu"), False),
         pretrain_model_params: Optional[ModelParams_T] = None,
         overwrite_pretrain_classifiers=True,
         num_workers=1,
     ):
         self.model_params = model_params
-        self.device = device
+        self.device_config = device_config
         self.dataloader_params = {
             "batch_size": self.model_params.batch_size,
             "num_workers": num_workers,
@@ -271,9 +270,9 @@ class Trainer:
             overwrite_pretrain_classifiers=overwrite_pretrain_classifiers,
         )
 
-        self.model = self.model.to(self.device)
+        self.model = self.model.to(self.device_config.device)
 
-        if multi_gpu:
+        if self.device_config.multi_gpu:
             print("MODEL TO MULTI GPU")
             self.model = nn.DataParallel(self.model)
 
@@ -306,7 +305,7 @@ class Trainer:
 
         n_epoch_start = 0
 
-        no_train_results = self.model.eval_on_dataset(test_loader, self.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+        no_train_results = self.model.eval_on_dataset(test_loader, self.device_config.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
         no_train_results["n_sentences_train"] = len(train_dataset)
         no_train_results["n_sentences_test"] = len(test_dataset)
         no_train_results["epoch"] = n_epoch_start
@@ -315,8 +314,8 @@ class Trainer:
 
         for n_epoch in range(n_epoch_start + 1, self.model_params.max_epoch + 1):
             print(f"-----   Epoch {n_epoch}   -----")
-            self.model.train_epoch(train_loader, self.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
-            results = self.model.eval_on_dataset(test_loader, self.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+            self.model.train_epoch(train_loader, self.device_config.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+            results = self.model.eval_on_dataset(test_loader, self.device_config.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
             results["n_sentences_train"] = len(train_dataset)
             results["n_sentences_test"] = len(test_dataset)
             results["epoch"] = n_epoch
