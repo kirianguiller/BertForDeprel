@@ -2,23 +2,9 @@ import dataclasses
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, List, Mapping, Optional
+from typing import Any, Mapping, Optional
 
-
-@dataclass
-class AnnotationSchema_T:
-    deprels: List[str] = field(default_factory=list)
-    uposs: List[str] = field(default_factory=list)
-    xposs: List[str] = field(default_factory=list)
-    feats: List[str] = field(default_factory=list)
-    lemma_scripts: List[str] = field(default_factory=list)
-
-    @staticmethod
-    def from_dict(schema_dict: Mapping[str, Any]):
-        annotation_schema = AnnotationSchema_T()
-        # TODO: Check the validity of this first; at least a version number
-        annotation_schema.__dict__.update(schema_dict)
-        return annotation_schema
+from .annotation_schema import AnnotationSchema_T
 
 
 @dataclass
@@ -56,13 +42,14 @@ class ModelParams_T:
     @staticmethod
     def from_dict(params_dict: Mapping[str, Any]) -> "ModelParams_T":
         model_params = ModelParams_T()
+        # TODO: Check the validity of this first; at least a version number
         model_params.__dict__.update(params_dict)
         if model_params.model_folder_path:
             model_params.model_folder_path = Path(model_params.model_folder_path)
-        annotation_schema = AnnotationSchema_T()
-        # TODO: Check the validity of this first; at least a version number
-        annotation_schema.__dict__.update(params_dict["annotation_schema"])
-        model_params.annotation_schema = annotation_schema
+        if "annotation_schema" in params_dict:
+            model_params.annotation_schema = AnnotationSchema_T.from_dict(
+                params_dict["annotation_schema"]
+            )
 
         return model_params
 

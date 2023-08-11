@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from BertForDeprel.parser.utils.annotation_schema_utils import compute_annotation_schema
+from BertForDeprel.parser.utils.annotation_schema import compute_annotation_schema
 
 PATH_TEST_DATA_FOLDER = Path(__file__).parent / "data"
 PATH_TEST_MODELS_FOLDER = Path(__file__).parent / "models"

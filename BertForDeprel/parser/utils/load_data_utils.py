@@ -14,12 +14,7 @@ from torch import Tensor, tensor
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from .annotation_schema_utils import (
-    NONE_VOCAB,
-    compute_annotation_schema,
-    is_annotation_schema_empty,
-    resolve_conllu_paths,
-)
+from .annotation_schema import NONE_VOCAB, compute_annotation_schema
 from .lemma_script_utils import apply_lemma_rule, gen_lemma_script
 from .types import ModelParams_T
 
@@ -187,6 +182,23 @@ class PartialPredictionConfig:
     keep_lemmas: CopyOption = "NONE"
 
 
+def resolve_conllu_paths(path: Path) -> List[Path]:
+    if path.is_file():
+        if path.name.endswith(".conllu"):
+            paths = [path]
+        else:
+            raise BaseException(
+                "input file was not .conll neither a folder of conllu : ", path
+            )
+    elif path.is_dir():
+        paths = list(path.glob("*.conllu"))
+        if paths == []:
+            raise BaseException(f"No conllu was found in path_folder=`{path}`")
+    else:
+        raise Exception(f"No conllu was found in path_folder=`{path}` (error 2)")
+    return paths
+
+
 class ConlluDataset(Dataset):
     def __init__(
         self,
@@ -196,7 +208,7 @@ class ConlluDataset(Dataset):
         compute_annotation_schema_if_not_found=False,
     ):
         paths = resolve_conllu_paths(path_file_or_folder)
-        if is_annotation_schema_empty(model_params.annotation_schema):
+        if model_params.annotation_schema.is_empty():
             if compute_annotation_schema_if_not_found:
                 model_params.annotation_schema = compute_annotation_schema(*paths)
             else:
@@ -363,13 +375,23 @@ class ConlluDataset(Dataset):
             token_len = input.tokens_len[n_token + 1 - skipped_tokens]
             token_padding = [DUMMY_ID] * (token_len - 1)
 
-            upos = [get_index(token["UPOS"], self.upos2i)] + token_padding
-            xpos = [get_index(token["XPOS"], self.xpos2i)] + token_padding
+            upos = [
+                get_index(token["UPOS"], self.upos2i, token["FORM"])
+            ] + token_padding
+            xpos = [
+                get_index(token["XPOS"], self.xpos2i, token["FORM"])
+            ] + token_padding
             feat = [
-                get_index(_featuresJsonToConll(token["FEATS"]), self.feat2i)
+                get_index(
+                    _featuresJsonToConll(token["FEATS"]), self.feat2i, token["FORM"]
+                )
             ] + token_padding
             lemma_script = [
-                get_index(gen_lemma_script(token["FORM"], token["LEMMA"]), self.lem2i)
+                get_index(
+                    gen_lemma_script(token["FORM"], token["LEMMA"]),
+                    self.lem2i,
+                    token["FORM"],
+                )
             ] + token_padding
 
             # TODO: how does this work for the sentence root? Is that a -1 or a
@@ -378,7 +400,7 @@ class ConlluDataset(Dataset):
             head = [sum(input.tokens_len[: token["HEAD"]])] + token_padding
             deprel = token["DEPREL"]
 
-            deprel = [get_index(deprel, self.dep2i)] + token_padding
+            deprel = [get_index(deprel, self.dep2i, token["FORM"])] + token_padding
             # Example of what we have for a token of 2 subtokens
             # form = ["eat", "ing"]
             # pos = [4, DUMMY_ID]
@@ -591,11 +613,11 @@ class ConlluDataset(Dataset):
         return forced_relations
 
 
-def get_index(label: str, mapping: Dict[str, int]) -> int:
+def get_index(label: str, mapping: Dict[str, int], word: str) -> int:
     """
     label: a string that represent the label whose integer is required
     mapping: a dictionary with a set of labels as keys and index integers as values
-
+    word: the word having the label assigned to it (for logging purposes)
     return : index (int)
     """
     index = mapping.get(label, DUMMY_ID)
@@ -603,7 +625,7 @@ def get_index(label: str, mapping: Dict[str, int]) -> int:
     if index == DUMMY_ID:
         index = mapping[NONE_VOCAB]
         print(
-            f"LOG: label '{label}' was not found in the label2index mapping. Using the"
-            f"index for '{NONE_VOCAB}' instead."
+            f"LOG: label '{label}' for word '{word}' was not found in the label2index "
+            f"mapping. Using the index for '{NONE_VOCAB}' instead."
         )
     return index

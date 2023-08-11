@@ -10,7 +10,6 @@ from torch.utils.data import DataLoader, random_split
 
 from ..cmds.cmd import CMD, SubparsersType
 from ..modules.BertForDepRel import BertForDeprel
-from ..utils.annotation_schema_utils import get_annotation_schema_from_input_folder
 from ..utils.gpu_utils import DeviceConfig
 from ..utils.load_data_utils import ConlluDataset
 from ..utils.types import ConfigJSONEncoder, ModelParams_T
@@ -53,18 +52,7 @@ class TrainCmd(CMD):
             type=float,
             help="split ratio to use (if no --ftest is provided)",
         )
-        subparser.add_argument(
-            "--path_annotation_schema",
-            help="path to annotation schema (default: in "
-            "folder/annotation_schema.json",
-        )
 
-        subparser.add_argument(
-            "--path_folder_compute_annotation_schema",
-            type=Path,
-            help="path to annotation schema (default: in "
-            "folder/annotation_schema.json",
-        )
         subparser.add_argument(
             "--conf_pretrain",
             type=Path,
@@ -98,36 +86,6 @@ class TrainCmd(CMD):
         if args.patience:
             model_params.patience = args.patience
 
-        # if user provided a path to an annotation schema, use this one (or overwrite
-        # current one if it exits)
-        if args.path_annotation_schema:
-            if args.path_folder_compute_annotation_schema:
-                raise Exception(
-                    "You provided both --path_annotation_schema and "
-                    "--path_folder_compute_annotation_schema, it's not allowed as it "
-                    "is ambiguous. You can provide none of them or at maximum one of "
-                    "this two."
-                )
-            print(
-                f"You provided a path to a custom annotation schema, we will use this "
-                f"one for your model `{args.path_annotation_schema}`"
-            )
-            with open(args.path_annotation_schema, "r") as infile:
-                model_params.annotation_schema = json.loads(infile.read())
-
-        # if no annotation schema where provided, either
-        if args.path_folder_compute_annotation_schema:
-            model_params.annotation_schema = get_annotation_schema_from_input_folder(
-                args.path_folder_compute_annotation_schema
-            )
-        print("Model parameters : ", model_params)
-
-        # if is_annotation_schema_empty(model_params.annotation_schema) == True:
-        #     # The annotation schema was never given in json config or path argument,
-        #     # we need to compute it on --ftrain
-        #     print("Computing annotation schema on --ftrain file")
-        #     model_params.annotation_schema = compute_annotation_schema(args.ftrain)
-
         pretrain_model_params: Optional[ModelParams_T] = None
         if args.conf_pretrain:
             # We are finetuning an existing BertForDeprel model, where a pretrain model
@@ -136,13 +94,14 @@ class TrainCmd(CMD):
             # - the new model doesnt erase the old one (root_path_folder + model_name
             # are different)
             # - the new model has same architecture as old one
-            with open(args.conf_pretrain, "r") as infile:
-                # TODO: validate json before loading
-                pretrain_model_params_ = ModelParams_T(**json.loads(infile.read()))
+            with open(args.conf_pretrain, "r") as f:
+                pretrain_model_params_ = ModelParams_T.from_dict(json.loads(f.read()))
                 if not args.overwrite_pretrain_classifiers:
                     model_params.annotation_schema = (
                         pretrain_model_params_.annotation_schema
                     )
+                # TODO: there should be an else clause where we update the annotation
+                # schema with new labels from the fine-tuning data.
                 pretrain_model_params = pretrain_model_params_
             if (
                 pretrain_model_params_.model_folder_path
@@ -152,6 +111,9 @@ class TrainCmd(CMD):
                     "The pretrained model and the new model have same full path. It's "
                     "not allowed as it would result in erasing the pretrained model"
                 )
+
+        # Next: load raw ConllU data, then compute annotation schema on it, then encode
+        # it for the model. Make these three steps explicit.
 
         dataset = ConlluDataset(
             args.ftrain,

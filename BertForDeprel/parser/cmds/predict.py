@@ -12,7 +12,6 @@ from torch.utils.data import DataLoader
 from ..cmds.cmd import CMD, SubparsersType
 from ..modules.BertForDepRel import BertForDeprel
 from ..modules.BertForDepRelOutput import BertForDeprelBatchOutput
-from ..utils.annotation_schema_utils import resolve_conllu_paths
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
 from ..utils.gpu_utils import DeviceConfig
 from ..utils.load_data_utils import (
@@ -20,6 +19,7 @@ from ..utils.load_data_utils import (
     CopyOption,
     PartialPredictionConfig,
     SequencePredictionBatch_T,
+    resolve_conllu_paths,
 )
 from ..utils.scores_and_losses_utils import _deprel_pred_for_heads
 from ..utils.types import ModelParams_T
