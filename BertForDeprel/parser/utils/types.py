@@ -2,7 +2,7 @@ import dataclasses
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Mapping, Optional
 
 
 @dataclass
@@ -12,6 +12,13 @@ class AnnotationSchema_T:
     xposs: List[str] = field(default_factory=list)
     feats: List[str] = field(default_factory=list)
     lemma_scripts: List[str] = field(default_factory=list)
+
+    @staticmethod
+    def from_dict(schema_dict: Mapping[str, Any]):
+        annotation_schema = AnnotationSchema_T()
+        # TODO: Check the validity of this first; at least a version number
+        annotation_schema.__dict__.update(schema_dict)
+        return annotation_schema
 
 
 @dataclass
@@ -45,6 +52,19 @@ class ModelParams_T:
     # xlm-roberta-large. Using larger values could result in doubling or quadrupling the
     # memory usage.
     max_position_embeddings: int = 512
+
+    @staticmethod
+    def from_dict(params_dict: Mapping[str, Any]) -> "ModelParams_T":
+        model_params = ModelParams_T()
+        model_params.__dict__.update(params_dict)
+        if model_params.model_folder_path:
+            model_params.model_folder_path = Path(model_params.model_folder_path)
+        annotation_schema = AnnotationSchema_T()
+        # TODO: Check the validity of this first; at least a version number
+        annotation_schema.__dict__.update(params_dict["annotation_schema"])
+        model_params.annotation_schema = annotation_schema
+
+        return model_params
 
 
 class ConfigJSONEncoder(json.JSONEncoder):

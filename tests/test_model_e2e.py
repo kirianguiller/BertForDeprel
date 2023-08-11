@@ -11,7 +11,7 @@ from BertForDeprel.parser.cmds.train import Trainer
 from BertForDeprel.parser.modules.BertForDepRel import BertForDeprel
 from BertForDeprel.parser.utils.gpu_utils import get_devices_configuration
 from BertForDeprel.parser.utils.load_data_utils import ConlluDataset
-from BertForDeprel.parser.utils.types import AnnotationSchema_T, ModelParams_T
+from BertForDeprel.parser.utils.types import ModelParams_T
 
 PARENT = Path(__file__).parent
 PATH_TEST_DATA_FOLDER = PARENT / "data"
@@ -101,19 +101,10 @@ def _test_model_train():
     )
 
 
-# TODO: this should be taken care of in the API somehow. Way too mechanical.
 def _get_model_config():
-    model_config = ModelParams_T()
     with open(PATH_MODELS_DIR / "config.json", "r") as f:
-        config_dict = json.load(f)
-        model_config.__dict__.update(config_dict)
-        if model_config.model_folder_path:
-            model_config.model_folder_path = Path(model_config.model_folder_path)
-        annotation_schema = AnnotationSchema_T()
-        annotation_schema.__dict__.update(config_dict["annotation_schema"])
-        model_config.annotation_schema = annotation_schema
-
-    return model_config
+        params_dict = json.load(f)
+        return ModelParams_T.from_dict(params_dict)
 
 
 def _test_predict():

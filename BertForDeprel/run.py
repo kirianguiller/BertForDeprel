@@ -3,7 +3,7 @@ import json
 from parser.cmds import PredictCmd, TrainCmd
 from parser.cmds.cmd import CMD
 from parser.utils.gpu_utils import get_devices_configuration
-from parser.utils.types import AnnotationSchema_T, ModelParams_T
+from parser.utils.types import ModelParams_T
 from pathlib import Path
 from typing import Dict
 
@@ -45,19 +45,7 @@ if __name__ == "__main__":
         if args.conf.is_file():
             with open(args.conf, "r") as infile:
                 custom_model_params = json.loads(infile.read())
-                # TODO: check if the config file is valid first
-                model_params.__dict__.update(custom_model_params)
-                if model_params.model_folder_path:
-                    model_params.model_folder_path = Path(
-                        model_params.model_folder_path
-                    )
-                if "annotation_schema" in custom_model_params:
-                    annotation_schema = AnnotationSchema_T()
-                    # TODO: check if the annotation schema is valid first
-                    annotation_schema.__dict__.update(
-                        custom_model_params["annotation_schema"]
-                    )
-                    model_params.annotation_schema = annotation_schema
+                model_params = ModelParams_T.from_dict(custom_model_params)
         else:
             raise Exception(
                 "You provided a --conf parameter but no config was found in "
