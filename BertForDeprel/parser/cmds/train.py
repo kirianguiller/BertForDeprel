@@ -1,7 +1,7 @@
 import json
-import os
 from argparse import ArgumentParser
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 import torch
@@ -12,14 +12,14 @@ from ..cmds.cmd import CMD, SubparsersType
 from ..modules.BertForDepRel import BertForDeprel
 from ..utils.annotation_schema_utils import get_annotation_schema_from_input_folder
 from ..utils.load_data_utils import ConlluDataset
-from ..utils.types import DataclassJSONEncoder, ModelParams_T
+from ..utils.types import ConfigJSONEncoder, ModelParams_T
 
 
 class TrainCmd(CMD):
     def add_subparser(self, name: str, parser: SubparsersType) -> ArgumentParser:
         subparser = parser.add_parser(name, help="Train a model.")
         subparser.add_argument(
-            "--model_folder_path", "-f", help="path to models folder"
+            "--model_folder_path", "-f", type=Path, help="path to models folder"
         )
         subparser.add_argument(
             "--embedding_type",
@@ -38,11 +38,12 @@ class TrainCmd(CMD):
         subparser.add_argument(
             "--ftrain",
             required=True,
+            type=Path,
             help="path to train file or folder (files need to have .conllu extension)",
         )
         subparser.add_argument(
             "--ftest",
-            default="",
+            type=Path,
             help="path to test file or folder (files need to have .conllu extension)",
         )
         subparser.add_argument(
@@ -59,11 +60,14 @@ class TrainCmd(CMD):
 
         subparser.add_argument(
             "--path_folder_compute_annotation_schema",
+            type=Path,
             help="path to annotation schema (default: in "
             "folder/annotation_schema.json",
         )
         subparser.add_argument(
-            "--conf_pretrain", default="", help="path to pretrain model config"
+            "--conf_pretrain",
+            type=Path,
+            help="path to pretrain model config",
         )
         subparser.add_argument(
             "--overwrite_pretrain_classifiers",
@@ -75,11 +79,14 @@ class TrainCmd(CMD):
 
     def run(self, args, model_params: ModelParams_T):
         super().run(args, model_params)
+
+        assert model_params.model_folder_path is not None
+
         if args.model_folder_path:
             model_params.model_folder_path = args.model_folder_path
 
-        if not os.path.isdir(model_params.model_folder_path):
-            os.makedirs(model_params.model_folder_path)
+        if not model_params.model_folder_path.is_dir():
+            model_params.model_folder_path.mkdir(parents=True)
 
         if args.embedding_type:
             model_params.embedding_type = args.embedding_type
@@ -136,9 +143,10 @@ class TrainCmd(CMD):
                         pretrain_model_params_.annotation_schema
                     )
                 pretrain_model_params = pretrain_model_params_
-            if os.path.join(
-                pretrain_model_params_.model_folder_path, "model.pt"
-            ) == os.path.join(model_params.model_folder_path, "model.pt"):
+            if (
+                pretrain_model_params_.model_folder_path
+                == model_params.model_folder_path
+            ):
                 assert Exception(
                     "The pretrained model and the new model have same full path. It's "
                     "not allowed as it would result in erasing the pretrained model"
@@ -167,12 +175,8 @@ class TrainCmd(CMD):
                 dataset=dataset, lengths=[train_size, test_size]
             )  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
 
-        path_scores_history = os.path.join(
-            model_params.model_folder_path, "scores.history.json"
-        )
-        path_scores_best = os.path.join(
-            model_params.model_folder_path, "scores.best.json"
-        )
+        path_scores_history = model_params.model_folder_path / "scores.history.json"
+        path_scores_best = model_params.model_folder_path / "scores.best.json"
 
         total_timer_start = datetime.now()
 
@@ -195,7 +199,7 @@ class TrainCmd(CMD):
         ):
             history.append(epoch_results)
             with open(path_scores_history, "w") as outfile:
-                outfile.write(json.dumps(history, indent=4, cls=DataclassJSONEncoder))
+                outfile.write(json.dumps(history, indent=4, cls=ConfigJSONEncoder))
 
             loss_epoch = epoch_results["loss_epoch"]
             LAS_epoch = epoch_results["LAS_epoch"]
@@ -213,7 +217,7 @@ class TrainCmd(CMD):
                 trainer.model.save_model(epoch_results["epoch"])  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
                 with open(path_scores_best, "w") as outfile:
                     outfile.write(
-                        json.dumps(epoch_results, indent=4, cls=DataclassJSONEncoder)
+                        json.dumps(epoch_results, indent=4, cls=ConfigJSONEncoder)
                     )
                 best_epoch_results = epoch_results
             else:
@@ -235,9 +239,8 @@ class TrainCmd(CMD):
 
         print("Training ended. Total time elapsed = {}".format(total_time_elapsed))
 
-        path_finished_state_file = os.path.join(
-            model_params.model_folder_path, ".finished"
-        )
+        path_finished_state_file = model_params.model_folder_path / ".finished"
+
         with open(path_finished_state_file, "w") as outfile:
             outfile.write("")
 

@@ -4,7 +4,7 @@ from BertForDeprel.parser.utils.annotation_schema_utils import compute_annotatio
 
 PATH_TEST_DATA_FOLDER = Path(__file__).parent / "data"
 PATH_TEST_MODELS_FOLDER = Path(__file__).parent / "models"
-PATH_TEST_CONLLU = str(PATH_TEST_DATA_FOLDER / "english.conllu")
+PATH_TEST_CONLLU = PATH_TEST_DATA_FOLDER / "english.conllu"
 
 
 def test_health():

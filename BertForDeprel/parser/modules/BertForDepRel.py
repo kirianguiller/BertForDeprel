@@ -1,6 +1,6 @@
 import json
-import os
 from dataclasses import dataclass
+from pathlib import Path
 from timeit import default_timer as timer
 from typing import Optional
 
@@ -27,7 +27,7 @@ from ..utils.scores_and_losses_utils import (
     compute_loss_deprel,
     compute_loss_head,
 )
-from ..utils.types import DataclassJSONEncoder, ModelParams_T
+from ..utils.types import ConfigJSONEncoder, ModelParams_T
 from .BertForDepRelOutput import BertForDeprelBatchOutput
 from .PosAndDepRelParserHead import PosAndDeprelParserHead
 
@@ -403,6 +403,8 @@ class BertForDeprel(Module):
     # TODO: config should be stored in file with model; config.json should just be for
     # debugging
     def save_model(self, epoch):
+        assert self.model_params.model_folder_path is not None
+
         trainable_weight_names = [
             n for n, p in self.llm_layer.named_parameters() if p.requires_grad
         ] + [n for n, p in self.tagger_layer.named_parameters() if p.requires_grad]
@@ -414,13 +416,13 @@ class BertForDeprel(Module):
             if k in trainable_weight_names:
                 state["tagger"][k] = v
 
-        ckpt_fpath = os.path.join(self.model_params.model_folder_path, "model.pt")
-        config_path = os.path.join(self.model_params.model_folder_path, "config.json")
+        ckpt_fpath: Path = self.model_params.model_folder_path / "model.pt"
+        config_path: Path = self.model_params.model_folder_path / "config.json"
         torch.save(state, ckpt_fpath)
         print(
             "Saving adapter weights to ... {} ({:.2f} MB) (conf path : {})".format(
                 ckpt_fpath,
-                os.path.getsize(ckpt_fpath) * 1.0 / (1024 * 1024),
+                ckpt_fpath.stat().st_size * 1.0 / (1024 * 1024),
                 config_path,
             )
         )
@@ -430,13 +432,14 @@ class BertForDeprel(Module):
                     self.model_params,
                     ensure_ascii=False,
                     indent=4,
-                    cls=DataclassJSONEncoder,
+                    cls=ConfigJSONEncoder,
                 )
             )
 
     def load_pretrained(self, overwrite_pretrain_classifiers=False):
         params = self.pretrain_model_params or self.model_params
-        ckpt_fpath = os.path.join(params.model_folder_path, "model" + ".pt")
+        assert params.model_folder_path is not None
+        ckpt_fpath = params.model_folder_path / "model.pt"
         checkpoint_state = torch.load(ckpt_fpath)
 
         tagger_pretrained_dict = self.tagger_layer.state_dict()

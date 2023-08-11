@@ -1,7 +1,8 @@
 import dataclasses
 import json
 from dataclasses import dataclass, field
-from typing import List
+from pathlib import Path
+from typing import List, Optional
 
 
 @dataclass
@@ -17,7 +18,7 @@ class AnnotationSchema_T:
 class ModelParams_T:
     # Shared
     # TODO: what behavior does an empty path lead to?
-    model_folder_path: str = ""
+    model_folder_path: Optional[Path] = None
     # TODO: what behavior does an empty schema lead to?
     annotation_schema: AnnotationSchema_T = field(default_factory=AnnotationSchema_T)
 
@@ -46,10 +47,12 @@ class ModelParams_T:
     max_position_embeddings: int = 512
 
 
-class DataclassJSONEncoder(json.JSONEncoder):
+class ConfigJSONEncoder(json.JSONEncoder):
     """JSON encoder for data that may include dataclasses."""
 
     def default(self, o):
         if dataclasses.is_dataclass(o):
             return dataclasses.asdict(o)
+        elif isinstance(o, Path):
+            return str(o)
         return super().default(o)

@@ -1,5 +1,4 @@
-import glob
-import os
+from pathlib import Path
 from typing import List
 
 from conllup.conllup import _featuresJsonToConll, sentenceConllToJson
@@ -55,16 +54,16 @@ def compute_annotation_schema(*paths):
     return annotation_schema
 
 
-def resolve_conllu_paths(path: str):
-    if os.path.isfile(path):
-        if path.endswith(".conllu"):
+def resolve_conllu_paths(path: Path) -> List[Path]:
+    if path.is_file():
+        if path.name.endswith(".conllu"):
             paths = [path]
         else:
             raise BaseException(
                 "input file was not .conll neither a folder of conllu : ", path
             )
-    elif os.path.isdir(path):
-        paths = glob.glob(os.path.join(path, "*.conllu"))
+    elif path.is_dir():
+        paths = list(path.glob("*.conllu"))
         if paths == []:
             raise BaseException(f"No conllu was found in path_folder=`{path}`")
     else:
@@ -72,7 +71,7 @@ def resolve_conllu_paths(path: str):
     return paths
 
 
-def get_annotation_schema_from_input_folder(path_folder: str):
+def get_annotation_schema_from_input_folder(path_folder: Path):
     path_conllus = resolve_conllu_paths(path_folder)
     annotation_schema = compute_annotation_schema(*path_conllus)
     return annotation_schema

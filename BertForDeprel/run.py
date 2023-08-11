@@ -1,10 +1,10 @@
 import argparse
 import json
-import os
 from parser.cmds import PredictCmd, TrainCmd
 from parser.cmds.cmd import CMD
 from parser.utils.gpu_utils import get_devices_configuration
 from parser.utils.types import AnnotationSchema_T, ModelParams_T
+from pathlib import Path
 from typing import Dict
 
 import torch
@@ -15,7 +15,9 @@ if __name__ == "__main__":
     subcommands: Dict[str, CMD] = {"predict": PredictCmd(), "train": TrainCmd()}
     for name, subcommand in subcommands.items():
         subparser = subcommand.add_subparser(name, subparsers)
-        subparser.add_argument("--conf", "-c", help="path to config file (.json)")
+        subparser.add_argument(
+            "--conf", "-c", type=Path, help="path to config file (.json)"
+        )
 
         subparser.add_argument(
             "--gpu_ids",
@@ -40,11 +42,15 @@ if __name__ == "__main__":
     model_params = ModelParams_T()
 
     if args.conf:
-        if os.path.isfile(args.conf):
+        if args.conf.is_file():
             with open(args.conf, "r") as infile:
                 custom_model_params = json.loads(infile.read())
                 # TODO: check if the config file is valid first
                 model_params.__dict__.update(custom_model_params)
+                if model_params.model_folder_path:
+                    model_params.model_folder_path = Path(
+                        model_params.model_folder_path
+                    )
                 if "annotation_schema" in custom_model_params:
                     annotation_schema = AnnotationSchema_T()
                     # TODO: check if the annotation schema is valid first
@@ -60,8 +66,8 @@ if __name__ == "__main__":
 
     # TODO
     # if model_params.get("embedding_cached_path", "") == "":
-    #     model_params["embedding_cached_path"] = str(Path.home() / ".cache" /
-    #       "huggingface")
+    #     model_params["embedding_cached_path"] = Path.home() / ".cache" /
+    #       "huggingface"
     #     print(f"No `embedding_cached_path` provided, saving huggingface pretrained "
     #           "embedding in default cache location : "
     #           f"`{model_params['embedding_cached_path']}` ")

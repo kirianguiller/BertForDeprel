@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import pytest
@@ -12,10 +11,10 @@ from BertForDeprel.parser.utils.types import ModelParams_T
 
 PATH_TEST_DATA_FOLDER = Path(__file__).parent / "data"
 PATH_TEST_MODELS_FOLDER = Path(__file__).parent / "models"
-PATH_TEST_CONLLU = str(PATH_TEST_DATA_FOLDER / "english.conllu")
+PATH_TEST_CONLLU = PATH_TEST_DATA_FOLDER / "english.conllu"
 
 model_params_test = ModelParams_T(
-    model_folder_path=str(PATH_TEST_MODELS_FOLDER),
+    model_folder_path=PATH_TEST_MODELS_FOLDER,
     max_epoch=5,
     patience=3,
     batch_size=4,
@@ -28,8 +27,8 @@ def test_health():
     assert True
 
 
-def test_is_there_test_conllu():
-    assert os.path.isfile(PATH_TEST_CONLLU)
+def test_test_data_exists():
+    assert PATH_TEST_CONLLU.is_file()
 
 
 def test_create_instance_dataset():

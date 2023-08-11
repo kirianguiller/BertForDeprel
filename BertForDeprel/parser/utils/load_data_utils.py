@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Literal, Self, Tuple, TypeVar
 
 import torch
@@ -189,7 +190,7 @@ class PartialPredictionConfig:
 class ConlluDataset(Dataset):
     def __init__(
         self,
-        path_file_or_folder: str,
+        path_file_or_folder: Path,
         model_params: ModelParams_T,
         run_mode: Literal["train", "predict"],
         compute_annotation_schema_if_not_found=False,
@@ -205,6 +206,7 @@ class ConlluDataset(Dataset):
                 )
 
         self.model_params = model_params
+        # TODO: what's this for?
         os.environ["TOKENIZERS_PARALLELISM"] = "true"
         self.tokenizer: (
             PreTrainedTokenizer | PreTrainedTokenizerFast

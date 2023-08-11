@@ -25,7 +25,7 @@ PATH_MODELS_DIR = PATH_TEST_DATA_FOLDER / "models"
 def _test_model_train():
     torch.manual_seed(42)
     model_config = ModelParams_T(
-        model_folder_path=str(PATH_MODELS_DIR),
+        model_folder_path=PATH_MODELS_DIR,
         max_epoch=1,
         patience=0,
         batch_size=16,
@@ -35,12 +35,12 @@ def _test_model_train():
 
     device, _, multi_gpu = get_devices_configuration("-1")
     train_dataset = ConlluDataset(
-        str(PATH_TRAIN_CONLLU),
+        PATH_TRAIN_CONLLU,
         model_config,
         "train",
         compute_annotation_schema_if_not_found=True,
     )
-    test_dataset = ConlluDataset(str(PATH_TEST_CONLLU), model_config, "train")
+    test_dataset = ConlluDataset(PATH_TEST_CONLLU, model_config, "train")
     # TODO: we have to create train_dataset before calling Trainer()
     # because the former sets the annotation schema in our model config,
     # and the latter uses it to set up the model (reversing the ordering results in
@@ -107,6 +107,8 @@ def _get_model_config():
     with open(PATH_MODELS_DIR / "config.json", "r") as f:
         config_dict = json.load(f)
         model_config.__dict__.update(config_dict)
+        if model_config.model_folder_path:
+            model_config.model_folder_path = Path(model_config.model_folder_path)
         annotation_schema = AnnotationSchema_T()
         annotation_schema.__dict__.update(config_dict["annotation_schema"])
         model_config.annotation_schema = annotation_schema
@@ -120,7 +122,7 @@ def _test_predict():
     predictor = Predictor(model_config, 1)
     # TODO: don't pass full model config; just annotation_schema and
     # max_position_embeddings
-    pred_dataset = ConlluDataset(str(PATH_TEST_CONLLU), model_config, "predict")
+    pred_dataset = ConlluDataset(PATH_TEST_CONLLU, model_config, "predict")
     actual, elapsed_seconds = predictor.predict(pred_dataset)
 
     with open(PATH_EXPECTED_PREDICTIONS, "r") as f:
@@ -146,7 +148,7 @@ def _test_eval():
     model.eval()
     model = model.to(device)
 
-    test_dataset = ConlluDataset(str(PATH_TEST_CONLLU), model_config, "train")
+    test_dataset = ConlluDataset(PATH_TEST_CONLLU, model_config, "train")
     test_loader = DataLoader(
         test_dataset,
         collate_fn=test_dataset.collate_fn_train,

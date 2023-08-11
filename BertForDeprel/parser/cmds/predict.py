@@ -1,5 +1,5 @@
-import os
 from argparse import ArgumentParser, Namespace
+from pathlib import Path
 from timeit import default_timer as timer
 from typing import List, Tuple
 
@@ -31,9 +31,15 @@ class PredictCmd(CMD):
             name, help="Use a trained model to make predictions."
         )
         subparser.add_argument(
-            "--inpath", "-i", required=True, help="path to inpath (can be a folder)"
+            "--inpath",
+            "-i",
+            required=True,
+            type=Path,
+            help="path to inpath (can be a folder)",
         )
-        subparser.add_argument("--outpath", "-o", help="path to predicted outpath(s)")
+        subparser.add_argument(
+            "--outpath", "-o", type=Path, help="path to predicted output path(s)"
+        )
         subparser.add_argument(
             "--suffix",
             default="",
@@ -118,14 +124,14 @@ class PredictCmd(CMD):
         if args.num_workers < 0:
             raise Exception("num_workers must be greater than or equal to 0")
 
-        output_dir = args.outpath
-        if not os.path.isdir(output_dir):
-            os.makedirs(output_dir)
+        output_dir: Path = args.outpath
+        if not output_dir.is_dir():
+            output_dir.mkdir(parents=True)
 
-        unvalidated_input_paths = []
-        if os.path.isdir(args.inpath):
+        unvalidated_input_paths: List[Path] = []
+        if args.inpath.is_dir():
             unvalidated_input_paths = resolve_conllu_paths(args.inpath)
-        elif os.path.isfile(args.inpath):
+        elif args.inpath.is_file():
             unvalidated_input_paths.append(args.inpath)
         else:
             raise BaseException(
@@ -134,14 +140,11 @@ class PredictCmd(CMD):
 
         in_to_out_paths = {}
         for input_path in unvalidated_input_paths:
-            output_path = os.path.join(
-                output_dir,
-                # TODO: just use Path objects instead
-                input_path.split("/")[-1].replace(".conll", args.suffix + ".conll"),
+            output_path = output_dir / input_path.name.replace(
+                ".conllu", args.suffix + ".conllu"
             )
-
             if not args.overwrite:
-                if os.path.isfile(output_path):
+                if output_path.is_file():
                     print(
                         f"file '{output_path}' already exists and overwrite!=False, "
                         "skipping ..."
