@@ -1,11 +1,12 @@
 from pathlib import Path
 
-import pytest
 import torch
 
+from BertForDeprel.parser.utils.annotation_schema import compute_annotation_schema
 from BertForDeprel.parser.utils.load_data_utils import (
     ConlluDataset,
     PartialPredictionConfig,
+    load_conllu_sentences,
 )
 from BertForDeprel.parser.utils.types import ModelParams_T
 
@@ -23,6 +24,18 @@ model_params_test = ModelParams_T(
 )
 
 
+def get_test_instance():
+    sentences = load_conllu_sentences(PATH_TEST_CONLLU)
+    annotation_schema = compute_annotation_schema(sentences)
+    return ConlluDataset(
+        sentences,
+        annotation_schema,
+        model_params_test.embedding_type,
+        model_params_test.max_position_embeddings,
+        "train",
+    )
+
+
 def test_health():
     assert True
 
@@ -32,29 +45,12 @@ def test_test_data_exists():
 
 
 def test_create_instance_dataset():
-    dataset = ConlluDataset(
-        PATH_TEST_CONLLU,
-        ModelParams_T(**model_params_test.__dict__),
-        "train",
-        compute_annotation_schema_if_not_found=True,
-    )
+    dataset = get_test_instance()
     assert len(dataset.sequences) == 2
 
 
-def test_raise_error_if_no_annotation_schema():
-    with pytest.raises(Exception):
-        ConlluDataset(
-            PATH_TEST_CONLLU, ModelParams_T(**model_params_test.__dict__), "train"
-        )
-
-
 def test_predict_output():
-    dataset = ConlluDataset(
-        PATH_TEST_CONLLU,
-        model_params_test,
-        "predict",
-        compute_annotation_schema_if_not_found=True,
-    )
+    dataset = get_test_instance()
     assert dataset[0].idx == 0
     assert dataset[0].sequence_token_ids == [
         101,
@@ -96,12 +92,7 @@ def test_predict_output():
 
 
 def test_train_output():
-    dataset = ConlluDataset(
-        PATH_TEST_CONLLU,
-        model_params_test,
-        "train",
-        compute_annotation_schema_if_not_found=True,
-    )
+    dataset = get_test_instance()
     assert dataset[0].idx == 0
     assert dataset[0].uposs == [-1, 6, 2, 3, 0, 4, 1, 7, 1, 7, -1, 1, 8, 3, 4]
     assert dataset[0].heads == [-1, 2, 0, 5, 5, 2, 5, 6, 5, 8, -1, 5, 11, 14, 12]
@@ -109,12 +100,7 @@ def test_train_output():
 
 
 def test_collate_train_fn():
-    dataset = ConlluDataset(
-        PATH_TEST_CONLLU,
-        model_params_test,
-        "train",
-        compute_annotation_schema_if_not_found=True,
-    )
+    dataset = get_test_instance()
     batch = dataset.collate_fn_train([dataset[0], dataset[1]])
     assert torch.equal(
         batch.deprels,
@@ -137,12 +123,7 @@ def test_collate_train_fn():
 
 
 def test_add_prediction_to_sentence_json_keep_none():
-    dataset = ConlluDataset(
-        PATH_TEST_CONLLU,
-        model_params_test,
-        "train",
-        compute_annotation_schema_if_not_found=True,
-    )
+    dataset = get_test_instance()
 
     # Check for keep_* = NONE
     predicted_sentence_json_none = dataset.construct_sentence_prediction(
@@ -186,12 +167,7 @@ def test_add_prediction_to_sentence_json_keep_none():
 
 
 def test_add_prediction_to_sentence_json_keep_existing():
-    dataset = ConlluDataset(
-        PATH_TEST_CONLLU,
-        model_params_test,
-        "train",
-        compute_annotation_schema_if_not_found=True,
-    )
+    dataset = get_test_instance()
 
     # Check for keep_* = EXISTING
     predicted_sentence_json_existing = dataset.construct_sentence_prediction(
@@ -257,13 +233,7 @@ def test_add_prediction_to_sentence_json_keep_existing():
 
 
 def test_add_prediction_to_sentence_json_keep_all():
-    dataset = ConlluDataset(
-        PATH_TEST_CONLLU,
-        model_params_test,
-        "train",
-        compute_annotation_schema_if_not_found=True,
-    )
-
+    dataset = get_test_instance()
     # Check for keep_* = ALL
     predicted_sentence_json_all = dataset.construct_sentence_prediction(
         1,
@@ -308,12 +278,7 @@ def test_add_prediction_to_sentence_json_keep_all():
 
 
 def test_get_contrained_dependency_for_chuliu():
-    dataset = ConlluDataset(
-        PATH_TEST_CONLLU,
-        model_params_test,
-        "predict",
-        compute_annotation_schema_if_not_found=True,
-    )
+    dataset = get_test_instance()
     assert dataset.get_constrained_dependency_for_chuliu(1) == [
         (1, 2),
         (2, 0),

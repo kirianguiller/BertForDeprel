@@ -19,6 +19,7 @@ from ..utils.load_data_utils import (
     CopyOption,
     PartialPredictionConfig,
     SequencePredictionBatch_T,
+    load_conllu_sentences,
     resolve_conllu_paths,
 )
 from ..utils.scores_and_losses_utils import _deprel_pred_for_heads
@@ -99,7 +100,16 @@ class PredictCmd(CMD):
         print("Starting Predictions ...")
         for in_path, out_path in in_to_out_paths.items():
             print(f"Loading dataset from {in_path}...")
-            pred_dataset = ConlluDataset(in_path, model_params, "predict")
+
+            sentences = load_conllu_sentences(in_path)
+            pred_dataset = ConlluDataset(
+                sentences,
+                model_params.annotation_schema,
+                model_params.embedding_type,
+                model_params.max_position_embeddings,
+                "train",
+            )
+
             predicted_sentences, elapsed_seconds = predictor.predict(
                 pred_dataset, partial_pred_config
             )
@@ -192,7 +202,9 @@ class Predictor:
         return model
 
     def predict(
-        self, pred_dataset: ConlluDataset, partial_pred_config=PartialPredictionConfig()
+        self,
+        pred_dataset: ConlluDataset,
+        partial_pred_config=PartialPredictionConfig(),
     ) -> Tuple[List[sentenceJson_T], float]:
         pred_loader = DataLoader(
             pred_dataset,

@@ -1,24 +1,18 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Literal, Self, Tuple, TypeVar
+from typing import Iterable, List, Literal, Self, Tuple, TypeVar
 
 import torch
-from conllup.conllup import (
-    _featuresConllToJson,
-    _featuresJsonToConll,
-    readConlluFile,
-    sentenceJson_T,
-)
+from conllup.conllup import _featuresConllToJson, readConlluFile, sentenceJson_T
 from torch import Tensor, tensor
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from .annotation_schema import NONE_VOCAB, compute_annotation_schema
-from .lemma_script_utils import apply_lemma_rule, gen_lemma_script
-from .types import ModelParams_T
+from BertForDeprel.parser.utils.annotation_schema import DUMMY_ID
 
-DUMMY_ID = -1
+from .annotation_schema import AnnotationSchema_T
+from .lemma_script_utils import apply_lemma_rule
 
 
 # Words and tokens are not the same! A word can be composed of multiple subword tokens.
@@ -199,32 +193,35 @@ def resolve_conllu_paths(path: Path) -> List[Path]:
     return paths
 
 
+def load_conllu_sentences(file_or_dir_path: Path):
+    sentences = []
+    for path in resolve_conllu_paths(file_or_dir_path):
+        sentences.extend(readConlluFile(str(path)))
+    return sentences
+
+
 class ConlluDataset(Dataset):
+    """ConllU/Universal Dependency dataset tokenized and encoded for input to the
+    BertForDeprel model."""
+
     def __init__(
         self,
-        path_file_or_folder: Path,
-        model_params: ModelParams_T,
+        sentences: Iterable[sentenceJson_T],
+        annotation_schema: AnnotationSchema_T,
+        embedding_type: str,
+        max_position_embeddings: int,
+        # TODO: do we need this?
         run_mode: Literal["train", "predict"],
-        compute_annotation_schema_if_not_found=False,
     ):
-        paths = resolve_conllu_paths(path_file_or_folder)
-        if model_params.annotation_schema.is_empty():
-            if compute_annotation_schema_if_not_found:
-                model_params.annotation_schema = compute_annotation_schema(*paths)
-            else:
-                raise Exception(
-                    "No annotation schema found in `model_params` while "
-                    "`compute_annotation_schema_if_not_found` is set to False"
-                )
+        self.annotation_schema = annotation_schema
+        self.max_position_embeddings = max_position_embeddings
+        self.run_mode = run_mode
 
-        self.model_params = model_params
         # TODO: what's this for?
         os.environ["TOKENIZERS_PARALLELISM"] = "true"
         self.tokenizer: (
             PreTrainedTokenizer | PreTrainedTokenizerFast
-        ) = AutoTokenizer.from_pretrained(model_params.embedding_type)
-
-        self.run_mode = run_mode
+        ) = AutoTokenizer.from_pretrained(embedding_type)
 
         if self.tokenizer.cls_token_id is None:
             raise Exception("CLS token not found in tokenizer")
@@ -248,39 +245,15 @@ class ConlluDataset(Dataset):
             f"{self.UNK_token_id} (UNK), {self.tokenizer.pad_token_id} (PAD)"
         )
 
-        # TODO: move inside a new annotation_schema class
-        self.dep2i, _ = self._compute_labels2i(
-            self.model_params.annotation_schema.deprels
-        )
-        self.upos2i, _ = self._compute_labels2i(
-            self.model_params.annotation_schema.uposs
-        )
-        self.xpos2i, _ = self._compute_labels2i(
-            self.model_params.annotation_schema.xposs
-        )
-        self.feat2i, _ = self._compute_labels2i(
-            self.model_params.annotation_schema.feats
-        )
-        self.lem2i, _ = self._compute_labels2i(
-            self.model_params.annotation_schema.lemma_scripts
-        )
+        self._load_conll(sentences)
 
-        self._load_conll(*paths)
-
-    def _load_conll(self, *paths):
-        sentences_json: List[sentenceJson_T] = []
-        for path in paths:
-            sentences_json += readConlluFile(path, keep_empty_trees=False)
-
+    def _load_conll(self, sentences: Iterable[sentenceJson_T]):
         self.sequences: List[SequencePrediction_T] = []
         valid_sentence_counter = 0
-        for sentence_json in sentences_json:
+        for sentence_json in sentences:
             sequence = self._get_processed(sentence_json, valid_sentence_counter)
             # We save one spot each for CLS_token_id and SEP_token_id
-            if (
-                len(sequence.sequence_token_ids)
-                > self.model_params.max_position_embeddings - 2
-            ):
+            if len(sequence.sequence_token_ids) > self.max_position_embeddings - 2:
                 print("Discarding sentence", len(sequence.sequence_token_ids))
                 continue
             self.sequences.append(sequence)
@@ -368,6 +341,7 @@ class ConlluDataset(Dataset):
         skipped_tokens = 0
 
         for n_token, token in enumerate(sequence["treeJson"]["nodesJson"].values()):
+            # TODO: why?
             if not isinstance(token["ID"], str):
                 skipped_tokens += 1
                 continue
@@ -376,31 +350,27 @@ class ConlluDataset(Dataset):
             token_padding = [DUMMY_ID] * (token_len - 1)
 
             upos = [
-                get_index(token["UPOS"], self.upos2i, token["FORM"])
+                self.annotation_schema.encode_upos(token["UPOS"], token["FORM"])
             ] + token_padding
             xpos = [
-                get_index(token["XPOS"], self.xpos2i, token["FORM"])
+                self.annotation_schema.encode_xpos(token["XPOS"], token["FORM"])
             ] + token_padding
             feat = [
-                get_index(
-                    _featuresJsonToConll(token["FEATS"]), self.feat2i, token["FORM"]
-                )
+                self.annotation_schema.encode_feats(token["FEATS"], token["FORM"])
             ] + token_padding
             lemma_script = [
-                get_index(
-                    gen_lemma_script(token["FORM"], token["LEMMA"]),
-                    self.lem2i,
-                    token["FORM"],
+                self.annotation_schema.encode_lemma_script(
+                    token["FORM"], token["LEMMA"]
                 )
             ] + token_padding
 
-            # TODO: how does this work for the sentence root? Is that a -1 or a
-            # self-reference?
             # Becomes 0 for the root token
             head = [sum(input.tokens_len[: token["HEAD"]])] + token_padding
             deprel = token["DEPREL"]
 
-            deprel = [get_index(deprel, self.dep2i, token["FORM"])] + token_padding
+            deprel = [
+                self.annotation_schema.encode_deprel(deprel, token["FORM"])
+            ] + token_padding
             # Example of what we have for a token of 2 subtokens
             # form = ["eat", "ing"]
             # pos = [4, DUMMY_ID]
@@ -546,7 +516,7 @@ class ConlluDataset(Dataset):
         """
         predicted_sentence: sentenceJson_T = self.sequences[idx].sentence_json.copy()
         tokens = list(predicted_sentence["treeJson"]["nodesJson"].values())
-        annotation_schema = self.model_params.annotation_schema
+        annotation_schema = self.annotation_schema
 
         # For each of the predicted fields, we overwrite the value copied from the input
         # with the predicted value if configured to do so.
@@ -611,21 +581,3 @@ class ConlluDataset(Dataset):
                 forced_relations.append((int(token_json["ID"]), token_json["HEAD"]))
 
         return forced_relations
-
-
-def get_index(label: str, mapping: Dict[str, int], word: str) -> int:
-    """
-    label: a string that represent the label whose integer is required
-    mapping: a dictionary with a set of labels as keys and index integers as values
-    word: the word having the label assigned to it (for logging purposes)
-    return : index (int)
-    """
-    index = mapping.get(label, DUMMY_ID)
-
-    if index == DUMMY_ID:
-        index = mapping[NONE_VOCAB]
-        print(
-            f"LOG: label '{label}' for word '{word}' was not found in the label2index "
-            f"mapping. Using the index for '{NONE_VOCAB}' instead."
-        )
-    return index

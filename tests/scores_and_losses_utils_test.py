@@ -1,6 +1,6 @@
 import torch
 
-from BertForDeprel.parser.utils.load_data_utils import DUMMY_ID
+from BertForDeprel.parser.utils.annotation_schema import DUMMY_ID
 from BertForDeprel.parser.utils.scores_and_losses_utils import _deprel_pred_for_heads
 
 

@@ -2,17 +2,33 @@ import json
 from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional, TypeVar
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, Dataset, random_split
 
 from ..cmds.cmd import CMD, SubparsersType
 from ..modules.BertForDepRel import BertForDeprel
+from ..utils.annotation_schema import compute_annotation_schema
 from ..utils.gpu_utils import DeviceConfig
-from ..utils.load_data_utils import ConlluDataset
+from ..utils.load_data_utils import ConlluDataset, load_conllu_sentences
 from ..utils.types import ConfigJSONEncoder, ModelParams_T
+
+T = TypeVar("T")
+
+
+class ListDataset(Dataset[T]):
+    """Dummy wrapper for when we need a Dataset but have a list"""
+
+    def __init__(self, sentences: List[T]):
+        self.sentences = sentences
+
+    def __len__(self):
+        return len(self.sentences)
+
+    def __getitem__(self, idx) -> T:
+        return self.sentences[idx]
 
 
 class TrainCmd(CMD):
@@ -112,31 +128,41 @@ class TrainCmd(CMD):
                     "not allowed as it would result in erasing the pretrained model"
                 )
 
-        # Next: load raw ConllU data, then compute annotation schema on it, then encode
-        # it for the model. Make these three steps explicit.
+        train_sentences = load_conllu_sentences(args.ftrain)
 
-        dataset = ConlluDataset(
-            args.ftrain,
-            model_params,
-            args.mode,
-            compute_annotation_schema_if_not_found=True,
-        )
-        test_dataset: ConlluDataset
-        train_dataset: ConlluDataset
         if args.ftest:
             print(f"Using {args.ftrain} for training and {args.ftest} for testing")
-            train_dataset = dataset
-            test_dataset = ConlluDataset(args.ftest, model_params, args.mode)
+            test_sentences = load_conllu_sentences(args.ftest)
         else:
             print(
                 f"Splitting {args.ftrain} into train and test sets with ratio "
                 f"{args.split_ratio}"
             )
-            train_size = int(len(dataset) * args.split_ratio)
-            test_size = len(dataset) - train_size
-            train_dataset, test_dataset = random_split(
-                dataset=dataset, lengths=[train_size, test_size]
+            train_size = int(len(train_sentences) * args.split_ratio)
+            test_size = len(train_sentences) - train_size
+            train_sentences, test_sentences = random_split(
+                dataset=ListDataset(train_sentences), lengths=[train_size, test_size]
             )  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+
+        model_params.annotation_schema = compute_annotation_schema(
+            iter(train_sentences)
+        )
+
+        train_dataset = ConlluDataset(
+            iter(train_sentences),
+            model_params.annotation_schema,
+            model_params.embedding_type,
+            model_params.max_position_embeddings,
+            "train",
+        )
+
+        test_dataset = ConlluDataset(
+            iter(test_sentences),
+            model_params.annotation_schema,
+            model_params.embedding_type,
+            model_params.max_position_embeddings,
+            "train",
+        )
 
         path_scores_history = model_params.model_folder_path / "scores.history.json"
         path_scores_best = model_params.model_folder_path / "scores.best.json"

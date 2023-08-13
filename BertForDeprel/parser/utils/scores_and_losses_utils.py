@@ -2,7 +2,7 @@ from torch import Tensor, gather
 from torch import sum as tsum
 from torch.nn import CrossEntropyLoss
 
-from .load_data_utils import DUMMY_ID
+from .annotation_schema import DUMMY_ID
 
 
 def _deprel_pred_for_heads(deprel_scores_pred: Tensor, heads_pred: Tensor):
