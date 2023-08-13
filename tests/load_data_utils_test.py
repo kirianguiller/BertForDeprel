@@ -4,8 +4,8 @@ import torch
 
 from BertForDeprel.parser.utils.annotation_schema import compute_annotation_schema
 from BertForDeprel.parser.utils.load_data_utils import (
-    ConlluDataset,
     PartialPredictionConfig,
+    UDDataset,
     load_conllu_sentences,
 )
 from BertForDeprel.parser.utils.types import ModelParams_T
@@ -27,7 +27,7 @@ model_params_test = ModelParams_T(
 def get_test_instance():
     sentences = load_conllu_sentences(PATH_TEST_CONLLU)
     annotation_schema = compute_annotation_schema(sentences)
-    return ConlluDataset(
+    return UDDataset(
         sentences,
         annotation_schema,
         model_params_test.embedding_type,

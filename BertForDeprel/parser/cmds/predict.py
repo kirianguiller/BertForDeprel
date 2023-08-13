@@ -15,10 +15,10 @@ from ..modules.BertForDepRelOutput import BertForDeprelBatchOutput
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
 from ..utils.gpu_utils import DeviceConfig
 from ..utils.load_data_utils import (
-    ConlluDataset,
     CopyOption,
     PartialPredictionConfig,
     SequencePredictionBatch_T,
+    UDDataset,
     load_conllu_sentences,
     resolve_conllu_paths,
 )
@@ -102,7 +102,7 @@ class PredictCmd(CMD):
             print(f"Loading dataset from {in_path}...")
 
             sentences = load_conllu_sentences(in_path)
-            pred_dataset = ConlluDataset(
+            pred_dataset = UDDataset(
                 sentences,
                 model_params.annotation_schema,
                 model_params.embedding_type,
@@ -203,7 +203,7 @@ class Predictor:
 
     def predict(
         self,
-        pred_dataset: ConlluDataset,
+        pred_dataset: UDDataset,
         partial_pred_config=PartialPredictionConfig(),
     ) -> Tuple[List[sentenceJson_T], float]:
         pred_loader = DataLoader(
@@ -262,7 +262,7 @@ class Predictor:
         deprels_pred,
         tok_starts_word,
         keep_heads: CopyOption,
-        pred_dataset: ConlluDataset,
+        pred_dataset: UDDataset,
         n_sentence: int,
         idx_converter_sentence: Tensor,
     ):
@@ -316,7 +316,7 @@ class Predictor:
         self,
         batch: SequencePredictionBatch_T,
         preds: BertForDeprelBatchOutput,
-        pred_dataset: ConlluDataset,
+        pred_dataset: UDDataset,
         partial_pred_config: PartialPredictionConfig,
     ):
         idx_batch = batch.idx

@@ -12,7 +12,7 @@ from ..cmds.cmd import CMD, SubparsersType
 from ..modules.BertForDepRel import BertForDeprel
 from ..utils.annotation_schema import compute_annotation_schema
 from ..utils.gpu_utils import DeviceConfig
-from ..utils.load_data_utils import ConlluDataset, load_conllu_sentences
+from ..utils.load_data_utils import UDDataset, load_conllu_sentences
 from ..utils.types import ConfigJSONEncoder, ModelParams_T
 
 T = TypeVar("T")
@@ -148,7 +148,7 @@ class TrainCmd(CMD):
             iter(train_sentences)
         )
 
-        train_dataset = ConlluDataset(
+        train_dataset = UDDataset(
             iter(train_sentences),
             model_params.annotation_schema,
             model_params.embedding_type,
@@ -156,7 +156,7 @@ class TrainCmd(CMD):
             "train",
         )
 
-        test_dataset = ConlluDataset(
+        test_dataset = UDDataset(
             iter(test_sentences),
             model_params.annotation_schema,
             model_params.embedding_type,
@@ -266,8 +266,8 @@ class Trainer:
 
     def train(
         self,
-        train_dataset: ConlluDataset,
-        test_dataset: ConlluDataset,
+        train_dataset: UDDataset,
+        test_dataset: UDDataset,
         batch_size_eval=0,
     ):
         train_loader = DataLoader(

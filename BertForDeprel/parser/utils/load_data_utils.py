@@ -200,8 +200,8 @@ def load_conllu_sentences(file_or_dir_path: Path):
     return sentences
 
 
-class ConlluDataset(Dataset):
-    """ConllU/Universal Dependency dataset tokenized and encoded for input to the
+class UDDataset(Dataset):
+    """Universal Dependency dataset tokenized and encoded for input to the
     BertForDeprel model."""
 
     def __init__(

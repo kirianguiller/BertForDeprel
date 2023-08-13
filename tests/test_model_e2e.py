@@ -11,10 +11,7 @@ from BertForDeprel.parser.cmds.train import Trainer
 from BertForDeprel.parser.modules.BertForDepRel import BertForDeprel
 from BertForDeprel.parser.utils.annotation_schema import compute_annotation_schema
 from BertForDeprel.parser.utils.gpu_utils import get_devices_configuration
-from BertForDeprel.parser.utils.load_data_utils import (
-    ConlluDataset,
-    load_conllu_sentences,
-)
+from BertForDeprel.parser.utils.load_data_utils import UDDataset, load_conllu_sentences
 from BertForDeprel.parser.utils.types import ModelParams_T
 
 PARENT = Path(__file__).parent
@@ -41,7 +38,7 @@ def _test_model_train():
 
     train_sentences = load_conllu_sentences(PATH_TRAIN_CONLLU)
     model_config.annotation_schema = compute_annotation_schema(train_sentences)
-    train_dataset = ConlluDataset(
+    train_dataset = UDDataset(
         train_sentences,
         model_config.annotation_schema,
         model_config.embedding_type,
@@ -50,7 +47,7 @@ def _test_model_train():
     )
 
     test_sentences = load_conllu_sentences(PATH_TEST_CONLLU)
-    test_dataset = ConlluDataset(
+    test_dataset = UDDataset(
         test_sentences,
         model_config.annotation_schema,
         model_config.embedding_type,
@@ -61,6 +58,9 @@ def _test_model_train():
     # because the former sets the annotation schema in our model config,
     # and the latter uses it to set up the model (reversing the ordering results in
     # errors related to length-0 tensors). That is really clumsy and annoying.
+    # Next: fix this. Create model in separate step, and pass in training regime params
+    # along with model to this constructor. Or something; maybe pass the training regime
+    # params to a "train" method on the model.
     trainer = Trainer(model_config, device_config, overwrite_pretrain_classifiers=False)
 
     scores = list(trainer.train(train_dataset, test_dataset))
@@ -127,7 +127,7 @@ def _test_predict():
     predictor = Predictor(model_config, 1)
 
     sentences = load_conllu_sentences(PATH_TEST_CONLLU)
-    pred_dataset = ConlluDataset(
+    pred_dataset = UDDataset(
         sentences,
         model_config.annotation_schema,
         model_config.embedding_type,
@@ -161,7 +161,7 @@ def _test_eval():
     model = model.to(device_config.device)
 
     sentences = load_conllu_sentences(PATH_TEST_CONLLU)
-    test_dataset = ConlluDataset(
+    test_dataset = UDDataset(
         sentences,
         model_config.annotation_schema,
         model_config.embedding_type,
@@ -203,6 +203,6 @@ def _test_eval():
 @pytest.mark.slow
 @pytest.mark.fragile
 def test_train_and_predict():
-    # _test_model_train()
+    _test_model_train()
     _test_predict()
-    # _test_eval()
+    _test_eval()
