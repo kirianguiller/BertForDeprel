@@ -1,7 +1,6 @@
 # TODO's
 
 Next: add encoder() or similar method to BertForDepRel; this object will generate UDDatasets from model settings, instead of client passing model fields into UDDataset constructor manually.
-Then also: allow_lemma_copy should be a field in AnnotationSchema
 Make sure we can pass in an arbitrary list of sentences and get back predictions or None
 on the whole array; don't want a special mapping step.
 Then: Support multi-lingual prediction like TranKit
@@ -22,7 +21,6 @@ Update readme with new build info: poetry, poe commands, pytest, verification, p
 -   Add example using UD data
 -   Clarify that conf file for prediction should be the one generated in the model directory, not the one that was used during training
 -   How to resume training on one paused with CMD-C?
--   Run arg to turn on allow_copy in lemma prediction
 -   Clarify how to train with partially annotated data
     -   only marked morphology, only marked lemmas, etc.
 -   Add a flag to output the predictions in conllu format

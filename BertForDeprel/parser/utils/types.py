@@ -2,7 +2,6 @@ import dataclasses
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Mapping
 
 from .annotation_schema import AnnotationSchema_T
 
@@ -33,9 +32,11 @@ class ModelParams_T:
     # memory usage.
     max_position_embeddings: int = 512
 
-    # TODO: from_model_dir would make more sense
     @staticmethod
-    def from_dict(params_dict: Mapping[str, Any]) -> "ModelParams_T":
+    def from_model_path(model_path: Path) -> "ModelParams_T":
+        """Load model parameters from the model directory."""
+        with open(model_path / "config.json", "r") as f:
+            params_dict = json.load(f)
         model_params = ModelParams_T()
         # TODO: Check the validity of this first; at least a version number
         model_params.__dict__.update(params_dict)

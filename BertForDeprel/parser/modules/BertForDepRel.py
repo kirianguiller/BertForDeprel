@@ -193,8 +193,7 @@ class BertForDeprel(Module):
     @staticmethod
     def load_pretrained_for_prediction(pretrained_model_path: Path) -> "BertForDeprel":
         """Load a pre-trained model ready to perform predictions."""
-        with (pretrained_model_path / "config.json").open() as f:
-            model_params = ModelParams_T.from_dict(json.load(f))
+        model_params = ModelParams_T.from_model_path(pretrained_model_path)
         model = BertForDeprel(
             model_params.embedding_type,
             model_params.annotation_schema,
@@ -210,8 +209,7 @@ class BertForDeprel(Module):
     ) -> "BertForDeprel":
         """Load a pre-trained model, but remove the prediction heads and replace the
         annotation schema."""
-        with (pretrained_model_path / "config.json").open() as f:
-            model_params = ModelParams_T.from_dict(json.load(f))
+        model_params = ModelParams_T.from_model_path(pretrained_model_path)
         model = BertForDeprel(
             model_params.embedding_type,
             new_annotation_schema,
@@ -227,8 +225,7 @@ class BertForDeprel(Module):
     ) -> "BertForDeprel":
         """Load a pre-trained model, incorporating the values from a new annotation
         schema into the existing one."""
-        with (pretrained_model_path / "config.json").open() as f:
-            model_params = ModelParams_T.from_dict(json.load(f))
+        model_params = ModelParams_T.from_model_path(pretrained_model_path)
         model_params.annotation_schema.update(new_annotation_schema)
         model = BertForDeprel(
             model_params.embedding_type,

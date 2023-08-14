@@ -1,4 +1,3 @@
-import json
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from timeit import default_timer as timer
@@ -98,8 +97,7 @@ class PredictCmd(CMD):
     def run(self, args: Namespace):
         super().run(args)
 
-        with open(args.model_path / "config.json", "r") as f:
-            model_params = ModelParams_T.from_dict(json.load(f))
+        model_params = ModelParams_T.from_model_path(args.model_path)
 
         if args.batch_size:
             model_params.batch_size = args.batch_size

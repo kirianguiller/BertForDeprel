@@ -114,14 +114,8 @@ def _test_model_train():
     )
 
 
-def _get_model_config():
-    with open(PATH_MODELS_DIR / "config.json", "r") as f:
-        params_dict = json.load(f)
-        return ModelParams_T.from_dict(params_dict)
-
-
 def _test_predict():
-    model_config = _get_model_config()
+    model_config = ModelParams_T.from_model_path(PATH_MODELS_DIR)
     device_config = get_devices_configuration("-1")
 
     model = BertForDeprel.load_pretrained_for_prediction(PATH_MODELS_DIR)
@@ -157,7 +151,7 @@ def _test_predict():
 def _test_eval():
     """There is no eval API, per se, but this demonstrates how to do it. TODO: it's
     pretty convoluted."""
-    model_config = _get_model_config()
+    model_config = ModelParams_T.from_model_path(PATH_MODELS_DIR)
     device_config = get_devices_configuration("-1")
 
     model = BertForDeprel.load_pretrained_for_prediction(PATH_MODELS_DIR)

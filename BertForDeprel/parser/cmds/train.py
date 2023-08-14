@@ -82,8 +82,7 @@ class TrainCmd(CMD):
     def run(self, args):
         super().run(args)
 
-        with open(args.new_model_path / "config.json", "r") as f:
-            model_params = ModelParams_T.from_dict(json.load(f))
+        model_params = ModelParams_T.from_model_path(args.new_model_path)
 
         if not args.new_model_path.is_dir():
             args.new_model_path.mkdir(parents=True)
