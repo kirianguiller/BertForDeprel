@@ -1,3 +1,4 @@
+import json
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from timeit import default_timer as timer
@@ -23,13 +24,16 @@ from ..utils.load_data_utils import (
     resolve_conllu_paths,
 )
 from ..utils.scores_and_losses_utils import _deprel_pred_for_heads
-from ..utils.types import ModelParams_T
+from ..utils.types import ModelParams_T, PredictionConfig
 
 
 class PredictCmd(CMD):
     def add_subparser(self, name: str, parser: SubparsersType) -> ArgumentParser:
         subparser = parser.add_parser(
             name, help="Use a trained model to make predictions."
+        )
+        subparser.add_argument(
+            "--model_path", "-f", type=Path, help="Path to model to predict with"
         )
         subparser.add_argument(
             "--inpath",
@@ -91,11 +95,26 @@ class PredictCmd(CMD):
 
         return subparser
 
-    def run(self, args: Namespace, model_params: ModelParams_T):
-        super().run(args, model_params)
+    def run(self, args: Namespace):
+        super().run(args)
+
+        with open(args.model_path / "config.json", "r") as f:
+            model_params = ModelParams_T.from_dict(json.load(f))
+
+        if args.batch_size:
+            model_params.batch_size = args.batch_size
+
         in_to_out_paths, partial_pred_config = self.__validate_args(args)
 
-        predictor = Predictor(model_params, args.num_workers, args.device_config)
+        model = BertForDeprel.load_pretrained_for_prediction(args.model_path)
+
+        predictor = Predictor(
+            model,
+            PredictionConfig(
+                batch_size=model_params.batch_size, num_workers=args.num_workers
+            ),
+            args.device_config,
+        )
 
         print("Starting Predictions ...")
         for in_path, out_path in in_to_out_paths.items():
@@ -104,9 +123,9 @@ class PredictCmd(CMD):
             sentences = load_conllu_sentences(in_path)
             pred_dataset = UDDataset(
                 sentences,
-                model_params.annotation_schema,
-                model_params.embedding_type,
-                model_params.max_position_embeddings,
+                model.annotation_schema,
+                model.embedding_type,
+                model.max_position_embeddings,
                 "train",
             )
 
@@ -124,10 +143,10 @@ class PredictCmd(CMD):
             return predicted_sentences
 
     def __validate_args(self, args: Namespace):
-        if not args.conf:
-            raise Exception(
-                "Path to model xxx.config.json must be provided as --conf parameter"
-            )
+        if not (args.model_path / "config.json").is_file():
+            raise Exception(f"no config.json found in {args.model_path}")
+        if not (args.model_path / "model.pt").is_file():
+            raise Exception(f"no model.pt found in {args.model_path}")
 
         if args.num_workers < 0:
             raise Exception("num_workers must be greater than or equal to 0")
@@ -175,31 +194,24 @@ class PredictCmd(CMD):
 class Predictor:
     def __init__(
         self,
-        model_params: ModelParams_T,
-        num_workers: int,
-        device_config: DeviceConfig = DeviceConfig(torch.device("cpu"), False),
+        model: BertForDeprel,
+        config: PredictionConfig,
+        device_config: DeviceConfig,
     ):
-        """num_workers: how many subprocesses to use for data loading. 0 means that the
-        data will be loaded in the main process."""
+        self.config = config
+        self.device_config = device_config
 
-        self.model_params = model_params
+        self.model = model.to(self.device_config.device)
+        if self.device_config.multi_gpu:
+            print("MODEL TO MULTI GPU")
+            self.model = nn.DataParallel(self.model)
+
+        self.config = config
         self.data_loader_params = {
-            "batch_size": model_params.batch_size,
-            "num_workers": num_workers,
+            "batch_size": config.batch_size,
+            "num_workers": config.num_workers,
         }
         self.device_config = device_config
-        self.model = self.__load_model()
-
-    def __load_model(self) -> nn.Module:
-        print("Loading model...")
-        model = BertForDeprel(self.model_params)
-        model.load_pretrained()
-        model.eval()
-        model.to(self.device_config.device)
-        if self.device_config.multi_gpu:
-            print("Sending model to multiple GPUs...")
-            model = nn.DataParallel(model)
-        return model
 
     def predict(
         self,
@@ -210,8 +222,8 @@ class Predictor:
             pred_dataset,
             collate_fn=pred_dataset.collate_fn_predict,
             shuffle=False,
-            batch_size=self.data_loader_params["batch_size"],
-            num_workers=self.data_loader_params["num_workers"],
+            batch_size=self.config.batch_size,
+            num_workers=self.config.num_workers,
         )
         print(
             f"Loaded {len(pred_dataset):5} sentences, "

@@ -15,6 +15,7 @@ from transformers import (  # type: ignore (TODO: why can't PyLance find these?)
 )
 from transformers.adapters import PfeifferConfig
 
+from ..utils.annotation_schema import AnnotationSchema_T
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
 from ..utils.load_data_utils import SequencePredictionBatch_T, SequenceTrainingBatch_T
 from ..utils.scores_and_losses_utils import (
@@ -27,7 +28,7 @@ from ..utils.scores_and_losses_utils import (
     compute_loss_deprel,
     compute_loss_head,
 )
-from ..utils.types import ConfigJSONEncoder, ModelParams_T
+from ..utils.types import ConfigJSONEncoder, ModelParams_T, TrainingConfig
 from .BertForDepRelOutput import BertForDeprelBatchOutput
 from .PosAndDepRelParserHead import PosAndDeprelParserHead
 
@@ -179,33 +180,109 @@ class EvalResultAccumulator:
 
 
 class BertForDeprel(Module):
+    # TODO: for fine-tuning, we need to be sure that:
+    # - the annotation schema of new model is the same as pre-trained
+    # - the new model has same architecture as old one
+
+    # TODO: separate constructor for pretrained and new would be nice
+    # TODO: it's weird to have the annotation schema conceptually separated from the
+    # model. Move it from config to its own file instead.
+
+    # goals: specify embedding type and annotation schema explicitly to constructor
+
+    @staticmethod
+    def load_pretrained_for_prediction(pretrained_model_path: Path) -> "BertForDeprel":
+        """Load a pre-trained model ready to perform predictions."""
+        with (pretrained_model_path / "config.json").open() as f:
+            model_params = ModelParams_T.from_dict(json.load(f))
+        model = BertForDeprel(
+            model_params.embedding_type,
+            model_params.annotation_schema,
+            pretrained_model_path,
+            no_classifier_heads=False,
+        )
+        model.eval()
+        return model
+
+    @staticmethod
+    def load_pretrained_for_retraining(
+        pretrained_model_path: Path, new_annotation_schema: AnnotationSchema_T
+    ) -> "BertForDeprel":
+        """Load a pre-trained model, but remove the prediction heads and replace the
+        annotation schema."""
+        with (pretrained_model_path / "config.json").open() as f:
+            model_params = ModelParams_T.from_dict(json.load(f))
+        model = BertForDeprel(
+            model_params.embedding_type,
+            new_annotation_schema,
+            pretrained_model_path,
+            no_classifier_heads=True,
+        )
+        model.train()
+        return model
+
+    @staticmethod
+    def load_pretrained_for_finetuning(
+        pretrained_model_path: Path, new_annotation_schema: AnnotationSchema_T
+    ) -> "BertForDeprel":
+        """Load a pre-trained model, incorporating the values from a new annotation
+        schema into the existing one."""
+        with (pretrained_model_path / "config.json").open() as f:
+            model_params = ModelParams_T.from_dict(json.load(f))
+        model_params.annotation_schema.update(new_annotation_schema)
+        model = BertForDeprel(
+            model_params.embedding_type,
+            model_params.annotation_schema,
+            pretrained_model_path,
+            no_classifier_heads=False,
+        )
+        model.train()
+        return model
+
+    @staticmethod
+    def new_model(
+        embedding_type: str, annotation_schema: AnnotationSchema_T
+    ) -> "BertForDeprel":
+        """Create a new model with the given embedding type and annotation schema.
+        The model will be a blank slate that must be trained."""
+        model = BertForDeprel(
+            embedding_type,
+            annotation_schema,
+            pretrained_model_path=None,
+            no_classifier_heads=False,
+        )
+        model.train()
+        return model
+
     def __init__(
         self,
-        model_params: ModelParams_T,
-        pretrain_model_params: Optional[ModelParams_T] = None,
-        overwrite_pretrain_classifiers=True,
+        embedding_type: str,
+        annotation_schema: AnnotationSchema_T,
+        pretrained_model_path: Optional[Path] = None,
+        no_classifier_heads: bool = False,
     ):
         super().__init__()
-        self.model_params = model_params
-        self.pretrain_model_params = pretrain_model_params
+        self.embedding_type = embedding_type
+        self.annotation_schema = annotation_schema
+        self.pretrained_model_path = pretrained_model_path
 
-        self.__init_language_model_layer(model_params.embedding_type)
+        self.__init_language_model_layer(embedding_type)
         llm_hidden_size = (
             self.llm_layer.config.hidden_size
         )  # expected to get embedding size of bert custom model
 
-        n_uposs = len(model_params.annotation_schema.uposs)
-        n_xposs = len(model_params.annotation_schema.xposs)
-        n_deprels = len(model_params.annotation_schema.deprels)
-        n_feats = len(model_params.annotation_schema.feats)
-        n_lemma_scripts = len(model_params.annotation_schema.lemma_scripts)
+        n_uposs = len(annotation_schema.uposs)
+        n_xposs = len(annotation_schema.xposs)
+        n_deprels = len(annotation_schema.deprels)
+        n_feats = len(annotation_schema.feats)
+        n_lemma_scripts = len(annotation_schema.lemma_scripts)
         self.tagger_layer = PosAndDeprelParserHead(
             n_uposs, n_deprels, n_feats, n_lemma_scripts, n_xposs, llm_hidden_size
         )
 
-        if self.pretrain_model_params:
+        if pretrained_model_path:
             print("Loading weights of the pretrained model")
-            self.load_pretrained(overwrite_pretrain_classifiers)
+            self.__load_pretrained_adapter(pretrained_model_path, no_classifier_heads)
 
         self.total_trainable_parameters = self.get_total_trainable_parameters()
         print("TOTAL TRAINABLE PARAMETERS : ", self.total_trainable_parameters)
@@ -228,6 +305,10 @@ class BertForDeprel(Module):
         self.criterion = CrossEntropyLoss(ignore_index=-1)
         self.optimizer = AdamW(self.parameters(), lr=0.00005)
         print("Criterion and Optimizer set")
+
+    @property
+    def max_position_embeddings(self):
+        return self.llm_layer.config.max_position_embeddings
 
     def get_total_trainable_parameters(self):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
@@ -400,9 +481,7 @@ class BertForDeprel(Module):
 
     # TODO: config should be stored in file with model; config.json should just be for
     # debugging
-    def save_model(self, epoch):
-        assert self.model_params.model_folder_path is not None
-
+    def save_model(self, model_dir: Path, training_config: TrainingConfig, epoch: int):
         trainable_weight_names = [
             n for n, p in self.llm_layer.named_parameters() if p.requires_grad
         ] + [n for n, p in self.tagger_layer.named_parameters() if p.requires_grad]
@@ -414,35 +493,38 @@ class BertForDeprel(Module):
             if k in trainable_weight_names:
                 state["tagger"][k] = v
 
-        ckpt_fpath: Path = self.model_params.model_folder_path / "model.pt"
-        config_path: Path = self.model_params.model_folder_path / "config.json"
+        ckpt_fpath: Path = model_dir / "model.pt"
+        config_path: Path = model_dir / "config.json"
         torch.save(state, ckpt_fpath)
         print(
-            "Saving adapter weights to ... {} ({:.2f} MB) (conf path : {})".format(
-                ckpt_fpath,
-                ckpt_fpath.stat().st_size * 1.0 / (1024 * 1024),
-                config_path,
+            "Saving adapter weights to ... {} ({:.2f} MB)".format(
+                ckpt_fpath, ckpt_fpath.stat().st_size * 1.0 / (1024 * 1024)
             )
         )
         with open(config_path, "w") as outfile:
+            config = {
+                "annotation_schema": self.annotation_schema,
+                "embedding_type": self.embedding_type,
+                "max_epoch": training_config.max_epochs,
+                "patience": training_config.patience,
+                "batch_size": training_config.batch_size,
+            }
             outfile.write(
                 json.dumps(
-                    self.model_params,
+                    config,
                     ensure_ascii=False,
                     indent=4,
                     cls=ConfigJSONEncoder,
                 )
             )
 
-    def load_pretrained(self, overwrite_pretrain_classifiers=False):
-        params = self.pretrain_model_params or self.model_params
-        assert params.model_folder_path is not None
-        ckpt_fpath = params.model_folder_path / "model.pt"
+    def __load_pretrained_adapter(self, model_path: Path, no_classifier_heads=False):
+        ckpt_fpath = model_path / "model.pt"
         checkpoint_state = torch.load(ckpt_fpath)
 
         tagger_pretrained_dict = self.tagger_layer.state_dict()
         for layer_name, weights in checkpoint_state["tagger"].items():
-            if overwrite_pretrain_classifiers and layer_name in [
+            if no_classifier_heads and layer_name in [
                 "deprel.pairwise_weight",
                 "uposs_ffn.weight",
                 "uposs_ffn.bias",

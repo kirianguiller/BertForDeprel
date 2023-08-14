@@ -2,7 +2,7 @@ import json
 from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, TypeVar
+from typing import Dict, Generator, List, TypeVar
 
 import torch
 from torch import nn
@@ -13,7 +13,7 @@ from ..modules.BertForDepRel import BertForDeprel
 from ..utils.annotation_schema import compute_annotation_schema
 from ..utils.gpu_utils import DeviceConfig
 from ..utils.load_data_utils import UDDataset, load_conllu_sentences
-from ..utils.types import ConfigJSONEncoder, ModelParams_T
+from ..utils.types import ConfigJSONEncoder, ModelParams_T, TrainingConfig
 
 T = TypeVar("T")
 
@@ -35,7 +35,7 @@ class TrainCmd(CMD):
     def add_subparser(self, name: str, parser: SubparsersType) -> ArgumentParser:
         subparser = parser.add_parser(name, help="Train a model.")
         subparser.add_argument(
-            "--model_folder_path", "-f", type=Path, help="path to models folder"
+            "--new_model_path", "-f", type=Path, help="Path to write new model to"
         )
         subparser.add_argument(
             "--embedding_type",
@@ -47,9 +47,6 @@ class TrainCmd(CMD):
         )
         subparser.add_argument(
             "--patience", type=int, help="number of epoch to do maximum"
-        )
-        subparser.add_argument(
-            "--batch_size_eval", type=int, help="number of epoch to do maximum"
         )
         subparser.add_argument(
             "--ftrain",
@@ -70,9 +67,9 @@ class TrainCmd(CMD):
         )
 
         subparser.add_argument(
-            "--conf_pretrain",
+            "--pretrained_path",
             type=Path,
-            help="path to pretrain model config",
+            help="Path of pretrained model",
         )
         subparser.add_argument(
             "--overwrite_pretrain_classifiers",
@@ -82,16 +79,14 @@ class TrainCmd(CMD):
 
         return subparser
 
-    def run(self, args, model_params: ModelParams_T):
-        super().run(args, model_params)
+    def run(self, args):
+        super().run(args)
 
-        assert model_params.model_folder_path is not None
+        with open(args.new_model_path / "config.json", "r") as f:
+            model_params = ModelParams_T.from_dict(json.load(f))
 
-        if args.model_folder_path:
-            model_params.model_folder_path = args.model_folder_path
-
-        if not model_params.model_folder_path.is_dir():
-            model_params.model_folder_path.mkdir(parents=True)
+        if not args.new_model_path.is_dir():
+            args.new_model_path.mkdir(parents=True)
 
         if args.embedding_type:
             model_params.embedding_type = args.embedding_type
@@ -102,31 +97,8 @@ class TrainCmd(CMD):
         if args.patience:
             model_params.patience = args.patience
 
-        pretrain_model_params: Optional[ModelParams_T] = None
-        if args.conf_pretrain:
-            # We are finetuning an existing BertForDeprel model, where a pretrain model
-            # config is provided. We need to be sure that:
-            # - the annotation schema of new model is the same as finetuned
-            # - the new model doesnt erase the old one (root_path_folder + model_name
-            # are different)
-            # - the new model has same architecture as old one
-            with open(args.conf_pretrain, "r") as f:
-                pretrain_model_params_ = ModelParams_T.from_dict(json.loads(f.read()))
-                if not args.overwrite_pretrain_classifiers:
-                    model_params.annotation_schema = (
-                        pretrain_model_params_.annotation_schema
-                    )
-                # TODO: there should be an else clause where we update the annotation
-                # schema with new labels from the fine-tuning data.
-                pretrain_model_params = pretrain_model_params_
-            if (
-                pretrain_model_params_.model_folder_path
-                == model_params.model_folder_path
-            ):
-                assert Exception(
-                    "The pretrained model and the new model have same full path. It's "
-                    "not allowed as it would result in erasing the pretrained model"
-                )
+        if args.batch_size:
+            model_params.batch_size = args.batch_size
 
         train_sentences = load_conllu_sentences(args.ftrain)
 
@@ -144,37 +116,62 @@ class TrainCmd(CMD):
                 dataset=ListDataset(train_sentences), lengths=[train_size, test_size]
             )  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
 
-        model_params.annotation_schema = compute_annotation_schema(
-            iter(train_sentences)
-        )
+        train_data_annotation_schema = compute_annotation_schema(iter(train_sentences))
+
+        path_scores_history = args.new_model_path / "scores.history.json"
+        path_scores_best = args.new_model_path / "scores.best.json"
+
+        if args.pretrained_path:
+            print("Loading pretrained model...")
+            if args.pretrained_path.resolve() == args.new_model_path.resolve():
+                raise ValueError(
+                    "The pretrained model and the new model have same full path. It's "
+                    "not allowed as it would result in erasing the pretrained model."
+                )
+            if args.overwrite_pretrain_classifiers:
+                model = BertForDeprel.load_pretrained_for_retraining(
+                    args.pretrained_path, train_data_annotation_schema
+                )
+            else:
+                model = BertForDeprel.load_pretrained_for_finetuning(
+                    args.pretrained_path,
+                    train_data_annotation_schema,
+                )
+        else:
+            print("Creating model for training...")
+            model = BertForDeprel.new_model(
+                model_params.embedding_type, train_data_annotation_schema
+            )
 
         train_dataset = UDDataset(
             iter(train_sentences),
-            model_params.annotation_schema,
-            model_params.embedding_type,
-            model_params.max_position_embeddings,
+            model.annotation_schema,
+            model.embedding_type,
+            model.max_position_embeddings,
             "train",
         )
 
         test_dataset = UDDataset(
             iter(test_sentences),
-            model_params.annotation_schema,
-            model_params.embedding_type,
-            model_params.max_position_embeddings,
+            model.annotation_schema,
+            model.embedding_type,
+            model.max_position_embeddings,
             "train",
         )
 
-        path_scores_history = model_params.model_folder_path / "scores.history.json"
-        path_scores_best = model_params.model_folder_path / "scores.best.json"
-
-        total_timer_start = datetime.now()
-
-        trainer = Trainer(
-            model_params,
-            args.device_config,
-            pretrain_model_params,
-            args.overwrite_pretrain_classifiers,
+        training_config = TrainingConfig(
+            max_epochs=model_params.max_epoch,
+            patience=model_params.patience,
+            batch_size=model_params.batch_size,
+            num_workers=args.num_workers,
         )
+        trainer = Trainer(
+            model,
+            training_config,
+            args.device_config,
+        )
+
+        # TODO: move this logic into the Trainer class
 
         # set to infinity
         best_loss = float("inf")
@@ -182,9 +179,8 @@ class TrainCmd(CMD):
         best_epoch_results = None
         epochs_without_improvement = 0
         history = []
-        for epoch_results in trainer.train(
-            train_dataset, test_dataset, args.batch_size_eval
-        ):
+        total_timer_start = datetime.now()
+        for epoch_results in trainer.train(train_dataset, test_dataset):
             history.append(epoch_results)
             with open(path_scores_history, "w") as outfile:
                 outfile.write(json.dumps(history, indent=4, cls=ConfigJSONEncoder))
@@ -202,7 +198,9 @@ class TrainCmd(CMD):
                     print("best epoch (on LAS) so far")
 
                 print("Saving model")
-                trainer.model.save_model(epoch_results["epoch"])  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+                trainer.model.save_model(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+                    args.new_model_path, training_config, int(epoch_results["epoch"])
+                )
                 with open(path_scores_best, "w") as outfile:
                     outfile.write(
                         json.dumps(epoch_results, indent=4, cls=ConfigJSONEncoder)
@@ -227,59 +225,47 @@ class TrainCmd(CMD):
 
         print("Training ended. Total time elapsed = {}".format(total_time_elapsed))
 
-        path_finished_state_file = model_params.model_folder_path / ".finished"
+        path_finished_state_file = args.new_model_path / ".finished"
 
         with open(path_finished_state_file, "w") as outfile:
             outfile.write("")
 
 
+# TODO: not really clear that this needs to be an object; we can pass the model and
+# config as arguments to the train method instead and it wouldn't make much difference.
 class Trainer:
     def __init__(
         self,
-        model_params: ModelParams_T,
-        # TODO: pass around single device config, not (device, multi_gpu)
+        model: BertForDeprel,
+        config: TrainingConfig,
         device_config: DeviceConfig = DeviceConfig(torch.device("cpu"), False),
-        pretrain_model_params: Optional[ModelParams_T] = None,
-        overwrite_pretrain_classifiers=True,
-        num_workers=1,
     ):
-        self.model_params = model_params
         self.device_config = device_config
-        self.dataloader_params = {
-            "batch_size": self.model_params.batch_size,
-            "num_workers": num_workers,
-            "shuffle": True,
-        }
-
-        print("Creating model for training...")
-        self.model = BertForDeprel(
-            model_params,
-            pretrain_model_params=pretrain_model_params,
-            overwrite_pretrain_classifiers=overwrite_pretrain_classifiers,
-        )
-
-        self.model = self.model.to(self.device_config.device)
-
+        self.model = model.to(self.device_config.device)
         if self.device_config.multi_gpu:
             print("MODEL TO MULTI GPU")
             self.model = nn.DataParallel(self.model)
+
+        self.config = config
 
     def train(
         self,
         train_dataset: UDDataset,
         test_dataset: UDDataset,
-        batch_size_eval=0,
-    ):
+    ) -> Generator[Dict[str, float], None, None]:
         train_loader = DataLoader(
             train_dataset,
             collate_fn=train_dataset.collate_fn_train,
-            **self.dataloader_params,
+            batch_size=self.config.batch_size,
+            num_workers=self.config.num_workers,
+            shuffle=True,
         )
-        params_test = self.dataloader_params.copy()
-        if batch_size_eval:
-            params_test["batch_size"] = batch_size_eval
         test_loader = DataLoader(
-            test_dataset, collate_fn=train_dataset.collate_fn_train, **params_test
+            test_dataset,
+            collate_fn=train_dataset.collate_fn_train,
+            batch_size=self.config.batch_size,
+            num_workers=self.config.num_workers,
+            shuffle=True,
         )
 
         print(
@@ -293,14 +279,14 @@ class Trainer:
 
         n_epoch_start = 0
 
-        no_train_results = self.model.eval_on_dataset(test_loader, self.device_config.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+        no_train_results: Dict[str, float] = self.model.eval_on_dataset(test_loader, self.device_config.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
         no_train_results["n_sentences_train"] = len(train_dataset)
         no_train_results["n_sentences_test"] = len(test_dataset)
         no_train_results["epoch"] = n_epoch_start
 
         yield no_train_results
 
-        for n_epoch in range(n_epoch_start + 1, self.model_params.max_epoch + 1):
+        for n_epoch in range(n_epoch_start + 1, self.config.max_epochs + 1):
             print(f"-----   Epoch {n_epoch}   -----")
             self.model.train_epoch(train_loader, self.device_config.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
             results = self.model.eval_on_dataset(test_loader, self.device_config.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501

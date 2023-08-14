@@ -2,7 +2,7 @@ import dataclasses
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 from .annotation_schema import AnnotationSchema_T
 
@@ -10,8 +10,6 @@ from .annotation_schema import AnnotationSchema_T
 @dataclass
 class ModelParams_T:
     # Shared
-    # TODO: what behavior does an empty path lead to?
-    model_folder_path: Optional[Path] = None
     # TODO: what behavior does an empty schema lead to?
     annotation_schema: AnnotationSchema_T = field(default_factory=AnnotationSchema_T)
 
@@ -27,10 +25,6 @@ class ModelParams_T:
     # n_current_epoch: int
     # current_epoch_results: EpochResults_T
 
-    # Allows a copy command in the lemma scripts. In the UDPipe paper, they tried both
-    # with and without this option and kept the one that yielded fewer unique scripts.
-    allow_lemma_char_copy: bool = False
-
     # Pre-trained embeddings to download from 🤗 (xlm-roberta-large /
     # bert-multilingual-base-uncased ...)
     embedding_type: str = "xlm-roberta-large"
@@ -39,13 +33,12 @@ class ModelParams_T:
     # memory usage.
     max_position_embeddings: int = 512
 
+    # TODO: from_model_dir would make more sense
     @staticmethod
     def from_dict(params_dict: Mapping[str, Any]) -> "ModelParams_T":
         model_params = ModelParams_T()
         # TODO: Check the validity of this first; at least a version number
         model_params.__dict__.update(params_dict)
-        if model_params.model_folder_path:
-            model_params.model_folder_path = Path(model_params.model_folder_path)
         if "annotation_schema" in params_dict:
             model_params.annotation_schema = AnnotationSchema_T.from_dict(
                 params_dict["annotation_schema"]
@@ -63,3 +56,23 @@ class ConfigJSONEncoder(json.JSONEncoder):
         elif isinstance(o, Path):
             return str(o)
         return super().default(o)
+
+
+@dataclass
+class TrainingConfig:
+    # In our experiments, most of the models based on UD data converged in 10-15 epochs
+    max_epochs: int = 15
+    # How many epochs with no performance improvement before training is ended early
+    patience: int = 3
+    # How many sentences to process in each batch
+    batch_size: int = 16
+    # how many subprocesses to use for data loading
+    num_workers: int = 1
+
+
+@dataclass
+class PredictionConfig:
+    # How many sentences to process in each batch
+    batch_size: int = 16
+    # how many subprocesses to use for data loading
+    num_workers: int = 1

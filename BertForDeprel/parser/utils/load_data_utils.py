@@ -9,9 +9,7 @@ from torch import Tensor, tensor
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from BertForDeprel.parser.utils.annotation_schema import DUMMY_ID
-
-from .annotation_schema import AnnotationSchema_T
+from .annotation_schema import DUMMY_ID, AnnotationSchema_T
 from .lemma_script_utils import apply_lemma_rule
 
 
@@ -204,6 +202,8 @@ class UDDataset(Dataset):
     """Universal Dependency dataset tokenized and encoded for input to the
     BertForDeprel model."""
 
+    # TODO: given that we need 3 model params here, maybe the model should own this
+    # tokenizing code? Or something like model.tokenizer()?
     def __init__(
         self,
         sentences: Iterable[sentenceJson_T],

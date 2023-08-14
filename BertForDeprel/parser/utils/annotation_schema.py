@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Mapping
+from typing import Any, Dict, Iterable, List, Mapping, Self
 
 from conllup.conllup import _featuresJsonToConll, featuresJson_T, sentenceJson_T
 
@@ -10,7 +10,7 @@ NONE_VOCAB = "_none"  # default fallback
 DUMMY_ID = -1
 
 
-def _compute_labels2i(list_labels: List[str]):
+def _compute_labels2i(list_labels: Iterable[str]):
     sorted_set_labels = sorted(set(list_labels))
 
     labels2i: Dict[str, int] = {}
@@ -19,6 +19,20 @@ def _compute_labels2i(list_labels: List[str]):
         labels2i[labels] = i
 
     return labels2i
+
+
+def _update_mapping(
+    existing_mapping: Dict[str, int],
+    existing_list: List[str],
+    new_list: List[str],
+):
+    new_labels = set(new_list) - set(existing_list)
+    new_mapping = _compute_labels2i(new_labels)
+    new_indices_start = len(existing_list)
+    for label, index in new_mapping.items():
+        # Add the new labels to the existing mapping; the indices must start
+        # where the previous ones left off so that we don't have any collisions
+        existing_mapping[label] = index + new_indices_start
 
 
 @dataclass
@@ -43,6 +57,13 @@ class AnnotationSchema_T:
         annotation_schema.__dict__.update(schema_dict)
         annotation_schema.__post_init__()
         return annotation_schema
+
+    def update(self, other: Self):
+        _update_mapping(self.dep2i, self.deprels, other.deprels)
+        _update_mapping(self.upos2i, self.uposs, other.uposs)
+        _update_mapping(self.xpos2i, self.xposs, other.xposs)
+        _update_mapping(self.feat2i, self.feats, other.feats)
+        _update_mapping(self.lem2i, self.lemma_scripts, other.lemma_scripts)
 
     def is_empty(self):
         return not (self.uposs or self.deprels)

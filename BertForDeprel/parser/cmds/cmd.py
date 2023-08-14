@@ -2,8 +2,6 @@ from abc import ABC, abstractmethod
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 from typing import TYPE_CHECKING, Any
 
-from ..utils.types import ModelParams_T
-
 # see https://github.com/python/typeshed/issues/7539
 if TYPE_CHECKING:
     SubparsersType = _SubParsersAction[ArgumentParser]
@@ -12,7 +10,7 @@ else:
 
 
 class CMD(ABC):
-    def run(self, args: Namespace, model_params: ModelParams_T):
+    def run(self, args: Namespace):
         # TODO: why are we saving these?
         self.args = args
 
