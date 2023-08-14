@@ -48,7 +48,7 @@ class ModelParams_T:
         return model_params
 
 
-class ConfigJSONEncoder(json.JSONEncoder):
+class DataclassJSONEncoder(json.JSONEncoder):
     """JSON encoder for data that may include dataclasses."""
 
     def default(self, o):
@@ -69,6 +69,8 @@ class TrainingConfig:
     batch_size: int = 16
     # how many subprocesses to use for data loading
     num_workers: int = 1
+    # Number of digits to round the metrics to
+    ndigits: int = 3
 
 
 @dataclass

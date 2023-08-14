@@ -28,7 +28,7 @@ from ..utils.scores_and_losses_utils import (
     compute_loss_deprel,
     compute_loss_head,
 )
-from ..utils.types import ConfigJSONEncoder, ModelParams_T, TrainingConfig
+from ..utils.types import DataclassJSONEncoder, ModelParams_T, TrainingConfig
 from .BertForDepRelOutput import BertForDeprelBatchOutput
 from .PosAndDepRelParserHead import PosAndDeprelParserHead
 
@@ -36,18 +36,22 @@ from .PosAndDepRelParserHead import PosAndDeprelParserHead
 @dataclass
 class EvalResultAccumulator:
     good_head_epoch, total_head_epoch, loss_head_epoch = 0.0, 0.0, 0.0
-    good_uposs_epoch, total_uposs_epoch, loss_uposs_epoch = 0.0, 0.0, 0.0
-    good_xposs_epoch, total_xposs_epoch, loss_xposs_epoch = 0.0, 0.0, 0.0
-    good_feats_epoch, total_feats_epoch, loss_feats_epoch = 0.0, 0.0, 0.0
-    good_lemma_scripts_epoch, total_lemma_scripts_epoch, loss_lemma_scripts_epoch = (
+    good_uposs_epoch, total_uposs_epoch, total_loss_uposs_epoch = 0.0, 0.0, 0.0
+    good_xposs_epoch, total_xposs_epoch, total_loss_xposs_epoch = 0.0, 0.0, 0.0
+    good_feats_epoch, total_feats_epoch, total_loss_feats_epoch = 0.0, 0.0, 0.0
+    (
+        good_lemma_scripts_epoch,
+        total_lemma_scripts_epoch,
+        total_loss_lemma_scripts_epoch,
+    ) = (
         0.0,
         0.0,
         0.0,
     )
     good_deprel_epoch, total_deprel_epoch, loss_deprel_epoch = 0.0, 0.0, 0.0
-    n_correct_LAS_epoch, n_correct_LAS_epoch, n_total_epoch = 0.0, 0.0, 0.0
-    n_correct_LAS_chuliu_epoch, n_total_epoch = 0.0, 0.0
-    dataset_size: int
+    n_correct_LAS_epoch, n_correct_LAS_epoch, total_LAS_epoch = 0.0, 0.0, 0.0
+    n_correct_LAS_chuliu_epoch, total_LAS_epoch = 0.0, 0.0
+    total_sents = 0
     criterion: CrossEntropyLoss
 
     def accumulate(
@@ -56,15 +60,17 @@ class EvalResultAccumulator:
         model_output: BertForDeprelBatchOutput,
         chuliu_heads_pred: torch.Tensor,
     ):
-        n_correct_LAS_batch, n_total_batch = compute_LAS(
+        self.total_sents += len(batch.idx)
+
+        n_correct_LAS_batch, total_LAS_batch = compute_LAS(
             model_output.heads, model_output.deprels, batch.heads, batch.deprels
         )
-        n_correct_LAS_chuliu_batch, n_total_batch = compute_LAS_chuliu(
+        n_correct_LAS_chuliu_batch, total_LAS_batch = compute_LAS_chuliu(
             chuliu_heads_pred, model_output.deprels, batch.heads, batch.deprels
         )
         self.n_correct_LAS_epoch += n_correct_LAS_batch
         self.n_correct_LAS_chuliu_epoch += n_correct_LAS_chuliu_batch
-        self.n_total_epoch += n_total_batch
+        self.total_LAS_epoch += total_LAS_batch
 
         loss_head_batch = compute_loss_head(
             model_output.heads, batch.heads, self.criterion
@@ -113,70 +119,135 @@ class EvalResultAccumulator:
         loss_uposs_batch = compute_loss_class(
             model_output.uposs, batch.uposs, self.criterion
         )
-        self.loss_uposs_epoch += loss_uposs_batch
+        self.total_loss_uposs_epoch += loss_uposs_batch.item()
 
         loss_xposs_batch = compute_loss_class(
             model_output.xposs, batch.xposs, self.criterion
         )
-        self.loss_xposs_epoch += loss_xposs_batch
+        self.total_loss_xposs_epoch += loss_xposs_batch.item()
 
         loss_feats_batch = compute_loss_class(
             model_output.feats, batch.feats, self.criterion
         )
-        self.loss_feats_epoch += loss_feats_batch
+        self.total_loss_feats_epoch += loss_feats_batch.item()
 
         loss_lemma_scripts_batch = compute_loss_class(
             model_output.lemma_scripts, batch.lemma_scripts, self.criterion
         )
-        self.loss_lemma_scripts_epoch += loss_lemma_scripts_batch
+        self.total_loss_lemma_scripts_epoch += loss_lemma_scripts_batch.item()
 
     def get_results(self, ndigits=3):
-        loss_head_epoch = self.loss_head_epoch / self.dataset_size
+        loss_head_epoch = self.loss_head_epoch / self.total_sents
         acc_head_epoch = self.good_head_epoch / self.total_head_epoch
 
-        loss_deprel_epoch = self.loss_deprel_epoch / self.dataset_size
+        loss_deprel_epoch = self.loss_deprel_epoch / self.total_sents
         acc_deprel_epoch = self.good_deprel_epoch / self.total_deprel_epoch
 
+        loss_uposs_epoch = self.total_loss_uposs_epoch / self.total_sents
         acc_uposs_epoch = self.good_uposs_epoch / self.total_uposs_epoch
 
+        loss_xposs_epoch = self.total_loss_xposs_epoch / self.total_sents
         acc_xposs_epoch = self.good_xposs_epoch / self.total_xposs_epoch
 
+        loss_feats_epoch = self.total_loss_feats_epoch / self.total_sents
         acc_feats_epoch = self.good_feats_epoch / self.total_feats_epoch
 
+        loss_lemma_scripts_epoch = (
+            self.total_loss_lemma_scripts_epoch / self.total_sents
+        )
         acc_lemma_scripts_epoch = (
             self.good_lemma_scripts_epoch / self.total_lemma_scripts_epoch
         )
 
-        LAS_epoch = self.n_correct_LAS_epoch / self.n_total_epoch
-        LAS_chuliu_epoch = self.n_correct_LAS_chuliu_epoch / self.n_total_epoch
+        LAS_epoch = self.n_correct_LAS_epoch / self.total_LAS_epoch
+        LAS_chuliu_epoch = self.n_correct_LAS_chuliu_epoch / self.total_LAS_epoch
 
         loss_epoch = (
             loss_head_epoch
             + loss_deprel_epoch
-            + self.loss_uposs_epoch
-            + self.loss_xposs_epoch
-            + self.loss_feats_epoch
-            + self.loss_lemma_scripts_epoch
+            + loss_uposs_epoch
+            + loss_xposs_epoch
+            + loss_feats_epoch
+            + loss_lemma_scripts_epoch
+        )
+        loss_epoch /= 6
+
+        return EvalResult(
+            LAS_epoch=LAS_epoch,
+            LAS_chuliu_epoch=LAS_chuliu_epoch,
+            acc_head_epoch=acc_head_epoch,
+            acc_deprel_epoch=acc_deprel_epoch,
+            acc_uposs_epoch=acc_uposs_epoch,
+            acc_xposs_epoch=acc_xposs_epoch,
+            acc_feats_epoch=acc_feats_epoch,
+            acc_lemma_scripts_epoch=acc_lemma_scripts_epoch,
+            loss_head_epoch=loss_head_epoch,
+            loss_deprel_epoch=loss_deprel_epoch,
+            loss_uposs_epoch=loss_uposs_epoch,
+            loss_xposs_epoch=loss_xposs_epoch,
+            loss_feats_epoch=loss_feats_epoch,
+            loss_lemma_scripts_epoch=loss_lemma_scripts_epoch,
+            loss_epoch=loss_epoch,
         )
 
-        return {
-            "LAS_epoch": round(float(LAS_epoch), ndigits),
-            "LAS_chuliu_epoch": round(float(LAS_chuliu_epoch), ndigits),
-            "acc_head_epoch": round(float(acc_head_epoch), ndigits),
-            "acc_deprel_epoch": round(acc_deprel_epoch, ndigits),
-            "acc_uposs_epoch": round(float(acc_uposs_epoch), ndigits),
-            "acc_xposs_epoch": round(float(acc_xposs_epoch), ndigits),
-            "acc_feats_epoch": round(float(acc_feats_epoch), ndigits),
-            "acc_lemma_scripts_epoch": round(float(acc_lemma_scripts_epoch), ndigits),
-            "loss_head_epoch": round(float(loss_head_epoch), ndigits),
-            "loss_deprel_epoch": round(float(loss_deprel_epoch), ndigits),
-            "loss_xposs_epoch": round(float(self.loss_xposs_epoch), ndigits),
-            "loss_feats_epoch": round(float(self.loss_feats_epoch), ndigits),
-            "loss_lemma_scripts_epoch": round(
-                float(self.loss_lemma_scripts_epoch), ndigits
-            ),
-            "loss_epoch": round(float(loss_epoch), ndigits),
-        }
+
+@dataclass
+class TrainingDiagnostics:
+    n_sentences_train: int
+    n_sentences_test: int
+    epoch: int
+    saved: bool
+    is_best_loss: bool
+    is_best_LAS: bool
+    epochs_without_improvement: int
+    stopping_early: bool
+
+
+@dataclass
+class EvalResult:
+    LAS_epoch: float
+    LAS_chuliu_epoch: float
+    acc_head_epoch: float
+    acc_deprel_epoch: float
+    acc_uposs_epoch: float
+    acc_xposs_epoch: float
+    acc_feats_epoch: float
+    acc_lemma_scripts_epoch: float
+    loss_head_epoch: float
+    loss_deprel_epoch: float
+    loss_uposs_epoch: float
+    loss_xposs_epoch: float
+    loss_feats_epoch: float
+    loss_lemma_scripts_epoch: float
+    loss_epoch: float
+    training_diagnostics: Optional[TrainingDiagnostics] = None
+
+    def _set_diagnostic_info(self, diagnostics: TrainingDiagnostics):
+        self.training_diagnostics = diagnostics
+
+    def rounded(self, ndigits):
+        return type(self)(
+            **{
+                k: round(v, ndigits)
+                for k, v in self.__dict__.items()
+                if isinstance(v, float)
+            },
+            training_diagnostics=self.training_diagnostics,
+        )
+
+    def __str__(self):
+        return (
+            "\nEpoch evaluation results\n"
+            f"Total loss = {self.loss_epoch:.3f}\n"
+            f"LAS = {self.LAS_epoch:.3f}\n"
+            f"LAS_chuliu = {self.LAS_chuliu_epoch:.3f}\n"
+            f"Acc. head = {self.acc_head_epoch:.3f}\n"
+            f"Acc. deprel = {self.acc_deprel_epoch:.3f}\n"
+            f"Acc. upos = {self.acc_uposs_epoch:.3f}\n"
+            f"Acc. feat = {self.acc_feats_epoch:.3f}\n"
+            f"Acc. lemma_script = {self.acc_lemma_scripts_epoch:.3f}\n"
+            f"Acc. xposs = {self.acc_xposs_epoch:.3f}\n"
+        )
 
 
 class BertForDeprel(Module):
@@ -389,13 +460,13 @@ class BertForDeprel(Module):
             f"{processed_sentence_counter} sentence at {parsing_speed} sents/sec)"
         )
 
-    def eval_on_dataset(self, loader, device):
+    def eval_on_dataset(self, loader, device) -> EvalResult:
         """Evaluate the model's performance on the given gold-annotated data."""
         self.eval()
         with torch.no_grad():
-            dataset_size = len(loader)
-            print_every = max(1, dataset_size // 4)
-            results_accumulator = EvalResultAccumulator(dataset_size, self.criterion)
+            num_batches = len(loader)
+            print_every = max(1, num_batches // 4)
+            results_accumulator = EvalResultAccumulator(self.criterion)
             start = timer()
             processed_sentence_counter = 0
 
@@ -422,18 +493,7 @@ class BertForDeprel(Module):
                     )
 
             results = results_accumulator.get_results()
-            print(
-                f"\nEpoch evaluation results\n"
-                f"Total loss = {results['loss_epoch']:.3f}\n"
-                f"LAS = {results['LAS_epoch']:.3f}\n"
-                f"LAS_chuliu = {results['LAS_chuliu_epoch']:.3f}\n"
-                f"Acc. head = {results['acc_head_epoch']:.3f}\n"
-                f"Acc. deprel = {results['acc_deprel_epoch']:.3f}\n"
-                f"Acc. upos = {results['acc_uposs_epoch']:.3f}\n"
-                f"Acc. feat = {results['acc_feats_epoch']:.3f}\n"
-                f"Acc. lemma_script = {results['acc_lemma_scripts_epoch']:.3f}\n"
-                f"Acc. xposs = {results['acc_xposs_epoch']:.3f}\n"
-            )
+            print(results)
 
         return results
 
@@ -476,13 +536,11 @@ class BertForDeprel(Module):
         # TODO: what is this return value?
         return chuliu_heads_pred
 
-    # TODO: config should be stored in file with model; config.json should just be for
-    # debugging
-    def save_model(self, model_dir: Path, training_config: TrainingConfig, epoch: int):
+    def save_model(self, model_dir: Path, training_config: TrainingConfig):
         trainable_weight_names = [
             n for n, p in self.llm_layer.named_parameters() if p.requires_grad
         ] + [n for n, p in self.tagger_layer.named_parameters() if p.requires_grad]
-        state = {"adapter": {}, "tagger": {}, "epoch": epoch}
+        state = {"adapter": {}, "tagger": {}}
         for k, v in self.llm_layer.state_dict().items():
             if k in trainable_weight_names:
                 state["adapter"][k] = v
@@ -505,13 +563,14 @@ class BertForDeprel(Module):
                 "max_epoch": training_config.max_epochs,
                 "patience": training_config.patience,
                 "batch_size": training_config.batch_size,
+                "num_workers": training_config.num_workers,
             }
             outfile.write(
                 json.dumps(
                     config,
                     ensure_ascii=False,
                     indent=4,
-                    cls=ConfigJSONEncoder,
+                    cls=DataclassJSONEncoder,
                 )
             )
 

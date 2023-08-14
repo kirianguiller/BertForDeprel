@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 
 from BertForDeprel.parser.cmds.predict import Predictor
 from BertForDeprel.parser.cmds.train import Trainer
-from BertForDeprel.parser.modules.BertForDepRel import BertForDeprel
+from BertForDeprel.parser.modules.BertForDepRel import BertForDeprel, EvalResult
 from BertForDeprel.parser.utils.annotation_schema import compute_annotation_schema
 from BertForDeprel.parser.utils.gpu_utils import get_devices_configuration
 from BertForDeprel.parser.utils.load_data_utils import UDDataset, load_conllu_sentences
@@ -58,58 +58,59 @@ def _test_model_train():
         patience=0,
     )
     trainer = Trainer(
-        model,
         training_config,
         device_config,
     )
 
-    scores = list(trainer.train(train_dataset, test_dataset))
+    scores_generator = trainer.train(model, train_dataset, test_dataset)
+    scores = [next(scores_generator), next(scores_generator)]
+    scores = [s.rounded(3) for s in scores]
 
-    trainer.model.save_model(PATH_MODELS_DIR, training_config, 1)  # type: ignore https://github.com/pytorch/pytorch/issues/81462 # noqa: E501
+    trainer.model.save_model(  # type: ignore https://github.com/pytorch/pytorch/issues/81462 # noqa: E501
+        PATH_MODELS_DIR, training_config
+    )
 
     # TODO: put time in result and check that, as well; or specify deadline to pytest
     # TODO: these numbers are different on every machine, and therefore this test FAILS
     # anywhere except for mine. Need to figure out how to make it pass anywhere.
     assert scores == pytest.approx(
         [
-            {
-                "LAS_epoch": 0.0,
-                "LAS_chuliu_epoch": 0.0,
-                "acc_head_epoch": 0.077,
-                "acc_deprel_epoch": 0.0,
-                "acc_uposs_epoch": 0.046,
-                "acc_xposs_epoch": 1.0,
-                "acc_feats_epoch": 0.0,
-                "acc_lemma_scripts_epoch": 0.0,
-                "loss_head_epoch": 3.045,
-                "loss_deprel_epoch": 3.611,
-                "loss_xposs_epoch": 0.531,
-                "loss_feats_epoch": 3.367,
-                "loss_lemma_scripts_epoch": 3.452,
-                "loss_epoch": 17.016,
-                "n_sentences_train": 39,
-                "n_sentences_test": 5,
-                "epoch": 0,
-            },
-            {
-                "LAS_epoch": 0.015,
-                "LAS_chuliu_epoch": 0.015,
-                "acc_head_epoch": 0.123,
-                "acc_deprel_epoch": 0.308,
-                "acc_uposs_epoch": 0.046,
-                "acc_xposs_epoch": 1.0,
-                "acc_feats_epoch": 0.0,
-                "acc_lemma_scripts_epoch": 0.0,
-                "loss_head_epoch": 3.041,
-                "loss_deprel_epoch": 3.37,
-                "loss_xposs_epoch": 0.415,
-                "loss_feats_epoch": 3.228,
-                "loss_lemma_scripts_epoch": 3.133,
-                "loss_epoch": 16.117,
-                "n_sentences_train": 39,
-                "n_sentences_test": 5,
-                "epoch": 1,
-            },
+            EvalResult(
+                LAS_epoch=0.0,
+                LAS_chuliu_epoch=0.0,
+                acc_head_epoch=0.077,
+                acc_deprel_epoch=0.0,
+                acc_uposs_epoch=0.046,
+                acc_xposs_epoch=1.0,
+                acc_feats_epoch=0.0,
+                acc_lemma_scripts_epoch=0.0,
+                loss_head_epoch=0.609,
+                loss_deprel_epoch=0.722,
+                loss_uposs_epoch=0.602,
+                loss_xposs_epoch=0.106,
+                loss_feats_epoch=0.673,
+                loss_lemma_scripts_epoch=0.69,
+                loss_epoch=0.567,
+                training_diagnostics=None,
+            ),
+            EvalResult(
+                LAS_epoch=0.015,
+                LAS_chuliu_epoch=0.015,
+                acc_head_epoch=0.123,
+                acc_deprel_epoch=0.308,
+                acc_uposs_epoch=0.046,
+                acc_xposs_epoch=1.0,
+                acc_feats_epoch=0.0,
+                acc_lemma_scripts_epoch=0.0,
+                loss_head_epoch=0.608,
+                loss_deprel_epoch=0.674,
+                loss_uposs_epoch=0.586,
+                loss_xposs_epoch=0.083,
+                loss_feats_epoch=0.646,
+                loss_lemma_scripts_epoch=0.627,
+                loss_epoch=0.537,
+                training_diagnostics=None,
+            ),
         ]
     )
 
@@ -176,23 +177,25 @@ def _test_eval():
 
     # TODO: these are different on each machine, and therefore this test FAILS anywhere
     # but mine.
-    assert results == pytest.approx(
-        {
-            "LAS_epoch": 0.015,
-            "LAS_chuliu_epoch": 0.015,
-            "acc_head_epoch": 0.123,
-            "acc_deprel_epoch": 0.308,
-            "acc_uposs_epoch": 0.046,
-            "acc_xposs_epoch": 1.0,
-            "acc_feats_epoch": 0.0,
-            "acc_lemma_scripts_epoch": 0.0,
-            "loss_head_epoch": 3.041,
-            "loss_deprel_epoch": 3.37,
-            "loss_xposs_epoch": 0.415,
-            "loss_feats_epoch": 3.228,
-            "loss_lemma_scripts_epoch": 3.133,
-            "loss_epoch": 16.117,
-        }
+    assert results.rounded(3) == pytest.approx(
+        EvalResult(
+            LAS_epoch=0.015,
+            LAS_chuliu_epoch=0.015,
+            acc_head_epoch=0.123,
+            acc_deprel_epoch=0.308,
+            acc_uposs_epoch=0.046,
+            acc_xposs_epoch=1.0,
+            acc_feats_epoch=0.0,
+            acc_lemma_scripts_epoch=0.0,
+            loss_head_epoch=0.608,
+            loss_deprel_epoch=0.674,
+            loss_uposs_epoch=0.586,
+            loss_xposs_epoch=0.083,
+            loss_feats_epoch=0.646,
+            loss_lemma_scripts_epoch=0.627,
+            loss_epoch=0.537,
+            training_diagnostics=None,
+        ),
     )
 
 
