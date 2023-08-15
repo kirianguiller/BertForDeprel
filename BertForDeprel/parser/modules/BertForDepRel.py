@@ -243,7 +243,7 @@ class EvalResult:
     def __str__(self):
         return (
             "\nEpoch evaluation results\n"
-            f"Total loss = {self.loss_epoch:.3f}\n"
+            f"Average total loss = {self.loss_epoch:.3f}\n"
             f"LAS = {self.LAS_epoch:.3f}\n"
             f"LAS_chuliu = {self.LAS_chuliu_epoch:.3f}\n"
             f"Acc. head = {self.acc_head_epoch:.3f}\n"
@@ -397,9 +397,14 @@ class BertForDeprel(Module):
         new_model.device = device
         return new_model
 
-    def encode_dataset(self, train_sentences: Iterable[sentenceJson_T]) -> UDDataset:
+    def encode_dataset(self, sentences: Iterable[sentenceJson_T]) -> UDDataset:
+        """Convert train_sentences into a dataset encoded for use with the model
+        (training or prediction). Note that the returned dataset may not contain all
+        of the input sentences, if some of them are too long or otherwise invalid.
+        The client will need to check the IDs of the returned sentences to see which
+        ones were included/excluded."""
         return UDDataset(
-            iter(train_sentences),
+            iter(sentences),
             self.annotation_schema,
             self.embedding_type,
             self.max_position_embeddings,

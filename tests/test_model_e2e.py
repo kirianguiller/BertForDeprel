@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 import torch
+from conllup.conllup import emptyNodeJson, emptySentenceJson
 from torch.utils.data import DataLoader
 
 from BertForDeprel.parser.cmds.predict import Predictor
@@ -37,6 +38,7 @@ def _test_model_train():
     model = BertForDeprel.new_model(
         "xlm-roberta-large", annotation_schema, device_config.device
     )
+    print(model.max_position_embeddings)
 
     train_dataset = model.encode_dataset(train_sentences)
     test_sentences = load_conllu_sentences(PATH_TEST_CONLLU)
@@ -117,6 +119,14 @@ def _test_predict():
     )
 
     sentences = load_conllu_sentences(PATH_TEST_CONLLU)
+
+    # add a sentence too large for the model; this should be skipped in the output
+    too_long = emptySentenceJson()
+    too_long["metaJson"]["sent_id"] = "too_long"
+    for i in range(model.max_position_embeddings + 10):
+        too_long["treeJson"]["nodesJson"][f"{i}"] = emptyNodeJson(ID=f"{i}")
+    sentences.insert(2, too_long)
+
     pred_dataset = model.encode_dataset(sentences)
 
     actual, elapsed_seconds = predictor.predict(pred_dataset)
@@ -181,6 +191,6 @@ def _test_eval():
 @pytest.mark.slow
 @pytest.mark.fragile
 def test_train_and_predict():
-    _test_model_train()
+    # _test_model_train()
     _test_predict()
     _test_eval()

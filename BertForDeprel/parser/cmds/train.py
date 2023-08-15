@@ -203,7 +203,6 @@ class Trainer:
         for epoch, epoch_results in enumerate(
             self.train(model, train_dataset, test_dataset)
         ):
-            print(f"-----   Epoch {epoch}   -----")
             print(epoch_results)
 
             loss_epoch = epoch_results.loss_epoch
@@ -311,12 +310,19 @@ class Trainer:
             f"{len(test_loader):3} batches, "
         )
 
+        def announce_epoch(epoch: int) -> None:
+            print(f"-----   Epoch {epoch}   -----")
+
+        epoch = 0
+        announce_epoch(epoch)
         no_train_results: EvalResult = model.eval_on_dataset(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
             test_loader
         )
         yield no_train_results
 
         while True:
+            epoch += 1
+            announce_epoch(epoch)
             model.train_epoch(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
                 train_loader
             )
