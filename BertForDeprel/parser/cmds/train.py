@@ -4,14 +4,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Generator, List, TypeVar
 
-import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset, random_split
 
 from ..cmds.cmd import CMD, SubparsersType
 from ..modules.BertForDepRel import BertForDeprel, EvalResult, TrainingDiagnostics
 from ..utils.annotation_schema import compute_annotation_schema
-from ..utils.gpu_utils import DeviceConfig
 from ..utils.load_data_utils import UDDataset, load_conllu_sentences
 from ..utils.types import DataclassJSONEncoder, ModelParams_T, TrainingConfig
 
@@ -126,17 +124,22 @@ class TrainCmd(CMD):
                 )
             if args.overwrite_pretrain_classifiers:
                 model = BertForDeprel.load_pretrained_for_retraining(
-                    args.pretrained_path, train_data_annotation_schema
+                    args.pretrained_path,
+                    train_data_annotation_schema,
+                    args.device_config.device,
                 )
             else:
                 model = BertForDeprel.load_pretrained_for_finetuning(
                     args.pretrained_path,
                     train_data_annotation_schema,
+                    args.device_config.device,
                 )
         else:
             print("Creating model for training...")
             model = BertForDeprel.new_model(
-                model_params.embedding_type, train_data_annotation_schema
+                model_params.embedding_type,
+                train_data_annotation_schema,
+                args.device_config.device,
             )
 
         train_dataset = UDDataset(
@@ -163,7 +166,7 @@ class TrainCmd(CMD):
         )
         trainer = Trainer(
             training_config,
-            args.device_config,
+            args.device_config.multi_gpu,
         )
 
         trainer.train_until_quiescence(
@@ -177,10 +180,10 @@ class Trainer:
     def __init__(
         self,
         config: TrainingConfig,
-        device_config: DeviceConfig = DeviceConfig(torch.device("cpu"), False),
+        multi_gpu: bool = False,
     ):
-        self.device_config = device_config
-        if self.device_config.multi_gpu:
+        self.multi_gpu = multi_gpu
+        if self.multi_gpu:
             print("MODEL TO MULTI GPU")
             self.model = nn.DataParallel(self.model)
 
@@ -199,9 +202,6 @@ class Trainer:
         When finished, write a .finished file to the output directory. This can be used
         to check if the training was interrupted, and also for signaling to other
         processes that the training is finished."""
-        # TODO: move this logic inside the model so we can get rid of the device config
-        model = model.to(self.device_config.device)
-
         path_scores_history = output_dir / "scores.history.json"
         path_scores_best = output_dir / "scores.best.json"
 
@@ -216,6 +216,7 @@ class Trainer:
             self.train(model, train_dataset, test_dataset)
         ):
             print(f"-----   Epoch {epoch}   -----")
+            print(epoch_results)
 
             loss_epoch = epoch_results.loss_epoch
             LAS_epoch = epoch_results.LAS_epoch
@@ -322,13 +323,16 @@ class Trainer:
             f"{len(test_loader):3} batches, "
         )
 
-        # TODO: move this logic inside the model so we can get rid of the device config
-        self.model = model.to(self.device_config.device)
-
-        no_train_results: EvalResult = model.eval_on_dataset(test_loader, self.device_config.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+        no_train_results: EvalResult = model.eval_on_dataset(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+            test_loader
+        )
         yield no_train_results
 
         while True:
-            model.train_epoch(train_loader, self.device_config.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
-            results = model.eval_on_dataset(test_loader, self.device_config.device)  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+            model.train_epoch(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+                train_loader
+            )
+            results = model.eval_on_dataset(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+                test_loader
+            )
             yield results

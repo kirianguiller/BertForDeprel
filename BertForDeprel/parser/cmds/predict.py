@@ -13,7 +13,6 @@ from ..cmds.cmd import CMD, SubparsersType
 from ..modules.BertForDepRel import BertForDeprel
 from ..modules.BertForDepRelOutput import BertForDeprelBatchOutput
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
-from ..utils.gpu_utils import DeviceConfig
 from ..utils.load_data_utils import (
     CopyOption,
     PartialPredictionConfig,
@@ -104,14 +103,16 @@ class PredictCmd(CMD):
 
         in_to_out_paths, partial_pred_config = self.__validate_args(args)
 
-        model = BertForDeprel.load_pretrained_for_prediction(args.model_path)
+        model = BertForDeprel.load_pretrained_for_prediction(
+            args.model_path, args.device_config.device
+        )
 
         predictor = Predictor(
             model,
             PredictionConfig(
                 batch_size=model_params.batch_size, num_workers=args.num_workers
             ),
-            args.device_config,
+            args.device_config.multi_gpu,
         )
 
         print("Starting Predictions ...")
@@ -194,13 +195,14 @@ class Predictor:
         self,
         model: BertForDeprel,
         config: PredictionConfig,
-        device_config: DeviceConfig,
+        multi_gpu: bool,
     ):
         self.config = config
-        self.device_config = device_config
+        self.model = model
+        self.multi_gpu = multi_gpu
+        self.device = model.device
 
-        self.model = model.to(self.device_config.device)
-        if self.device_config.multi_gpu:
+        if self.multi_gpu:
             print("MODEL TO MULTI GPU")
             self.model = nn.DataParallel(self.model)
 
@@ -209,7 +211,6 @@ class Predictor:
             "batch_size": config.batch_size,
             "num_workers": config.num_workers,
         }
-        self.device_config = device_config
 
     def predict(
         self,
@@ -233,7 +234,6 @@ class Predictor:
         batch: SequencePredictionBatch_T
         with torch.no_grad():
             for batch in pred_loader:
-                batch = batch.to(self.device_config.device)
                 preds = self.model.forward(batch).detach()
 
                 time_from_start = 0

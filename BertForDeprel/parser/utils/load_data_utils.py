@@ -95,17 +95,9 @@ class SequencePredictionBatch_T:
     # tensors representing sequences (shorter sequences are padded).
     max_sentence_length: int
 
-    def to(self, device: torch.device, is_eval=False) -> Self:
-        """Returns a new training batch with the tensors sent to the specified device.
-        For use during model training or prediction (is_eval=False) or evaluation
-        (is_eval=True).
-        """
-        if is_eval:
-            tok_starts_word = self.tok_starts_word.to(device)
-            idx_converter = self.idx_converter.to(device)
-        else:
-            tok_starts_word = self.tok_starts_word
-            idx_converter = self.idx_converter
+    def to(self, device: torch.device) -> Self:
+        tok_starts_word = self.tok_starts_word
+        idx_converter = self.idx_converter
         return SequencePredictionBatch_T(
             idx=self.idx,
             sequence_token_ids=self.sequence_token_ids.to(device),
@@ -147,11 +139,9 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
         self.feats = feats
         self.lemma_scripts = lemma_scripts
 
-    def to(self, device: torch.device, is_eval=False):
-        """Returns a new training batch with the tensors sent to the specified device.
-        For use during model training (is_eval=False) or evaluation (is_eval=True)."""
+    def to(self, device: torch.device):
         return SequenceTrainingBatch_T(
-            pred_data=super().to(device, is_eval),
+            pred_data=super().to(device),
             heads=self.heads.to(device),
             deprels=self.deprels.to(device),
             uposs=self.uposs.to(device),

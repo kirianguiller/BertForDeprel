@@ -33,9 +33,10 @@ def _test_model_train():
     train_sentences = load_conllu_sentences(PATH_TRAIN_CONLLU)
     annotation_schema = compute_annotation_schema(train_sentences)
 
-    model = BertForDeprel.new_model("xlm-roberta-large", annotation_schema)
-
     device_config = get_devices_configuration("-1")
+    model = BertForDeprel.new_model(
+        "xlm-roberta-large", annotation_schema, device_config.device
+    )
 
     train_dataset = UDDataset(
         train_sentences,
@@ -59,14 +60,14 @@ def _test_model_train():
     )
     trainer = Trainer(
         training_config,
-        device_config,
+        device_config.multi_gpu,
     )
 
     scores_generator = trainer.train(model, train_dataset, test_dataset)
     scores = [next(scores_generator), next(scores_generator)]
     scores = [s.rounded(3) for s in scores]
 
-    trainer.model.save_model(  # type: ignore https://github.com/pytorch/pytorch/issues/81462 # noqa: E501
+    model.save_model(  # type: ignore https://github.com/pytorch/pytorch/issues/81462 # noqa: E501
         PATH_MODELS_DIR, training_config
     )
 
@@ -119,11 +120,13 @@ def _test_predict():
     model_config = ModelParams_T.from_model_path(PATH_MODELS_DIR)
     device_config = get_devices_configuration("-1")
 
-    model = BertForDeprel.load_pretrained_for_prediction(PATH_MODELS_DIR)
+    model = BertForDeprel.load_pretrained_for_prediction(
+        PATH_MODELS_DIR, device_config.device
+    )
     predictor = Predictor(
         model,
         PredictionConfig(batch_size=model_config.batch_size, num_workers=1),
-        device_config,
+        device_config.multi_gpu,
     )
 
     sentences = load_conllu_sentences(PATH_TEST_CONLLU)
@@ -155,8 +158,9 @@ def _test_eval():
     model_config = ModelParams_T.from_model_path(PATH_MODELS_DIR)
     device_config = get_devices_configuration("-1")
 
-    model = BertForDeprel.load_pretrained_for_prediction(PATH_MODELS_DIR)
-    model = model.to(device_config.device)
+    model = BertForDeprel.load_pretrained_for_prediction(
+        PATH_MODELS_DIR, device_config.device
+    )
 
     sentences = load_conllu_sentences(PATH_TEST_CONLLU)
     test_dataset = UDDataset(
@@ -173,7 +177,7 @@ def _test_eval():
         num_workers=1,
     )
 
-    results = model.eval_on_dataset(test_loader, device_config.device)
+    results = model.eval_on_dataset(test_loader)
 
     # TODO: these are different on each machine, and therefore this test FAILS anywhere
     # but mine.

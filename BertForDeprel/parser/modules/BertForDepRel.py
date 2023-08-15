@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 from timeit import default_timer as timer
-from typing import Optional
+from typing import Optional, Self
 
 import numpy as np
 import torch
@@ -251,23 +251,16 @@ class EvalResult:
 
 
 class BertForDeprel(Module):
-    # TODO: for fine-tuning, we need to be sure that:
-    # - the annotation schema of new model is the same as pre-trained
-    # - the new model has same architecture as old one
-
-    # TODO: separate constructor for pretrained and new would be nice
-    # TODO: it's weird to have the annotation schema conceptually separated from the
-    # model. Move it from config to its own file instead.
-
-    # goals: specify embedding type and annotation schema explicitly to constructor
-
     @staticmethod
-    def load_pretrained_for_prediction(pretrained_model_path: Path) -> "BertForDeprel":
+    def load_pretrained_for_prediction(
+        pretrained_model_path: Path, device: torch.device
+    ) -> "BertForDeprel":
         """Load a pre-trained model ready to perform predictions."""
         model_params = ModelParams_T.from_model_path(pretrained_model_path)
         model = BertForDeprel(
             model_params.embedding_type,
             model_params.annotation_schema,
+            device,
             pretrained_model_path,
             no_classifier_heads=False,
         )
@@ -276,7 +269,9 @@ class BertForDeprel(Module):
 
     @staticmethod
     def load_pretrained_for_retraining(
-        pretrained_model_path: Path, new_annotation_schema: AnnotationSchema_T
+        pretrained_model_path: Path,
+        new_annotation_schema: AnnotationSchema_T,
+        device: torch.device,
     ) -> "BertForDeprel":
         """Load a pre-trained model, but remove the prediction heads and replace the
         annotation schema."""
@@ -284,6 +279,7 @@ class BertForDeprel(Module):
         model = BertForDeprel(
             model_params.embedding_type,
             new_annotation_schema,
+            device,
             pretrained_model_path,
             no_classifier_heads=True,
         )
@@ -292,7 +288,9 @@ class BertForDeprel(Module):
 
     @staticmethod
     def load_pretrained_for_finetuning(
-        pretrained_model_path: Path, new_annotation_schema: AnnotationSchema_T
+        pretrained_model_path: Path,
+        new_annotation_schema: AnnotationSchema_T,
+        device: torch.device,
     ) -> "BertForDeprel":
         """Load a pre-trained model, incorporating the values from a new annotation
         schema into the existing one."""
@@ -301,6 +299,7 @@ class BertForDeprel(Module):
         model = BertForDeprel(
             model_params.embedding_type,
             model_params.annotation_schema,
+            device,
             pretrained_model_path,
             no_classifier_heads=False,
         )
@@ -309,13 +308,16 @@ class BertForDeprel(Module):
 
     @staticmethod
     def new_model(
-        embedding_type: str, annotation_schema: AnnotationSchema_T
+        embedding_type: str,
+        annotation_schema: AnnotationSchema_T,
+        device: torch.device,
     ) -> "BertForDeprel":
         """Create a new model with the given embedding type and annotation schema.
         The model will be a blank slate that must be trained."""
         model = BertForDeprel(
             embedding_type,
             annotation_schema,
+            device,
             pretrained_model_path=None,
             no_classifier_heads=False,
         )
@@ -326,6 +328,7 @@ class BertForDeprel(Module):
         self,
         embedding_type: str,
         annotation_schema: AnnotationSchema_T,
+        device: torch.device,
         pretrained_model_path: Optional[Path] = None,
         no_classifier_heads: bool = False,
     ):
@@ -333,6 +336,7 @@ class BertForDeprel(Module):
         self.embedding_type = embedding_type
         self.annotation_schema = annotation_schema
         self.pretrained_model_path = pretrained_model_path
+        self.device = device
 
         self.__init_language_model_layer(embedding_type)
         llm_hidden_size = (
@@ -356,6 +360,8 @@ class BertForDeprel(Module):
         print("TOTAL TRAINABLE PARAMETERS : ", self.total_trainable_parameters)
 
         self._set_criterions_and_optimizer()
+
+        self.to(device)
 
     def __init_language_model_layer(self, embedding_type):
         # TODO: user gets to choose the type here, so it's wrong to
@@ -381,6 +387,11 @@ class BertForDeprel(Module):
     def get_total_trainable_parameters(self):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
+    def to(self, device: torch.device) -> Self:
+        new_model = super().to(device)
+        new_model.device = device
+        return new_model
+
     def forward(self, batch: SequencePredictionBatch_T) -> BertForDeprelBatchOutput:
         """
         Inputs:
@@ -390,6 +401,7 @@ class BertForDeprel(Module):
             -mode: if set to "predict", resulting tensors will be detached before
             returning
         """
+        batch = batch.to(self.device)
 
         # Feed the input to BERT model to obtain contextualized representations
         bert_output = self.llm_layer.forward(
@@ -418,7 +430,7 @@ class BertForDeprel(Module):
         )
         return loss_batch
 
-    def train_epoch(self, loader, device):
+    def train_epoch(self, loader):
         time_from_start = 0
         parsing_speed = 0
         start = timer()
@@ -430,7 +442,7 @@ class BertForDeprel(Module):
         )  # so we print only around 8 times per epochs
         batch: SequenceTrainingBatch_T
         for batch_counter, batch in enumerate(loader):
-            batch = batch.to(device)
+            batch = batch.to(self.device)
             self.optimizer.zero_grad()
             preds = self.forward(batch)
             loss_batch = self.__compute_loss(batch, preds)
@@ -453,14 +465,14 @@ class BertForDeprel(Module):
         # My Mac runs out of shared memory without this. See
         # https://github.com/pytorch/pytorch/issues/13246#issuecomment-905703662
         # TODO: do this actually help?
-        if device == "mps":
+        if self.device == "mps":
             torch.mps.empty_cache()
         print(
             f"Finished training epoch in {time_from_start:.2f} seconds ("
             f"{processed_sentence_counter} sentence at {parsing_speed} sents/sec)"
         )
 
-    def eval_on_dataset(self, loader, device) -> EvalResult:
+    def eval_on_dataset(self, loader) -> EvalResult:
         """Evaluate the model's performance on the given gold-annotated data."""
         self.eval()
         with torch.no_grad():
@@ -472,7 +484,7 @@ class BertForDeprel(Module):
 
             batch: SequenceTrainingBatch_T
             for batch_counter, batch in enumerate(loader):
-                batch = batch.to(device, is_eval=True)
+                batch = batch.to(self.device)
 
                 model_output = self.forward(batch).detach()
                 chuliu_heads_pred = self.chuliu_heads_pred(batch, model_output)
@@ -493,7 +505,6 @@ class BertForDeprel(Module):
                     )
 
             results = results_accumulator.get_results()
-            print(results)
 
         return results
 
