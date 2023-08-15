@@ -2,11 +2,12 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 from timeit import default_timer as timer
-from typing import Optional, Self
+from typing import Iterable, Optional, Self
 
 import numpy as np
 import torch
 import torch.mps
+from conllup.conllup import sentenceJson_T
 from torch.nn import CrossEntropyLoss, Module
 from torch.optim import AdamW
 from transformers import (  # type: ignore (TODO: why can't PyLance find these?)
@@ -17,7 +18,6 @@ from transformers.adapters import PfeifferConfig
 
 from ..utils.annotation_schema import AnnotationSchema_T
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root
-from ..utils.load_data_utils import SequencePredictionBatch_T, SequenceTrainingBatch_T
 from ..utils.scores_and_losses_utils import (
     compute_acc_class,
     compute_acc_deprel,
@@ -29,6 +29,11 @@ from ..utils.scores_and_losses_utils import (
     compute_loss_head,
 )
 from ..utils.types import DataclassJSONEncoder, ModelParams_T, TrainingConfig
+from ..utils.ud_dataset import (
+    SequencePredictionBatch_T,
+    SequenceTrainingBatch_T,
+    UDDataset,
+)
 from .BertForDepRelOutput import BertForDeprelBatchOutput
 from .PosAndDepRelParserHead import PosAndDeprelParserHead
 
@@ -392,15 +397,15 @@ class BertForDeprel(Module):
         new_model.device = device
         return new_model
 
+    def encode_dataset(self, train_sentences: Iterable[sentenceJson_T]) -> UDDataset:
+        return UDDataset(
+            iter(train_sentences),
+            self.annotation_schema,
+            self.embedding_type,
+            self.max_position_embeddings,
+        )
+
     def forward(self, batch: SequencePredictionBatch_T) -> BertForDeprelBatchOutput:
-        """
-        Inputs:
-            -seq : Tensor of shape [B, T] containing token ids of sequences
-            -attn_masks : Tensor of shape [B, T] containing attention masks to be used
-            to avoid contribution of PAD tokens
-            -mode: if set to "predict", resulting tensors will be detached before
-            returning
-        """
         batch = batch.to(self.device)
 
         # Feed the input to BERT model to obtain contextualized representations

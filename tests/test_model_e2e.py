@@ -11,7 +11,7 @@ from BertForDeprel.parser.cmds.train import Trainer
 from BertForDeprel.parser.modules.BertForDepRel import BertForDeprel, EvalResult
 from BertForDeprel.parser.utils.annotation_schema import compute_annotation_schema
 from BertForDeprel.parser.utils.gpu_utils import get_devices_configuration
-from BertForDeprel.parser.utils.load_data_utils import UDDataset, load_conllu_sentences
+from BertForDeprel.parser.utils.load_data_utils import load_conllu_sentences
 from BertForDeprel.parser.utils.types import (
     ModelParams_T,
     PredictionConfig,
@@ -38,22 +38,9 @@ def _test_model_train():
         "xlm-roberta-large", annotation_schema, device_config.device
     )
 
-    train_dataset = UDDataset(
-        train_sentences,
-        model.annotation_schema,
-        model.embedding_type,
-        model.max_position_embeddings,
-        "train",
-    )
-
+    train_dataset = model.encode_dataset(train_sentences)
     test_sentences = load_conllu_sentences(PATH_TEST_CONLLU)
-    test_dataset = UDDataset(
-        test_sentences,
-        model.annotation_schema,
-        model.embedding_type,
-        model.max_position_embeddings,
-        "train",
-    )
+    test_dataset = model.encode_dataset(test_sentences)
     training_config = TrainingConfig(
         max_epochs=1,
         patience=0,
@@ -130,13 +117,7 @@ def _test_predict():
     )
 
     sentences = load_conllu_sentences(PATH_TEST_CONLLU)
-    pred_dataset = UDDataset(
-        sentences,
-        model_config.annotation_schema,
-        model_config.embedding_type,
-        model_config.max_position_embeddings,
-        "train",
-    )
+    pred_dataset = model.encode_dataset(sentences)
 
     actual, elapsed_seconds = predictor.predict(pred_dataset)
 
@@ -155,7 +136,6 @@ def _test_predict():
 def _test_eval():
     """There is no eval API, per se, but this demonstrates how to do it. TODO: it's
     pretty convoluted."""
-    model_config = ModelParams_T.from_model_path(PATH_MODELS_DIR)
     device_config = get_devices_configuration("-1")
 
     model = BertForDeprel.load_pretrained_for_prediction(
@@ -163,16 +143,10 @@ def _test_eval():
     )
 
     sentences = load_conllu_sentences(PATH_TEST_CONLLU)
-    test_dataset = UDDataset(
-        sentences,
-        model_config.annotation_schema,
-        model_config.embedding_type,
-        model_config.max_position_embeddings,
-        "train",
-    )
+    test_dataset = model.encode_dataset(sentences)
     test_loader = DataLoader(
         test_dataset,
-        collate_fn=test_dataset.collate_fn_train,
+        collate_fn=test_dataset.collate_train,
         batch_size=16,
         num_workers=1,
     )

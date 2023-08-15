@@ -3,6 +3,7 @@ from pathlib import Path
 from conllup.conllup import readConlluFile
 
 from BertForDeprel.parser.utils.annotation_schema import compute_annotation_schema
+from BertForDeprel.parser.utils.load_data_utils import CONLLU_BLANK
 
 PATH_TEST_DATA_FOLDER = Path(__file__).parent / "data"
 PATH_TEST_MODELS_FOLDER = Path(__file__).parent / "models"
@@ -36,7 +37,7 @@ def test_compute_annotation_schema():
         "Number=Sing",
         "PronType=Art",
         "PronType=Int,Rel",
-        "_",
+        CONLLU_BLANK,
         "_none",
     ]
     assert annotation_schema.uposs == [

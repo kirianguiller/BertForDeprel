@@ -3,12 +3,9 @@ from pathlib import Path
 import torch
 
 from BertForDeprel.parser.utils.annotation_schema import compute_annotation_schema
-from BertForDeprel.parser.utils.load_data_utils import (
-    PartialPredictionConfig,
-    UDDataset,
-    load_conllu_sentences,
-)
+from BertForDeprel.parser.utils.load_data_utils import load_conllu_sentences
 from BertForDeprel.parser.utils.types import ModelParams_T
+from BertForDeprel.parser.utils.ud_dataset import PartialPredictionConfig, UDDataset
 
 PATH_TEST_DATA_FOLDER = Path(__file__).parent / "data"
 PATH_TEST_MODELS_FOLDER = Path(__file__).parent / "models"
@@ -26,21 +23,13 @@ model_params_test = ModelParams_T(
 def get_test_instance():
     sentences = load_conllu_sentences(PATH_TEST_CONLLU)
     annotation_schema = compute_annotation_schema(sentences)
+
     return UDDataset(
         sentences,
         annotation_schema,
         model_params_test.embedding_type,
         model_params_test.max_position_embeddings,
-        "train",
     )
-
-
-def test_health():
-    assert True
-
-
-def test_test_data_exists():
-    assert PATH_TEST_CONLLU.is_file()
 
 
 def test_create_instance_dataset():
@@ -100,7 +89,7 @@ def test_train_output():
 
 def test_collate_train_fn():
     dataset = get_test_instance()
-    batch = dataset.collate_fn_train([dataset[0], dataset[1]])
+    batch = dataset.collate_train([dataset[0], dataset[1]])
     assert torch.equal(
         batch.deprels,
         torch.tensor(

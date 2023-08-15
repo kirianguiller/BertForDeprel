@@ -13,16 +13,15 @@ from ..cmds.cmd import CMD, SubparsersType
 from ..modules.BertForDepRel import BertForDeprel
 from ..modules.BertForDepRelOutput import BertForDeprelBatchOutput
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
-from ..utils.load_data_utils import (
+from ..utils.load_data_utils import load_conllu_sentences, resolve_conllu_paths
+from ..utils.scores_and_losses_utils import _deprel_pred_for_heads
+from ..utils.types import ModelParams_T, PredictionConfig
+from ..utils.ud_dataset import (
     CopyOption,
     PartialPredictionConfig,
     SequencePredictionBatch_T,
     UDDataset,
-    load_conllu_sentences,
-    resolve_conllu_paths,
 )
-from ..utils.scores_and_losses_utils import _deprel_pred_for_heads
-from ..utils.types import ModelParams_T, PredictionConfig
 
 
 class PredictCmd(CMD):
@@ -120,13 +119,7 @@ class PredictCmd(CMD):
             print(f"Loading dataset from {in_path}...")
 
             sentences = load_conllu_sentences(in_path)
-            pred_dataset = UDDataset(
-                sentences,
-                model.annotation_schema,
-                model.embedding_type,
-                model.max_position_embeddings,
-                "train",
-            )
+            pred_dataset = model.encode_dataset(sentences)
 
             predicted_sentences, elapsed_seconds = predictor.predict(
                 pred_dataset, partial_pred_config
@@ -219,7 +212,7 @@ class Predictor:
     ) -> Tuple[List[sentenceJson_T], float]:
         pred_loader = DataLoader(
             pred_dataset,
-            collate_fn=pred_dataset.collate_fn_predict,
+            collate_fn=pred_dataset.collate_predict,
             shuffle=False,
             batch_size=self.config.batch_size,
             num_workers=self.config.num_workers,

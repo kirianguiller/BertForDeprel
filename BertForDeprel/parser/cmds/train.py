@@ -10,8 +10,9 @@ from torch.utils.data import DataLoader, Dataset, random_split
 from ..cmds.cmd import CMD, SubparsersType
 from ..modules.BertForDepRel import BertForDeprel, EvalResult, TrainingDiagnostics
 from ..utils.annotation_schema import compute_annotation_schema
-from ..utils.load_data_utils import UDDataset, load_conllu_sentences
+from ..utils.load_data_utils import load_conllu_sentences
 from ..utils.types import DataclassJSONEncoder, ModelParams_T, TrainingConfig
+from ..utils.ud_dataset import UDDataset
 
 T = TypeVar("T")
 
@@ -142,21 +143,8 @@ class TrainCmd(CMD):
                 args.device_config.device,
             )
 
-        train_dataset = UDDataset(
-            iter(train_sentences),
-            model.annotation_schema,
-            model.embedding_type,
-            model.max_position_embeddings,
-            "train",
-        )
-
-        test_dataset = UDDataset(
-            iter(test_sentences),
-            model.annotation_schema,
-            model.embedding_type,
-            model.max_position_embeddings,
-            "train",
-        )
+        train_dataset = model.encode_dataset(iter(train_sentences))
+        test_dataset = model.encode_dataset(iter(test_sentences))
 
         training_config = TrainingConfig(
             max_epochs=model_params.max_epoch,
@@ -301,14 +289,14 @@ class Trainer:
         """
         train_loader = DataLoader(
             train_dataset,
-            collate_fn=train_dataset.collate_fn_train,
+            collate_fn=train_dataset.collate_train,
             batch_size=self.config.batch_size,
             num_workers=self.config.num_workers,
             shuffle=True,
         )
         test_loader = DataLoader(
             test_dataset,
-            collate_fn=train_dataset.collate_fn_train,
+            collate_fn=train_dataset.collate_train,
             batch_size=self.config.batch_size,
             num_workers=self.config.num_workers,
             shuffle=True,
