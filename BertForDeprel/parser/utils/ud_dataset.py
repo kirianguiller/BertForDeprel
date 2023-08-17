@@ -1,22 +1,16 @@
+import os
 from dataclasses import dataclass
+from typing import Iterable, List, Literal, Self, Tuple, TypeVar
 
 import torch
-
-from .load_data_utils import CONLLU_BLANK
-
-from .annotation_schema import DUMMY_ID, AnnotationSchema_T
-from .lemma_script_utils import apply_lemma_rule
-
-
 from conllup.conllup import _featuresConllToJson, sentenceJson_T
 from torch import Tensor, tensor
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-
-import os
-from typing import Iterable, List, Literal, Self, Tuple, TypeVar
-
+from .annotation_schema import DUMMY_ID, AnnotationSchema_T
+from .lemma_script_utils import apply_lemma_rule
+from .load_data_utils import CONLLU_BLANK
 
 CopyOption = Literal["NONE", "EXISTING", "ALL"]
 

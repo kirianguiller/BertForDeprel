@@ -21,7 +21,12 @@ if __name__ == "__main__":
         )
         subparser.add_argument("--batch_size", type=int, help="batch_size to use")
         subparser.add_argument(
-            "--num_workers", default=8, type=int, help="Number of worker"
+            "--num_workers",
+            default=8,
+            type=int,
+            help="How many subprocesses to use "
+            "for data loading. 0 means that the data will be loaded in the main "
+            "process. (default: 0)",
         )
         subparser.add_argument(
             "--seed",

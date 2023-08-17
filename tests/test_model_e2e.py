@@ -109,7 +109,7 @@ def _test_predict():
     model_config = ModelParams_T.from_model_path(PATH_MODELS_DIR)
     device_config = get_devices_configuration("-1")
 
-    model = BertForDeprel.load_pretrained_for_prediction(
+    model = BertForDeprel.load_single_pretrained_for_prediction(
         PATH_MODELS_DIR, device_config.device
     )
     predictor = Predictor(
@@ -148,7 +148,7 @@ def _test_eval():
     pretty convoluted."""
     device_config = get_devices_configuration("-1")
 
-    model = BertForDeprel.load_pretrained_for_prediction(
+    model = BertForDeprel.load_single_pretrained_for_prediction(
         PATH_MODELS_DIR, device_config.device
     )
 
@@ -191,6 +191,6 @@ def _test_eval():
 @pytest.mark.slow
 @pytest.mark.fragile
 def test_train_and_predict():
-    # _test_model_train()
+    _test_model_train()
     _test_predict()
     _test_eval()

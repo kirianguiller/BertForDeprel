@@ -1,4 +1,5 @@
 import json
+import sys
 from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
@@ -81,7 +82,10 @@ class TrainCmd(CMD):
     def run(self, args):
         super().run(args)
 
-        model_params = ModelParams_T.from_model_path(args.new_model_path)
+        try:
+            model_params = ModelParams_T.from_model_path(args.new_model_path)
+        except FileNotFoundError:
+            model_params = ModelParams_T()
 
         if not args.new_model_path.is_dir():
             args.new_model_path.mkdir(parents=True)
@@ -97,6 +101,9 @@ class TrainCmd(CMD):
 
         if args.batch_size:
             model_params.batch_size = args.batch_size
+
+        if args.num_workers:
+            model_params.num_workers = args.num_workers
 
         train_sentences = load_conllu_sentences(args.ftrain)
 
@@ -143,6 +150,8 @@ class TrainCmd(CMD):
                 args.device_config.device,
             )
 
+        model.add_diagnostic("training_command", sys.argv)
+
         train_dataset = model.encode_dataset(iter(train_sentences))
         test_dataset = model.encode_dataset(iter(test_sentences))
 
@@ -150,7 +159,7 @@ class TrainCmd(CMD):
             max_epochs=model_params.max_epoch,
             patience=model_params.patience,
             batch_size=model_params.batch_size,
-            num_workers=args.num_workers,
+            num_workers=model_params.num_workers,
         )
         trainer = Trainer(
             training_config,

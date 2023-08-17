@@ -15,7 +15,12 @@ from ..modules.BertForDepRelOutput import BertForDeprelBatchOutput
 from ..utils.chuliu_edmonds_utils import chuliu_edmonds_one_root_with_constraints
 from ..utils.load_data_utils import load_conllu_sentences, resolve_conllu_paths
 from ..utils.scores_and_losses_utils import _deprel_pred_for_heads
-from ..utils.types import ModelParams_T, PredictionConfig
+from ..utils.types import (
+    CONFIG_FILE_NAME,
+    MODEL_FILE_NAME,
+    ModelParams_T,
+    PredictionConfig,
+)
 from ..utils.ud_dataset import (
     CopyOption,
     PartialPredictionConfig,
@@ -100,16 +105,19 @@ class PredictCmd(CMD):
         if args.batch_size:
             model_params.batch_size = args.batch_size
 
+        if args.num_workers:
+            model_params.num_workers = args.num_workers
+
         in_to_out_paths, partial_pred_config = self.__validate_args(args)
 
-        model = BertForDeprel.load_pretrained_for_prediction(
+        model = BertForDeprel.load_single_pretrained_for_prediction(
             args.model_path, args.device_config.device
         )
 
         predictor = Predictor(
             model,
             PredictionConfig(
-                batch_size=model_params.batch_size, num_workers=args.num_workers
+                batch_size=model_params.batch_size, num_workers=model_params.num_workers
             ),
             args.device_config.multi_gpu,
         )
@@ -135,10 +143,10 @@ class PredictCmd(CMD):
             return predicted_sentences
 
     def __validate_args(self, args: Namespace):
-        if not (args.model_path / "config.json").is_file():
-            raise Exception(f"no config.json found in {args.model_path}")
-        if not (args.model_path / "model.pt").is_file():
-            raise Exception(f"no model.pt found in {args.model_path}")
+        if not (args.model_path / CONFIG_FILE_NAME).is_file():
+            raise Exception(f"no {CONFIG_FILE_NAME} found in {args.model_path}")
+        if not (args.model_path / MODEL_FILE_NAME).is_file():
+            raise Exception(f"no {MODEL_FILE_NAME} found in {args.model_path}")
 
         if args.num_workers < 0:
             raise Exception("num_workers must be greater than or equal to 0")
@@ -190,8 +198,10 @@ class Predictor:
         config: PredictionConfig,
         multi_gpu: bool,
     ):
-        self.config = config
+        self.bert_for_deprel_model = model
         self.model = model
+
+        self.config = config
         self.multi_gpu = multi_gpu
         self.device = model.device
 
@@ -204,6 +214,13 @@ class Predictor:
             "batch_size": config.batch_size,
             "num_workers": config.num_workers,
         }
+
+    def activate(self, model_name: str):
+        """Activate an already-loaded pretrained model.
+        model_name: which loaded model to activate.
+        """
+        self.bert_for_deprel_model.activate(model_name)
+        # TODO: do we need to re-initialize DataParallel if we are using it?
 
     def predict(
         self,

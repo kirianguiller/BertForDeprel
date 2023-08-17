@@ -15,7 +15,6 @@ model_params_test = ModelParams_T(
     max_epoch=5,
     patience=3,
     batch_size=4,
-    max_position_embeddings=512,
     embedding_type="bert-base-uncased",
 )
 
@@ -28,7 +27,7 @@ def get_test_instance():
         sentences,
         annotation_schema,
         model_params_test.embedding_type,
-        model_params_test.max_position_embeddings,
+        100,
     )
 
 

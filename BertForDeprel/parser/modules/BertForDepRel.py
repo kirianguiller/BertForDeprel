@@ -1,8 +1,9 @@
 import json
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from timeit import default_timer as timer
-from typing import Iterable, Optional, Self
+from typing import Any, Dict, Iterable, Optional, Self
 
 import numpy as np
 import torch
@@ -28,7 +29,13 @@ from ..utils.scores_and_losses_utils import (
     compute_loss_deprel,
     compute_loss_head,
 )
-from ..utils.types import DataclassJSONEncoder, ModelParams_T, TrainingConfig
+from ..utils.types import (
+    CONFIG_FILE_NAME,
+    MODEL_FILE_NAME,
+    DataclassJSONEncoder,
+    ModelParams_T,
+    TrainingConfig,
+)
 from ..utils.ud_dataset import (
     SequencePredictionBatch_T,
     SequenceTrainingBatch_T,
@@ -255,9 +262,12 @@ class EvalResult:
         )
 
 
+DEFAULT_MODEL_NAME = "default"
+
+
 class BertForDeprel(Module):
     @staticmethod
-    def load_pretrained_for_prediction(
+    def load_single_pretrained_for_prediction(
         pretrained_model_path: Path, device: torch.device
     ) -> "BertForDeprel":
         """Load a pre-trained model ready to perform predictions."""
@@ -266,7 +276,44 @@ class BertForDeprel(Module):
             model_params.embedding_type,
             model_params.annotation_schema,
             device,
-            pretrained_model_path,
+            {DEFAULT_MODEL_NAME: pretrained_model_path},
+            DEFAULT_MODEL_NAME,
+            no_classifier_heads=False,
+        )
+        model.eval()
+        return model
+
+    @staticmethod
+    def load_pretrained_for_prediction(
+        pretrained_model_paths: Dict[str, Path], active_model: str, device: torch.device
+    ) -> "BertForDeprel":
+        """Load a set of pre-trained models ready to perform predictions.
+        pretrained_model_paths: a mapping from model names to model paths
+        active_model: the name of the model to use for predictions
+        device: the device to load the model on"""
+        if active_model not in pretrained_model_paths:
+            raise ValueError(
+                f"Model {active_model} not found in {pretrained_model_paths.keys()}"
+            )
+
+        model_params = ModelParams_T.from_model_path(
+            pretrained_model_paths[active_model]
+        )
+        for other_name, other_path in pretrained_model_paths.items():
+            other_params = ModelParams_T.from_model_path(other_path)
+            if other_params.embedding_type != model_params.embedding_type:
+                raise ValueError(
+                    "All loaded models must have the same embedding types."
+                    "{active_model} has {model_params.embedding_type}, but "
+                    f"{other_name} has {other_params.embedding_type}."
+                )
+
+        model = BertForDeprel(
+            model_params.embedding_type,
+            model_params.annotation_schema,
+            device,
+            pretrained_model_paths,
+            active_model,
             no_classifier_heads=False,
         )
         model.eval()
@@ -285,7 +332,8 @@ class BertForDeprel(Module):
             model_params.embedding_type,
             new_annotation_schema,
             device,
-            pretrained_model_path,
+            {DEFAULT_MODEL_NAME: pretrained_model_path},
+            DEFAULT_MODEL_NAME,
             no_classifier_heads=True,
         )
         model.train()
@@ -305,7 +353,8 @@ class BertForDeprel(Module):
             model_params.embedding_type,
             model_params.annotation_schema,
             device,
-            pretrained_model_path,
+            {DEFAULT_MODEL_NAME: pretrained_model_path},
+            DEFAULT_MODEL_NAME,
             no_classifier_heads=False,
         )
         model.train()
@@ -323,7 +372,8 @@ class BertForDeprel(Module):
             embedding_type,
             annotation_schema,
             device,
-            pretrained_model_path=None,
+            pretrained_model_paths={},
+            active_model=None,
             no_classifier_heads=False,
         )
         model.train()
@@ -334,14 +384,18 @@ class BertForDeprel(Module):
         embedding_type: str,
         annotation_schema: AnnotationSchema_T,
         device: torch.device,
-        pretrained_model_path: Optional[Path] = None,
-        no_classifier_heads: bool = False,
+        pretrained_model_paths: Dict[str, Path],
+        active_model: Optional[str],
+        no_classifier_heads: bool,
     ):
+        """Clients should not call this directly. Instead, use one of the static
+        constructors to create a new model or load a pre-trained one."""
         super().__init__()
         self.embedding_type = embedding_type
         self.annotation_schema = annotation_schema
-        self.pretrained_model_path = pretrained_model_path
+        self.pretrained_model_path = pretrained_model_paths
         self.device = device
+        self.user_diagnostic_info = {}
 
         self.__init_language_model_layer(embedding_type)
         llm_hidden_size = (
@@ -357,9 +411,15 @@ class BertForDeprel(Module):
             n_uposs, n_deprels, n_feats, n_lemma_scripts, n_xposs, llm_hidden_size
         )
 
-        if pretrained_model_path:
-            print("Loading weights of the pretrained model")
-            self.__load_pretrained_adapter(pretrained_model_path, no_classifier_heads)
+        if pretrained_model_paths:
+            print("Loading weights of the pretrained model(s)")
+            self.__load_pretrained_checkpoints(
+                pretrained_model_paths,
+            )
+            self._active_model = active_model
+            self.__apply_pretrained_checkpoint(
+                self._checkpoints[self._active_model], no_classifier_heads
+            )
 
         self.total_trainable_parameters = self.get_total_trainable_parameters()
         print("TOTAL TRAINABLE PARAMETERS : ", self.total_trainable_parameters)
@@ -392,13 +452,19 @@ class BertForDeprel(Module):
     def get_total_trainable_parameters(self):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
+    def add_diagnostic(self, key: str, value: Any):
+        """Add any (JSON-writeable) diagnostic key/value that will help with
+        understanding the model. This is written into the model config file when the
+        model is saved."""
+        self.user_diagnostic_info[key] = value
+
     def to(self, device: torch.device) -> Self:
         new_model = super().to(device)
         new_model.device = device
         return new_model
 
     def encode_dataset(self, sentences: Iterable[sentenceJson_T]) -> UDDataset:
-        """Convert train_sentences into a dataset encoded for use with the model
+        """Convert sentences into a dataset encoded for use with the model
         (training or prediction). Note that the returned dataset may not contain all
         of the input sentences, if some of them are too long or otherwise invalid.
         The client will need to check the IDs of the returned sentences to see which
@@ -470,7 +536,8 @@ class BertForDeprel(Module):
                 print(
                     f"Training: {100 * (batch_counter + 1) / len(loader):.2f}% "
                     f"complete. {time_from_start:.2f} seconds in epoch "
-                    f"({parsing_speed:.2f} sents/sec)"
+                    f"({parsing_speed:.2f} sents/sec)",
+                    flush=True,
                 )
         # My Mac runs out of shared memory without this. See
         # https://github.com/pytorch/pytorch/issues/13246#issuecomment-905703662
@@ -511,7 +578,8 @@ class BertForDeprel(Module):
                     print(
                         f"Evaluating: {100 * (batch_counter + 1) / len(loader):.2f}% "
                         f"complete. {time_from_start:.2f} seconds in epoch ("
-                        f"{parsing_speed:.2f} sents/sec)"
+                        f"{parsing_speed:.2f} sents/sec)",
+                        flush=True,
                     )
 
             results = results_accumulator.get_results()
@@ -569,8 +637,8 @@ class BertForDeprel(Module):
             if k in trainable_weight_names:
                 state["tagger"][k] = v
 
-        ckpt_fpath: Path = model_dir / "model.pt"
-        config_path: Path = model_dir / "config.json"
+        ckpt_fpath: Path = model_dir / MODEL_FILE_NAME
+        config_path: Path = model_dir / CONFIG_FILE_NAME
         torch.save(state, ckpt_fpath)
         print(
             "Saving adapter weights to ... {} ({:.2f} MB)".format(
@@ -585,6 +653,8 @@ class BertForDeprel(Module):
                 "patience": training_config.patience,
                 "batch_size": training_config.batch_size,
                 "num_workers": training_config.num_workers,
+                "saved_datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "diagnostics": self.user_diagnostic_info,
             }
             outfile.write(
                 json.dumps(
@@ -595,10 +665,28 @@ class BertForDeprel(Module):
                 )
             )
 
-    def __load_pretrained_adapter(self, model_path: Path, no_classifier_heads=False):
-        ckpt_fpath = model_path / "model.pt"
-        checkpoint_state = torch.load(ckpt_fpath)
+    def activate(self, model_name: str):
+        """Activate an already-loaded pretrained model.
+        model_name: which loaded model to activate.
+        """
+        if model_name not in self._checkpoints:
+            raise ValueError(
+                f"Specified model name {model_name} not found among loaded models: "
+                f"{self._checkpoints.keys()}"
+            )
+        self.__apply_pretrained_checkpoint(self._checkpoints[self._active_model])
+        self._active_model = model_name
 
+    def __load_pretrained_checkpoints(self, model_paths: Dict[str, Path]):
+        self._checkpoints = {}
+        for model_name, model_path in model_paths.items():
+            checkpoint_path = model_path / MODEL_FILE_NAME
+            checkpoint = torch.load(checkpoint_path)
+            self._checkpoints[model_name] = checkpoint
+
+    def __apply_pretrained_checkpoint(
+        self, checkpoint_state, no_classifier_heads=False
+    ):
         tagger_pretrained_dict = self.tagger_layer.state_dict()
         for layer_name, weights in checkpoint_state["tagger"].items():
             if no_classifier_heads and layer_name in [

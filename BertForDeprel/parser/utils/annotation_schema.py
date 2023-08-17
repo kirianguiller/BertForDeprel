@@ -37,6 +37,9 @@ def _update_mapping(
 
 @dataclass
 class AnnotationSchema_T:
+    """Specifies how BertForDeprel model will encode the input data, mapping
+    labels to integers."""
+
     deprels: List[str] = field(default_factory=list)
     uposs: List[str] = field(default_factory=list)
     xposs: List[str] = field(default_factory=list)
