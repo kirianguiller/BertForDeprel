@@ -9,7 +9,7 @@ from BertForDeprel.parser.utils.ud_dataset import PartialPredictionConfig, UDDat
 
 PATH_TEST_DATA_FOLDER = Path(__file__).parent / "data"
 PATH_TEST_MODELS_FOLDER = Path(__file__).parent / "models"
-PATH_TEST_CONLLU = PATH_TEST_DATA_FOLDER / "english.conllu"
+PATH_TEST_CONLLU = PATH_TEST_DATA_FOLDER / "english.tiny.conllu"
 
 model_params_test = ModelParams_T(
     max_epoch=5,

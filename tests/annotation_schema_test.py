@@ -7,7 +7,7 @@ from BertForDeprel.parser.utils.load_data_utils import CONLLU_BLANK
 
 PATH_TEST_DATA_FOLDER = Path(__file__).parent / "data"
 PATH_TEST_MODELS_FOLDER = Path(__file__).parent / "models"
-PATH_TEST_CONLLU = PATH_TEST_DATA_FOLDER / "english.conllu"
+PATH_TEST_CONLLU = PATH_TEST_DATA_FOLDER / "english.tiny.conllu"
 
 
 def test_health():
