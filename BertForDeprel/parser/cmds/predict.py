@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from timeit import default_timer as timer
-from typing import List, Tuple
+from typing import Iterable, List, Tuple
 
 import numpy as np
 import torch
@@ -127,10 +127,9 @@ class PredictCmd(CMD):
             print(f"Loading dataset from {in_path}...")
 
             sentences = load_conllu_sentences(in_path)
-            pred_dataset = model.encode_dataset(sentences)
 
             predicted_sentences, elapsed_seconds = predictor.predict(
-                pred_dataset, partial_pred_config
+                sentences, partial_pred_config
             )
 
             writeConlluFile(out_path, predicted_sentences, overwrite=args.overwrite)
@@ -224,9 +223,10 @@ class Predictor:
 
     def predict(
         self,
-        pred_dataset: UDDataset,
+        input_sents: Iterable[sentenceJson_T],
         partial_pred_config=PartialPredictionConfig(),
     ) -> Tuple[List[sentenceJson_T], float]:
+        pred_dataset = self.bert_for_deprel_model.encode_dataset(input_sents)
         pred_loader = DataLoader(
             pred_dataset,
             collate_fn=pred_dataset.collate_predict,
