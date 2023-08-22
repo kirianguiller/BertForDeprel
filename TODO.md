@@ -1,12 +1,11 @@
 # TODO's
 
-Next: add encoder() or similar method to BertForDepRel; this object will generate UDDatasets from model settings, instead of client passing model fields into UDDataset constructor manually.
-Make sure we can pass in an arbitrary list of sentences and get back predictions or None
-on the whole array; don't want a special mapping step.
 Then: Support multi-lingual prediction like TranKit
 Then: build Flask server - prediction is currently hardcoded to read from and write to conllu files - need to load model in an init method and use it for subsequent requests
 
 -   Remove 26.1, etc. from Conllu data. We can't predict these right now.
+
+- Enable memory pinning in UDDataset: https://pytorch.org/docs/stable/data.html#memory-pinning
 
 Update readme with new build info: poetry, poe commands, pytest, verification, pre-commit, etc.
 

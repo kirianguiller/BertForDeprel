@@ -5,6 +5,7 @@ from typing import List
 
 import pytest
 import torch
+import torch.mps
 from conllup.conllup import emptyNodeJson, emptySentenceJson, sentenceJson_T
 from torch.utils.data import DataLoader
 
@@ -71,7 +72,7 @@ def _test_model_train_single(path_train, path_test, path_out, expected_eval):
     scores = [next(scores_generator), next(scores_generator)]
     scores = [s.rounded(3) for s in scores]
 
-    model.save_model(  # type: ignore https://github.com/pytorch/pytorch/issues/81462 # noqa: E501
+    model.save(  # type: ignore https://github.com/pytorch/pytorch/issues/81462 # noqa: E501
         path_out, training_config
     )
 
@@ -192,12 +193,13 @@ def _test_predict():
     model = BertForDeprel.load_pretrained_for_prediction(
         {"naija": NAIJA_MODEL_DIR, "english": ENGLISH_MODEL_DIR},
         "naija",
+        # torch.device("cpu"),
         device_config.device,
     )
     predictor = Predictor(
         model,
         PredictionConfig(batch_size=model_config.batch_size, num_workers=1),
-        device_config.multi_gpu,
+        False,
     )
 
     naija_sentences = load_conllu_sentences(PATH_TEST_NAIJA)
@@ -213,16 +215,11 @@ def _test_predict():
         predictor, naija_sentences, PATH_EXPECTED_PREDICTIONS_NAIJA, 10
     )
 
-    # model.activate("english")
-    # model.activate("naija")
-    # assert False
+    english_sentences = load_conllu_sentences(PATH_TEST_ENGLISH)
+    model.activate("english")
     _test_predict_single(
-        predictor, naija_sentences, PATH_EXPECTED_PREDICTIONS_NAIJA, 10
+        predictor, english_sentences, PATH_EXPECTED_PREDICTIONS_ENGLISH, 10
     )
-    # english_sentences = load_conllu_sentences(PATH_TEST_ENGLISH)
-    # _test_predict_single(
-    #     predictor, english_sentences, PATH_EXPECTED_PREDICTIONS_ENGLISH, 10
-    # )
 
 
 def _test_eval():
@@ -273,6 +270,8 @@ def _test_eval():
 @pytest.mark.slow
 @pytest.mark.fragile
 def test_train_and_predict():
-    # _test_model_train()
+    # not needed, but great for confidence when debugging!
+    # torch.use_deterministic_algorithms(True)
+    _test_model_train()
     _test_predict()
-    # _test_eval()
+    _test_eval()

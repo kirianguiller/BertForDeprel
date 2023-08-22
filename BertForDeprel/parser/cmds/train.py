@@ -233,7 +233,7 @@ class Trainer:
                     print("best epoch LAS so far")
 
                 print("Saving model")
-                model.save_model(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+                model.save(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
                     output_dir, self.config
                 )
                 saved = True

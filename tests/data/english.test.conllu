@@ -1,0 +1,154 @@
+# sent_id = 0051.test
+# text = can you tell me the flights on october fifteenth 1991 from boston to oakland
+1	can	can	AUX	_	_	0	root	_	_
+2	you	you	PRON	_	Case=Nom|Number=Sing|Person=2|PronType=Prs	1	subj	_	_
+3	tell	tell	VERB	_	VerbForm=Inf	1	comp:aux	_	_
+4	me	I	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	3	comp:obl	_	_
+5	the	the	DET	_	PronType=Art	6	det	_	_
+6	flights	flight	NOUN	_	Number=Plur	3	comp:obj	_	_
+7	on	on	ADP	_	_	6	udep@tmod	_	_
+8	october	October	PROPN	_	Number=Sing	7	comp:obj	_	_
+9	fifteenth	fifteen	ADJ	_	Degree=Pos	8	mod	_	_
+10	1991	1991	NUM	_	NumType=Card	8	mod	_	_
+11	from	from	ADP	_	_	6	udep	_	_
+12	boston	Boston	PROPN	_	Number=Sing	11	comp:obj	_	_
+13	to	to	ADP	_	_	6	udep	_	_
+14	oakland	Oakland	PROPN	_	Number=Sing	13	comp:obj	_	_
+
+# sent_id = 0052.test
+# text = show me all united flights from denver to san francisco for september first 1991
+1	show	show	VERB	_	VerbForm=Inf	0	root	_	_
+2	me	I	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	1	comp:obl	_	_
+3	all	all	DET	_	PronType=Art	5	det	_	_
+4	united	United	PROPN	_	Number=Sing	5	compound	_	_
+5	flights	flight	NOUN	_	Number=Plur	1	comp:obj	_	_
+6	from	from	ADP	_	_	5	udep	_	_
+7	denver	Denver	PROPN	_	Number=Sing	6	comp:obj	_	_
+8	to	to	ADP	_	_	5	udep	_	_
+9	san	San	PROPN	_	Number=Sing	8	comp:obj	_	_
+10	francisco	Francisco	PROPN	_	Number=Sing	9	flat	_	_
+11	for	for	ADP	_	_	5	udep@tmod	_	_
+12	september	September	NOUN	_	Number=Sing	11	comp:obj	_	_
+13	first	one	ADJ	_	Degree=Pos|NumType=Ord	12	mod	_	_
+14	1991	1991	NUM	_	NumType=Card	12	mod	_	_
+
+# sent_id = 0053.test
+# text = information on american airline flights from washington to philadelphia early morning times of flight
+1	information	information	NOUN	_	Number=Sing	0	root	_	_
+2	on	on	ADP	_	_	1	udep	_	_
+3	american	American	PROPN	_	Number=Sing	5	compound	_	_
+4	airline	Airline	PROPN	_	Number=Sing	3	flat	_	_
+5	flights	flight	NOUN	_	Number=Plur	2	comp:obj	_	_
+6	from	from	ADP	_	_	5	udep	_	_
+7	washington	Washington	PROPN	_	Number=Sing	6	comp:obj	_	_
+8	to	to	ADP	_	_	5	udep	_	_
+9	philadelphia	Philadelphia	PROPN	_	Number=Sing	8	comp:obj	_	_
+10	early	early	ADJ	_	Degree=Pos	11	mod	_	_
+11	morning	morning	NOUN	_	Number=Sing	12	compound	_	_
+12	times	time	NOUN	_	Number=Plur	5	mod@tmod	_	_
+13	of	of	ADP	_	_	12	udep	_	_
+14	flight	flight	NOUN	_	Number=Sing	13	comp:obj	_	_
+
+# sent_id = 0054.test
+# text = please give me the flight times i would like to fly from boston to baltimore in the morning before 8
+1	please	please	INTJ	_	_	2	discourse	_	_
+2	give	give	VERB	_	VerbForm=Inf	0	root	_	_
+3	me	I	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	2	comp:obl	_	_
+4	the	the	DET	_	PronType=Art	6	det	_	_
+5	flight	flight	NOUN	_	Number=Sing	6	compound	_	_
+6	times	time	NOUN	_	Number=Plur	2	comp:obj	_	_
+7	i	I	PRON	_	Case=Nom|Number=Sing|Person=1|PronType=Prs	8	subj	_	_
+8	would	will	AUX	_	_	2	parataxis	_	_
+9	like	like	VERB	_	VerbForm=Inf	8	comp:aux	_	_
+10	to	to	PART	_	_	9	comp:obl	_	_
+11	fly	fly	VERB	_	VerbForm=Inf	10	comp:obj	_	Subject=SubjRaising
+12	from	from	ADP	_	_	11	udep	_	_
+13	boston	Boston	PROPN	_	Number=Sing	12	comp:obj	_	_
+14	to	to	ADP	_	_	11	udep	_	_
+15	baltimore	Baltimore	PROPN	_	Number=Sing	14	comp:obj	_	_
+16	in	in	ADP	_	_	11	udep@tmod	_	_
+17	the	the	DET	_	PronType=Art	18	det	_	_
+18	morning	morning	NOUN	_	Number=Sing	16	comp:obj	_	_
+19	before	before	ADP	_	_	18	udep@tmod	_	_
+20	8	8	NUM	_	NumType=Card	19	comp:obj	_	_
+
+# sent_id = 0055.test
+# text = please list the flight times for boston to pittsburgh
+1	please	please	INTJ	_	_	2	discourse	_	_
+2	list	list	VERB	_	VerbForm=Inf	0	root	_	_
+3	the	the	DET	_	PronType=Art	5	det	_	_
+4	flight	flight	NOUN	_	Number=Sing	5	compound	_	_
+5	times	time	NOUN	_	Number=Plur	2	comp:obj	_	_
+6	for	for	ADP	_	_	5	udep	_	_
+7	boston	Boston	PROPN	_	Number=Sing	6	comp:obj	_	_
+8	to	to	ADP	_	_	5	udep	_	_
+9	pittsburgh	Pittsburgh	PROPN	_	Number=Sing	8	comp:obj	_	_
+
+# sent_id = 0056.test
+# text = show me all flights and fares from dallas to san francisco
+1	show	show	VERB	_	VerbForm=Inf	0	root	_	_
+2	me	I	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	1	comp:obl	_	_
+3	all	all	DET	_	PronType=Art	4	det	_	_
+4	flights	flight	NOUN	_	Number=Plur	1	comp:obj	_	_
+5	and	and	CCONJ	_	_	6	cc	_	_
+6	fares	fare	NOUN	_	Number=Plur	4	conj	_	_
+7	from	from	ADP	_	Shared=No	6	udep	_	_
+8	dallas	Dallas	PROPN	_	Number=Sing	7	comp:obj	_	_
+9	to	to	ADP	_	Shared=No	6	udep	_	_
+10	san	San	PROPN	_	Number=Sing	9	comp:obj	_	_
+11	francisco	Francisco	PROPN	_	Number=Sing	10	flat	_	_
+
+# sent_id = 0057.test
+# text = please list me the flights and their cost of all airlines flying from denver to baltimore
+1	please	please	INTJ	_	_	2	discourse	_	_
+2	list	list	VERB	_	VerbForm=Inf	0	root	_	_
+3	me	I	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	2	comp:obl	_	_
+4	the	the	DET	_	PronType=Art|Shared=No	5	det	_	_
+5	flights	flight	NOUN	_	Number=Plur	2	comp:obj	_	_
+6	and	and	CCONJ	_	_	5	conj	_	_
+7	their	they	DET	_	Number=Plur|Poss=Yes|PronType=Prs	8	mod@poss	_	_
+8	cost	cost	NOUN	_	Number=Sing|Shared=No	6	comp:obj	_	_
+9	of	of	ADP	_	_	8	udep	_	_
+10	all	all	DET	_	PronType=Art	11	det	_	_
+11	airlines	airline	NOUN	_	Number=Plur	9	comp:obj	_	_
+12	flying	fly	VERB	_	Tense=Pres|VerbForm=Part	11	mod@relcl	_	_
+13	from	from	ADP	_	_	12	udep	_	_
+14	denver	Denver	PROPN	_	Number=Sing	13	comp:obj	_	_
+15	to	to	ADP	_	_	12	udep	_	_
+16	baltimore	Baltimore	PROPN	_	Number=Sing	15	comp:obj	_	_
+
+# sent_id = 0058.test
+# text = give me the flights and fares on december twenty seventh from indianapolis to orlando
+1	give	give	VERB	_	VerbForm=Inf	0	root	_	_
+2	me	I	PRON	_	Case=Acc|Number=Sing|Person=1|PronType=Prs	1	comp:obl	_	_
+3	the	the	DET	_	PronType=Art	4	det	_	_
+4	flights	flight	NOUN	_	Number=Plur	1	comp:obj	_	_
+5	and	and	CCONJ	_	_	6	cc	_	_
+6	fares	fare	NOUN	_	Number=Plur	4	conj	_	_
+7	on	on	ADP	_	Shared=Yes	6	udep@tmod	_	_
+8	december	December	NOUN	_	Number=Sing	7	comp:obj	_	_
+9	twenty	twenty	NUM	_	NumType=Card	10	compound	_	_
+10	seventh	seven	ADJ	_	Degree=Pos|NumType=Ord	8	mod	_	_
+11	from	from	ADP	_	Shared=Yes	6	udep	_	_
+12	indianapolis	Indianapolis	PROPN	_	Number=Sing	11	comp:obj	_	_
+13	to	to	ADP	_	Shared=Yes	6	udep	_	_
+14	orlando	Orlando	PROPN	_	Number=Sing	13	comp:obj	_	_
+
+# sent_id = 0059.test
+# text = what is phl
+1	what	what	PRON	_	PronType=Int,Rel	2	comp:pred	_	_
+2	is	be	AUX	_	Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin	0	root	_	_
+3	phl	Phl	PROPN	_	Number=Sing	2	subj	_	_
+
+# sent_id = 0060.test
+# text = is there ground transportation from lga into new york city
+1	is	be	VERB	_	Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin	0	root	_	_
+2	there	there	PRON	_	PronType=Dem	1	comp@expl	_	_
+3	ground	ground	NOUN	_	Number=Sing	4	compound	_	_
+4	transportation	transportation	NOUN	_	Number=Sing	1	subj	_	_
+5	from	from	ADP	_	_	4	udep	_	_
+6	lga	Lga	PROPN	_	Number=Sing	5	comp:obj	_	_
+7	into	into	ADP	_	_	4	udep	_	_
+8	new	New	PROPN	_	Number=Sing	7	comp:obj	_	_
+9	york	York	PROPN	_	Number=Sing	8	flat	_	_
+10	city	City	PROPN	_	Number=Sing	9	flat	_	_

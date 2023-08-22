@@ -242,6 +242,7 @@ class Predictor:
         predicted_sentences: List[sentenceJson_T] = []
         parsed_sentence_counter = 0
         batch: SequencePredictionBatch_T
+        self.model.eval()
         with torch.no_grad():
             for batch in pred_loader:
                 preds = self.model.forward(batch).detach()
