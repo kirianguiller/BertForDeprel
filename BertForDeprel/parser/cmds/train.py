@@ -301,6 +301,7 @@ class Trainer:
             batch_size=self.config.batch_size,
             num_workers=self.config.num_workers,
             shuffle=True,
+            pin_memory=True,
         )
         test_loader = DataLoader(
             test_dataset,
@@ -308,6 +309,7 @@ class Trainer:
             batch_size=self.config.batch_size,
             num_workers=self.config.num_workers,
             shuffle=True,
+            pin_memory=True,
         )
 
         print(

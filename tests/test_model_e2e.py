@@ -23,6 +23,8 @@ from BertForDeprel.parser.utils.types import (
 
 PARENT = Path(__file__).parent
 PATH_TEST_DATA_FOLDER = PARENT / "data"
+PATH_DIAGNOSTIC_OUTPUT_FOLDER = PATH_TEST_DATA_FOLDER / "diagnostics"
+PATH_DIAGNOSTIC_OUTPUT_FOLDER.mkdir(exist_ok=True, parents=True)
 PATH_MODELS_DIR = PATH_TEST_DATA_FOLDER / "models"
 
 PATH_TRAIN_NAIJA = PATH_TEST_DATA_FOLDER / "naija.train.conllu"
@@ -166,6 +168,9 @@ def _test_model_train():
     )
 
 
+predict_id = 0
+
+
 def _test_predict_single(
     predictor: Predictor, input: List[sentenceJson_T], expected: Path, max_seconds: int
 ):
@@ -174,7 +179,8 @@ def _test_predict_single(
     with open(expected, "r") as f:
         expected = json.load(f)
 
-    with open("actual.json", "w") as f:
+    global predict_id
+    with (PATH_DIAGNOSTIC_OUTPUT_FOLDER / f"actual-{predict_id}.json").open("w") as f:
         json.dump(actual, f, indent=2)
 
     assert actual == expected
@@ -272,6 +278,7 @@ def _test_eval():
 def test_train_and_predict():
     # not needed, but great for confidence when debugging!
     # torch.use_deterministic_algorithms(True)
+
     _test_model_train()
     _test_predict()
     _test_eval()

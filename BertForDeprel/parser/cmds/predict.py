@@ -233,6 +233,7 @@ class Predictor:
             shuffle=False,
             batch_size=self.config.batch_size,
             num_workers=self.config.num_workers,
+            pin_memory=True,
         )
         print(
             f"Loaded {len(pred_dataset):5} sentences, "

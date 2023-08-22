@@ -93,6 +93,14 @@ class SequencePredictionBatch_T:
             max_sentence_length=self.max_sentence_length,
         )
 
+    def pin_memory(self):
+        self.idx = self.idx.pin_memory()
+        self.sequence_token_ids = self.sequence_token_ids.pin_memory()
+        self.attn_masks = self.attn_masks.pin_memory()
+        self.tok_starts_word = self.tok_starts_word.pin_memory()
+        self.idx_converter = self.idx_converter.pin_memory()
+        return self
+
 
 @dataclass
 class SequenceTrainingBatch_T(SequencePredictionBatch_T):
@@ -135,6 +143,16 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
             feats=self.feats.to(device),
             lemma_scripts=self.lemma_scripts.to(device),
         )
+
+    def pin_memory(self):
+        super().pin_memory()
+        self.heads = self.heads.pin_memory()
+        self.deprels = self.deprels.pin_memory()
+        self.uposs = self.uposs.pin_memory()
+        self.xposs = self.xposs.pin_memory()
+        self.feats = self.feats.pin_memory()
+        self.lemma_scripts = self.lemma_scripts.pin_memory()
+        return self
 
 
 class SequenceTraining_T(SequencePrediction_T):
