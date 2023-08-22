@@ -3,17 +3,22 @@ import sys
 from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
-from typing import Generator, List, TypeVar
+from typing import Generator, Iterable, List, TypeVar
 
+from conllup.conllup import sentenceJson_T
 from torch import nn
 from torch.utils.data import DataLoader, Dataset, random_split
 
 from ..cmds.cmd import CMD, SubparsersType
-from ..modules.BertForDepRel import BertForDeprel, EvalResult, TrainingDiagnostics
+from ..modules.BertForDepRel import (
+    BertForDeprel,
+    DataDescription,
+    EvalResult,
+    TrainingDiagnostics,
+)
 from ..utils.annotation_schema import compute_annotation_schema
 from ..utils.load_data_utils import load_conllu_sentences
 from ..utils.types import DataclassJSONEncoder, ModelParams_T, TrainingConfig
-from ..utils.ud_dataset import UDDataset
 
 T = TypeVar("T")
 
@@ -152,9 +157,6 @@ class TrainCmd(CMD):
 
         model.add_diagnostic("training_command", sys.argv)
 
-        train_dataset = model.encode_dataset(iter(train_sentences))
-        test_dataset = model.encode_dataset(iter(test_sentences))
-
         training_config = TrainingConfig(
             max_epochs=model_params.max_epoch,
             patience=model_params.patience,
@@ -167,7 +169,7 @@ class TrainCmd(CMD):
         )
 
         trainer.train_until_quiescence(
-            model, train_dataset, test_dataset, args.new_model_path
+            model, iter(train_sentences), iter(test_sentences), args.new_model_path
         )
 
 
@@ -189,8 +191,8 @@ class Trainer:
     def train_until_quiescence(
         self,
         model: BertForDeprel,
-        train_dataset: UDDataset,
-        test_dataset: UDDataset,
+        train_sentences: Iterable[sentenceJson_T],
+        test_sentences: Iterable[sentenceJson_T],
         output_dir: Path,
     ) -> EvalResult:
         """Train the model until it stops improving or we've reached the specified
@@ -210,7 +212,7 @@ class Trainer:
         history = []
         total_timer_start = datetime.now()
         for epoch, epoch_results in enumerate(
-            self.train(model, train_dataset, test_dataset)
+            self.train(model, train_sentences, test_sentences)
         ):
             print(epoch_results)
 
@@ -252,9 +254,9 @@ class Trainer:
                     print("\nbest result : ", best_epoch_results)
                     stopping_early = True
 
+            assert epoch_results.data_description is not None
             diagnostics = TrainingDiagnostics(
-                n_sentences_train=len(train_dataset),
-                n_sentences_test=len(test_dataset),
+                data_description=epoch_results.data_description,
                 epoch=epoch,
                 saved=saved,
                 is_best_loss=is_best_loss,
@@ -289,12 +291,15 @@ class Trainer:
     def train(
         self,
         model: BertForDeprel,
-        train_dataset: UDDataset,
-        test_dataset: UDDataset,
+        train_sentences: Iterable[sentenceJson_T],
+        test_sentences: Iterable[sentenceJson_T],
     ) -> Generator[EvalResult, None, None]:
         """Train the model on the given dataset. Yields the results of each epoch, with
         no stopping criteria (client must decide when to stop consuming the generator).
         """
+        train_dataset = model.encode_dataset(train_sentences)
+        test_dataset = model.encode_dataset(test_sentences)
+
         train_loader = DataLoader(
             train_dataset,
             collate_fn=train_dataset.collate_train,
@@ -320,6 +325,12 @@ class Trainer:
             f"{'test:':6} {len(test_dataset):5} sentences, "
             f"{len(test_loader):3} batches, "
         )
+        data_description = DataDescription(
+            n_train_sents=len(train_dataset),
+            n_test_sents=len(test_dataset),
+            n_train_batches=len(train_loader),
+            n_test_batches=len(test_loader),
+        )
 
         def announce_epoch(epoch: int) -> None:
             print(f"-----   Epoch {epoch}   -----")
@@ -329,6 +340,7 @@ class Trainer:
         no_train_results: EvalResult = model.eval_on_dataset(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
             test_loader
         )
+        no_train_results.data_description = DataDescription(0, 0, 0, 0)
         yield no_train_results
 
         while True:
@@ -340,4 +352,5 @@ class Trainer:
             results = model.eval_on_dataset(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
                 test_loader
             )
+            results.data_description = data_description
             yield results

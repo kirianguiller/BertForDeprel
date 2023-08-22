@@ -32,14 +32,12 @@ def analyze():
         total_tokens += len(words)
         unlabled_ud_sents.append(sent)
 
-    # TODO: should be predictor.activate(lang)
     predictor.activate(lang)
-    ud_dataset = model.encode_dataset(unlabled_ud_sents)
-    predictions, elapsed_seconds = predictor.predict(ud_dataset)
+    predictions, elapsed_seconds = predictor.predict(unlabled_ud_sents)
     print(
-        f"LOG: labeled {len(ud_dataset)} sentences/{total_tokens} tokens in "
-        f"{elapsed_seconds} seconds ({len(ud_dataset)/elapsed_seconds} sents/sec, "
-        f"{total_tokens/elapsed_seconds} tokens/sec)"
+        f"LOG: labeled {len(predictions)} sentences in {elapsed_seconds} seconds "
+        f"({len(predictions)/elapsed_seconds} sents/sec, {total_tokens/elapsed_seconds}"
+        " tokens/sec)"
     )
 
     output = {

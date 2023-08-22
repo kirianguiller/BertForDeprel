@@ -11,7 +11,11 @@ from torch.utils.data import DataLoader
 
 from BertForDeprel.parser.cmds.predict import Predictor
 from BertForDeprel.parser.cmds.train import Trainer
-from BertForDeprel.parser.modules.BertForDepRel import BertForDeprel, EvalResult
+from BertForDeprel.parser.modules.BertForDepRel import (
+    BertForDeprel,
+    DataDescription,
+    EvalResult,
+)
 from BertForDeprel.parser.utils.annotation_schema import compute_annotation_schema
 from BertForDeprel.parser.utils.gpu_utils import get_devices_configuration
 from BertForDeprel.parser.utils.load_data_utils import load_conllu_sentences
@@ -41,47 +45,17 @@ PATH_EXPECTED_PREDICTIONS_ENGLISH = (
 )
 ENGLISH_MODEL_DIR = PATH_MODELS_DIR / "english"
 SEED = 42
+DEVICE_CONFIG = get_devices_configuration("-1")
+
+# not needed, but can boost confidence when debugging
+# torch.use_deterministic_algorithms(True)
 
 
-def _test_model_train_single(path_train, path_test, path_out, expected_eval):
-    train_sentences = load_conllu_sentences(path_train)
-    annotation_schema = compute_annotation_schema(train_sentences)
-
-    device_config = get_devices_configuration("-1")
-
-    # for reproducibility we need to set the seed during training; for example,
-    # nn.Dropout uses rng during training time to drop a layer's weights, but at test
-    # time it doesn't drop anything, so there's no random behavior.
-    torch.manual_seed(SEED)
-    model = BertForDeprel.new_model(
-        "xlm-roberta-large", annotation_schema, device_config.device
-    )
-    print(model.max_position_embeddings)
-
-    train_dataset = model.encode_dataset(train_sentences)
-    test_sentences = load_conllu_sentences(path_test)
-    test_dataset = model.encode_dataset(test_sentences)
-    training_config = TrainingConfig(
-        max_epochs=1,
-        patience=0,
-    )
-    trainer = Trainer(
-        training_config,
-        device_config.multi_gpu,
-    )
-
-    scores_generator = trainer.train(model, train_dataset, test_dataset)
-    scores = [next(scores_generator), next(scores_generator)]
-    scores = [s.rounded(3) for s in scores]
-
-    model.save(  # type: ignore https://github.com/pytorch/pytorch/issues/81462 # noqa: E501
-        path_out, training_config
-    )
-
-    assert scores == pytest.approx(expected_eval)
-
-
-def _test_model_train():
+# generated model is used in other tests
+@pytest.mark.order("first")
+@pytest.mark.slow
+@pytest.mark.fragile
+def test_train_naija_model():
     _test_model_train_single(
         PATH_TRAIN_NAIJA,
         PATH_TEST_NAIJA,
@@ -103,7 +77,7 @@ def _test_model_train():
                 loss_feats_epoch=0.673,
                 loss_lemma_scripts_epoch=0.69,
                 loss_epoch=0.567,
-                training_diagnostics=None,
+                data_description=DataDescription(0, 0, 0, 0),
             ),
             EvalResult(
                 LAS_epoch=0.015,
@@ -121,10 +95,22 @@ def _test_model_train():
                 loss_feats_epoch=0.646,
                 loss_lemma_scripts_epoch=0.627,
                 loss_epoch=0.537,
-                training_diagnostics=None,
+                data_description=DataDescription(
+                    n_train_sents=39,
+                    n_test_sents=5,
+                    n_train_batches=3,
+                    n_test_batches=1,
+                ),
             ),
         ],
     )
+
+
+# generated model is used in other tests
+@pytest.mark.order("first")
+@pytest.mark.slow
+@pytest.mark.fragile
+def test_train_english_model():
     _test_model_train_single(
         PATH_TRAIN_ENGLISH,
         PATH_TEST_ENGLISH,
@@ -146,6 +132,7 @@ def _test_model_train():
                 loss_feats_epoch=0.341,
                 loss_lemma_scripts_epoch=0.298,
                 loss_epoch=0.262,
+                data_description=DataDescription(0, 0, 0, 0),
             ),
             EvalResult(
                 LAS_epoch=0.008,
@@ -163,44 +150,55 @@ def _test_model_train():
                 loss_feats_epoch=0.332,
                 loss_lemma_scripts_epoch=0.268,
                 loss_epoch=0.249,
+                data_description=DataDescription(
+                    n_train_sents=50,
+                    n_test_sents=10,
+                    n_train_batches=4,
+                    n_test_batches=1,
+                ),
             ),
         ],
     )
 
 
-predict_id = 0
+def _test_model_train_single(path_train, path_test, path_out, expected_eval):
+    # for reproducibility we need to set the seed during training; for example,
+    # nn.Dropout uses rng at training time to drop a layer's weights, but at test
+    # time it doesn't drop anything, so there's no random behavior then.
+    torch.manual_seed(SEED)
+    train_sentences = load_conllu_sentences(path_train)
+    annotation_schema = compute_annotation_schema(train_sentences)
+    model = BertForDeprel.new_model(
+        "xlm-roberta-large", annotation_schema, DEVICE_CONFIG.device
+    )
+    test_sentences = load_conllu_sentences(path_test)
+    training_config = TrainingConfig(
+        max_epochs=1,
+        patience=0,
+    )
+    trainer = Trainer(
+        training_config,
+        DEVICE_CONFIG.multi_gpu,
+    )
+    scores_generator = trainer.train(model, train_sentences, test_sentences)
+    scores = [next(scores_generator), next(scores_generator)]
+    scores = [s.rounded(3) for s in scores]
+    model.save(  # type: ignore https://github.com/pytorch/pytorch/issues/81462
+        path_out, training_config
+    )
+
+    assert scores == pytest.approx(expected_eval)
 
 
-def _test_predict_single(
-    predictor: Predictor, input: List[sentenceJson_T], expected: Path, max_seconds: int
-):
-    actual, elapsed_seconds = predictor.predict(input)
-
-    with open(expected, "r") as f:
-        expected = json.load(f)
-
-    global predict_id
-    with (PATH_DIAGNOSTIC_OUTPUT_FOLDER / f"actual-{predict_id}.json").open("w") as f:
-        json.dump(actual, f, indent=2)
-
-    assert actual == expected
-    # On my M2, it's <7s.
-    if elapsed_seconds > max_seconds:
-        print(
-            f"WARNING: Prediction took a long time: {elapsed_seconds} seconds.",
-            file=sys.stderr,
-        )
-
-
-def _test_predict():
+@pytest.mark.slow
+@pytest.mark.fragile
+def test_predict_multilingual():
     model_config = ModelParams_T.from_model_path(NAIJA_MODEL_DIR)
-    device_config = get_devices_configuration("-1")
 
     model = BertForDeprel.load_pretrained_for_prediction(
         {"naija": NAIJA_MODEL_DIR, "english": ENGLISH_MODEL_DIR},
         "naija",
-        # torch.device("cpu"),
-        device_config.device,
+        DEVICE_CONFIG.device,
     )
     predictor = Predictor(
         model,
@@ -228,13 +226,38 @@ def _test_predict():
     )
 
 
-def _test_eval():
+predict_id = 0
+
+
+def _test_predict_single(
+    predictor: Predictor, input: List[sentenceJson_T], expected: Path, max_seconds: int
+):
+    actual, elapsed_seconds = predictor.predict(input)
+
+    with open(expected, "r") as f:
+        expected = json.load(f)
+
+    global predict_id
+    predict_id += 1
+    with (PATH_DIAGNOSTIC_OUTPUT_FOLDER / f"actual-{predict_id}.json").open("w") as f:
+        json.dump(actual, f, indent=2)
+
+    assert actual == expected
+    # On my M2, it's <7s.
+    if elapsed_seconds > max_seconds:
+        print(
+            f"WARNING: Prediction took a long time: {elapsed_seconds} seconds.",
+            file=sys.stderr,
+        )
+
+
+@pytest.mark.slow
+@pytest.mark.fragile
+def test_eval():
     """There is no eval API, per se, but this demonstrates how to do it. TODO: it's
     pretty convoluted."""
-    device_config = get_devices_configuration("-1")
-
     model = BertForDeprel.load_single_pretrained_for_prediction(
-        NAIJA_MODEL_DIR, device_config.device
+        NAIJA_MODEL_DIR, DEVICE_CONFIG.device
     )
 
     sentences = load_conllu_sentences(PATH_TEST_NAIJA)
@@ -270,15 +293,3 @@ def _test_eval():
             training_diagnostics=None,
         ),
     )
-
-
-# About 30s on my M2 Mac.
-@pytest.mark.slow
-@pytest.mark.fragile
-def test_train_and_predict():
-    # not needed, but great for confidence when debugging!
-    # torch.use_deterministic_algorithms(True)
-
-    _test_model_train()
-    _test_predict()
-    _test_eval()

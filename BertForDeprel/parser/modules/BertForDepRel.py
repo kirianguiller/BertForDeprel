@@ -207,9 +207,16 @@ class EvalResultAccumulator:
 
 
 @dataclass
+class DataDescription:
+    n_train_sents: int
+    n_test_sents: int
+    n_train_batches: int
+    n_test_batches: int
+
+
+@dataclass
 class TrainingDiagnostics:
-    n_sentences_train: int
-    n_sentences_test: int
+    data_description: DataDescription
     epoch: int
     saved: bool
     is_best_loss: bool
@@ -235,6 +242,7 @@ class EvalResult:
     loss_feats_epoch: float
     loss_lemma_scripts_epoch: float
     loss_epoch: float
+    data_description: Optional[DataDescription] = None
     training_diagnostics: Optional[TrainingDiagnostics] = None
 
     def _set_diagnostic_info(self, diagnostics: TrainingDiagnostics):
@@ -247,6 +255,7 @@ class EvalResult:
                 for k, v in self.__dict__.items()
                 if isinstance(v, float)
             },
+            data_description=self.data_description,
             training_diagnostics=self.training_diagnostics,
         )
 
@@ -382,6 +391,24 @@ class BertForDeprel(Module):
         )
         return model.train()
 
+    @staticmethod
+    def new_models(
+        embedding_type: str,
+        annotation_schemata: Dict[str, AnnotationSchema_T],
+        device: torch.device,
+    ) -> "BertForDeprel":
+        """Create new models with the given embedding type and annotation schemata.
+        The model will be a blank slate that must be trained."""
+        model = BertForDeprel(
+            embedding_type,
+            annotation_schemata,
+            device,
+            pretrained_model_paths={},
+            active_model=DEFAULT_MODEL_NAME,
+            no_classifier_heads=False,
+        )
+        return model.train()
+
     def __init__(
         self,
         embedding_type: str,
@@ -422,13 +449,7 @@ class BertForDeprel(Module):
         self.llm_layer: XLMRobertaModel = AutoModel.from_pretrained(embedding_type)
 
         adapter_config = PfeifferConfig(reduction_factor=4, non_linearity="gelu")
-        # save/restore RNG state so that we can add adapters deterministically
-        # (otherwise, we get different results for one model depending on what other
-        # models were also loaded)
-        # TODO: test training multiple models at once to see if this is really necessary
-        rng = torch.get_rng_state()
         for name in adapter_names:
-            torch.set_rng_state(rng)
             self.llm_layer.add_adapter(name, config=adapter_config)
 
     def _set_criterions_and_optimizer(self):
@@ -542,7 +563,7 @@ class BertForDeprel(Module):
                 )
         # My Mac runs out of shared memory without this. See
         # https://github.com/pytorch/pytorch/issues/13246#issuecomment-905703662
-        # TODO: do this actually help?
+        # TODO: does this actually help?
         if self.device == "mps":
             torch.mps.empty_cache()
         print(

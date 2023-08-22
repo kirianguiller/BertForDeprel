@@ -20,6 +20,7 @@ numpy = "^1.25.2"
 conllup = "0.4.1"
 adapter-transformers = "^3.2.0"
 torch = "^2.0.1"
+flask = "^2.3.2"
 
 # All these required due to missing deps in torch 2.0.1;
 # see https://github.com/pytorch/pytorch/issues/100974
@@ -35,7 +36,6 @@ nvidia-cusparse-cu11 = { version = "11.7.4.91", platform = 'linux' }
 nvidia-nccl-cu11 = { version = "2.14.3", platform = 'linux' }
 nvidia-nvtx-cu11 = { version = "11.7.91", platform = 'linux' }
 triton = { version = "2.0.0", platform = 'linux' }
-flask = "^2.3.2"
 
 [tool.poetry.dev-dependencies]
 black = "^23.7.0"
@@ -46,6 +46,7 @@ pre-commit = "^3.3.3"
 pyright = "^1.1.318"
 pytest = "^7.2.2"
 pytest-cov = "^4.1.0"
+pytest-order = "^1.1.0"
 
 [build-system]
 requires = ["poetry"]

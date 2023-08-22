@@ -7,6 +7,7 @@ test/test_folder/models
 test/naija_pretrained_test/
 
 tests/data/models
+tests/data/diagnostics
 
 **.pyc
 .pytest_cache
