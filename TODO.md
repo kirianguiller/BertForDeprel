@@ -7,6 +7,7 @@ Then: build Flask server - prediction is currently hardcoded to read from and wr
 Update readme with new build info: poetry, poe commands, pytest, verification, pre-commit, etc.
 
 - there is no multi-ling training setup (where we load the LLM once and then switch between adapters/taggers to train on multiple languages without reloading the LLM layer). This would require some refactoring, and isn't a super important use-case yet.
+    - need to save current weights to self._checkpoints[self._active_model] before switching
     - training epochs take long enough that I don't think it's a huge deal to just re-load the LLM layer for each language
     - would require some management of the rng state. Need to save/restore between creating each adapter layer, and also restore a pre-activation state at the beginning of each activate() call.
 -   Try XLM-RoBERTa-XL, which is 2 years newer than xlm-roberta

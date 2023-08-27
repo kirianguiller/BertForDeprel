@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import Dict, Iterable, List
 
 from conllup.conllup import readConlluFile, sentenceJson_T
 
@@ -24,8 +24,16 @@ def resolve_conllu_paths(path: Path) -> List[Path]:
     return paths
 
 
-def load_conllu_sentences(file_or_dir_path: Path):
-    sentences: List[sentenceJson_T] = []
+def load_conllu_sentences(file_or_dir_path: Path) -> Iterable[sentenceJson_T]:
+    sentences = load_conllu_sentences_mapping(file_or_dir_path)
+    return (
+        sentence for sentence_list in sentences.values() for sentence in sentence_list
+    )
+
+
+def load_conllu_sentences_mapping(file_or_dir_path: Path):
+    """Return dict of sentences by their file path."""
+    sentences: Dict[Path, List[sentenceJson_T]] = {}
     for path in resolve_conllu_paths(file_or_dir_path):
-        sentences.extend(readConlluFile(str(path)))
+        sentences[path] = readConlluFile(str(path))
     return sentences

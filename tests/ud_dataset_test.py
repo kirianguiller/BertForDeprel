@@ -20,7 +20,7 @@ model_params_test = ModelParams_T(
 
 
 def get_test_instance():
-    sentences = load_conllu_sentences(PATH_TEST_CONLLU)
+    sentences = list(load_conllu_sentences(PATH_TEST_CONLLU))
     annotation_schema = compute_annotation_schema(sentences)
 
     return UDDataset(

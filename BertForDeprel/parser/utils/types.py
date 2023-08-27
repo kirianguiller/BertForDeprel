@@ -2,6 +2,7 @@ import dataclasses
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any, Dict
 
 from .annotation_schema import AnnotationSchema_T
 
@@ -71,3 +72,5 @@ class TrainingConfig(PredictionConfig):
     patience: int = 3
     # Number of digits to round the metrics to
     ndigits: int = 3
+    # any info to be added to the saved model metadata
+    metadata: Dict[str, Any] = field(default_factory=lambda: {})

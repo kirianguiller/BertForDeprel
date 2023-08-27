@@ -3,7 +3,7 @@ import sys
 from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
-from typing import Generator, Iterable, List, TypeVar
+from typing import Any, Dict, Generator, Iterable, List, TypeVar
 
 from conllup.conllup import sentenceJson_T
 from torch import nn
@@ -17,7 +17,7 @@ from ..modules.BertForDepRel import (
     TrainingDiagnostics,
 )
 from ..utils.annotation_schema import compute_annotation_schema
-from ..utils.load_data_utils import load_conllu_sentences
+from ..utils.load_data_utils import load_conllu_sentences_mapping
 from ..utils.types import DataclassJSONEncoder, ModelParams_T, TrainingConfig
 
 T = TypeVar("T")
@@ -110,11 +110,25 @@ class TrainCmd(CMD):
         if args.num_workers:
             model_params.num_workers = args.num_workers
 
-        train_sentences = load_conllu_sentences(args.ftrain)
+        diagnostics: Dict[str, Any] = {}
+
+        train_path_to_sentences = load_conllu_sentences_mapping(args.ftrain)
+        train_sentences = [
+            sentence
+            for sentence_list in train_path_to_sentences.values()
+            for sentence in sentence_list
+        ]
+        diagnostics["train_paths"] = list(train_path_to_sentences.keys())
 
         if args.ftest:
             print(f"Using {args.ftrain} for training and {args.ftest} for testing")
-            test_sentences = load_conllu_sentences(args.ftest)
+            test_path_to_sentences = load_conllu_sentences_mapping(args.ftest)
+            test_sentences = [
+                sentence
+                for sentence_list in test_path_to_sentences.values()
+                for sentence in sentence_list
+            ]
+            diagnostics["test_sources"] = list(test_path_to_sentences.keys())
         else:
             print(
                 f"Splitting {args.ftrain} into train and test sets with ratio "
@@ -125,10 +139,14 @@ class TrainCmd(CMD):
             train_sentences, test_sentences = random_split(
                 dataset=ListDataset(train_sentences), lengths=[train_size, test_size]
             )  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+            diagnostics["test_sources"] = [
+                f"split with train/test ratio {args.split_ratio}"
+            ]
 
         train_data_annotation_schema = compute_annotation_schema(iter(train_sentences))
 
         if args.pretrained_path:
+            diagnostics["pretrained_path"] = args.pretrained_path
             print("Loading pretrained model...")
             if args.pretrained_path.resolve() == args.new_model_path.resolve():
                 raise ValueError(
@@ -156,12 +174,15 @@ class TrainCmd(CMD):
             )
 
         model.add_diagnostic("training_command", sys.argv)
+        for k, v in diagnostics.items():
+            model.add_diagnostic(k, v)
 
         training_config = TrainingConfig(
             max_epochs=model_params.max_epoch,
             patience=model_params.patience,
             batch_size=model_params.batch_size,
             num_workers=model_params.num_workers,
+            metadata=diagnostics,
         )
         trainer = Trainer(
             training_config,
@@ -265,6 +286,8 @@ class Trainer:
                 stopping_early=stopping_early,
             )
             epoch_results._set_diagnostic_info(diagnostics)
+            # redundant with the data_description, so remove it
+            del epoch_results.data_description
             history.append(epoch_results.rounded(3))
             with open(path_scores_history, "w") as outfile:
                 outfile.write(json.dumps(history, indent=4, cls=DataclassJSONEncoder))
@@ -325,6 +348,7 @@ class Trainer:
             f"{'test:':6} {len(test_dataset):5} sentences, "
             f"{len(test_loader):3} batches, "
         )
+        # TODO: n_*_tokens would also be nice
         data_description = DataDescription(
             n_train_sents=len(train_dataset),
             n_test_sents=len(test_dataset),

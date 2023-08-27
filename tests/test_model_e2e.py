@@ -206,7 +206,7 @@ def test_predict_multilingual():
         False,
     )
 
-    naija_sentences = load_conllu_sentences(PATH_TEST_NAIJA)
+    naija_sentences = list(load_conllu_sentences(PATH_TEST_NAIJA))
     # add a sentence too large for the model; this should be skipped in the output
     too_long = emptySentenceJson()
     too_long["metaJson"]["sent_id"] = "too_long"
@@ -219,7 +219,7 @@ def test_predict_multilingual():
         predictor, naija_sentences, PATH_EXPECTED_PREDICTIONS_NAIJA, 10
     )
 
-    english_sentences = load_conllu_sentences(PATH_TEST_ENGLISH)
+    english_sentences = list(load_conllu_sentences(PATH_TEST_ENGLISH))
     model.activate("english")
     _test_predict_single(
         predictor, english_sentences, PATH_EXPECTED_PREDICTIONS_ENGLISH, 10
