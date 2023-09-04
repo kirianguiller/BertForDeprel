@@ -190,8 +190,6 @@ class UDDataset(Dataset[SequenceTraining_T]):
     """Universal Dependency dataset tokenized and encoded for input to the
     BertForDeprel model."""
 
-    # TODO: given that we need 3 model params here, maybe the model should own this
-    # tokenizing code? Or something like model.tokenizer()?
     def __init__(
         self,
         sentences: Iterable[sentenceJson_T],

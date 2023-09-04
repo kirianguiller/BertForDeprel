@@ -3,6 +3,7 @@
 Then: build Flask server - prediction is currently hardcoded to read from and write to conllu files - need to load model in an init method and use it for subsequent requests
 
 -   Remove 26.1, etc. from Conllu data. We can't predict these right now.
+-   train --early-stop to turn off use of patience parameter
 
 Update readme with new build info: poetry, poe commands, pytest, verification, pre-commit, etc.
 
