@@ -181,13 +181,13 @@ def _test_model_train_single(path_train, path_test, path_out, expected_eval):
         DEVICE_CONFIG.multi_gpu,
     )
     scores_generator = trainer.train(model, train_sentences, test_sentences)
-    scores = [next(scores_generator), next(scores_generator)]
+    scores = [next(scores_generator).rounded(3), next(scores_generator).rounded(3)]
     scores = [s.rounded(3) for s in scores]
     model.save(  # type: ignore https://github.com/pytorch/pytorch/issues/81462
         path_out, training_config
     )
 
-    assert scores == pytest.approx(expected_eval)
+    assert scores == expected_eval
 
 
 @pytest.mark.slow
