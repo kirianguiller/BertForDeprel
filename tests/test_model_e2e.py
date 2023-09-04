@@ -166,7 +166,7 @@ def _test_model_train_single(path_train, path_test, path_out, expected_eval):
     # nn.Dropout uses rng at training time to drop a layer's weights, but at test
     # time it doesn't drop anything, so there's no random behavior then.
     torch.manual_seed(SEED)
-    train_sentences = load_conllu_sentences(path_train)
+    train_sentences = list(load_conllu_sentences(path_train))
     annotation_schema = compute_annotation_schema(train_sentences)
     model = BertForDeprel.new_model(
         "xlm-roberta-large", annotation_schema, DEVICE_CONFIG.device
