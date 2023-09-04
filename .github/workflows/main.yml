@@ -26,4 +26,5 @@ jobs:
               uses: pre-commit/action@v2.0.3
               env:
                   PYTHONUTF8: 1
-                  PYTEST_ADDOPTS: -m 'not fragile'
+                # Turns off the model e2e tests
+                #   PYTEST_ADDOPTS: -m 'not fragile'
