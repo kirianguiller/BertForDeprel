@@ -27,4 +27,4 @@ jobs:
               env:
                   PYTHONUTF8: 1
                 # Turns off the model e2e tests
-                #   PYTEST_ADDOPTS: -m 'not fragile'
+                  PYTEST_ADDOPTS: -m 'not fragile'
