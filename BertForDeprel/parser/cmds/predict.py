@@ -124,7 +124,7 @@ class PredictCmd(CMD):
 
         print("Starting Predictions ...")
         # TODO : it probably should be a dict[infile_name, List[sentences]]
-        predicted_sentences_from_all_files = []
+        predicted_sentences_from_all_files: Iterable[sentenceJson_T] = []
         for in_path, out_path in in_to_out_paths.items():
             print(f"Loading dataset from {in_path}...")
 
@@ -141,7 +141,7 @@ class PredictCmd(CMD):
                 f"sents in {elapsed_seconds} secs`"
             )
 
-        return predicted_sentences
+        return predicted_sentences_from_all_files
 
     def __validate_args(self, args: Namespace):
         if not (args.model_path / CONFIG_FILE_NAME).is_file():
