@@ -7,6 +7,18 @@ Google colab showing how to use this parser are available here :
 -   training from scratch on written english : [link](https://colab.research.google.com/drive/1UngKLyqRZk7vXawWnYzJtrjrNisPnhgK?usp=sharing)
 -   mock colab for testing if everything is fine : [link](https://colab.research.google.com/drive/1J50pOlBnY-sCliBTinF-9soK6LZRZndn?usp=sharing)
 
+## Requirements
+Python 3.11 on your machine as well as poetry ([link](https://python-poetry.org/docs/))
+```bash
+# install latest poetry
+curl -sSL https://install.python-poetry.org | python3 -
+
+# check installation
+poetry --version
+
+# in case you have multiple version of python, make sure to specify the version 3.11
+poetry env use 3.11
+```
 ## Installation
 
 On linux
@@ -14,10 +26,18 @@ On linux
 ```bash
 git clone https://github.com/kirianguiller/BertForDeprel
 cd BertForDeprel
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+# optional : if you want to have your venv in the project folder as .venv (recommended)
+poetry config virtualenvs.in-project true
+
+poetry install
+poetry run pytest
 ```
+
+[//]: # (source venv/bin/activate)
+
+[//]: # (pip install -r requirements.txt)
+
+[//]: # (```)
 
 ## How to run
 
@@ -29,17 +49,17 @@ Either provide the path to a model json config :
 python /home/BertForDeprel/BertForDeprel/run.py train --conf /home/models/template.config.json   --ftrain /home/parsing_project/conllus/train.conllu
 ```
 
-or just give a `--model_folder_path` and a `--model_name` parameter (default params will be loaded if no config or no CLI parameters are provided)
+or just give a `--new_model_path` and a `--model_name` parameter (default params will be loaded if no config or no CLI parameters are provided)
 
 ```bash
-python /home/BertForDeprel/BertForDeprel/run.py train --model_folder_path /home/models/ --model_name my_parser   --ftrain /home/parsing_project/conllus/train.conllu
+python /home/BertForDeprel/BertForDeprel/run.py train --new_model_path /home/models/ --model_name my_parser   --ftrain /home/parsing_project/conllus/train.conllu
 ```
 
 PS : here an example of a valid config.json
 
 ```json
 {
-    "model_folder_path": "/home/user1/models/",
+    "new_model_path": "/home/user1/models/",
     "max_epoch": 150,
     "patience": 30,
     "batch_size": 16,
@@ -61,7 +81,7 @@ python /home/BertForDeprel/BertForDeprel/run.py train --conf /home/models/my_par
 
 ### shared
 
--   `--conf` `-c` : path to config json file (for training, it's optional if both `--model_folder_path` and `model_name` are provided)
+-   `--conf` `-c` : path to config json file (for training, it's optional if both `--new_model_path` and `model_name` are provided)
 -   `--batch_size`: numbers of sample per batches (high incidence on total speed)
 -   `--num_workers`: numbers of workers for preparing dataset (low incidence on total speed)
 -   `--seed` `-s` : random seed (default = 42)
@@ -70,25 +90,28 @@ The directory to store and load pretrained models is set via the environment var
 
 ### train
 
--   `--model_folder_path` `-f` path to parent folder of the model : optional if `--conf` is already provided
+-   `--new_model_path` `-f` path to parent folder of the model : optional if `--conf` is already provided
 -   `--embedding_type` `-e` : type of embedding (default : `xlm-roberta-large`)
 -   `--max_epoch` : maximum number of epochs (early stopping can shorten this number)
 -   `--patience` : number of epochs without improve required to stop the training (early stopping)
 -   `--ftrain` : path to train file or folder (files need .conllu extension)
 -   `--ftest` : path to train file or folder (files need .conllu extension) (not required. If not provided, see `--split_ratio` )
 -   `--split_ratio` : Ratio for splitting ftrain dataset in train and test dataset (default : 0.8)
--   `--path_annotation_schema`: path to an annotation schema (json format)
--   `--path_folder_compute_annotation_schema` provide a path to a folder containing various conllu, so the annotation schema is computed on these conllus before starting the training on --ftrain
--   `--conf_pretrain` : path to pretrain model config, used for finetuning a pretrained BertForDeprel model
+-   `--pretrained_path` : path to pretrain model config, used for finetuning a pretrained BertForDeprel model
 -   `--overwrite_pretrain_classifiers`: erase pretraines classifier heads and recompute annotation schema
 
 ### predict
 
+-   `--model_path` `-m` : path to the model (folder or file)
 -   `--inpath` `-i` : path to the file or the folder containing the files to predict
 -   `--outpath` `-o` : path to the folder that will contain the predicted files
 -   `--suffix` : optional (default = "") , suffix that will be added to the name of the predicted files (before the file extension)
 -   `--overwrite` : whether or not to overwrite outputted predicted conllu if already existing
 -   `--write_preds_in_misc` : whether or not to write prediction in the conllu MISC column instead than in the corresponding column for upos deprel and head
+
+### keep (HEAD/UPOS/...) (optionals)
+each of the following parameters is a string that can take the values "NONE" | "EXISTING" | "ALL") (default : "NONE") :
+`--keep_heads`; `--keep_upos`; `--keep_xpos` ; `--keep_deprels` ; `--keep_misc` ; `--keep_feats` ; `--keep_deps` ; `--keep_morph` ; `--keep_lemmas` ; `--keep_lemmas`
 
 ## Prepare Dataset
 
@@ -138,31 +161,20 @@ where `<train.conllu>` and `<test.conllu>` are respectively the train and test d
 
 WARNING : when training from a pretrained model, be sure to use the same annotation_schema.json for fine-tuning that the one that was used for pretraining. It would break the training otherwise.
 
-To fine-tune a pre-trained model, need to follow the same step as for training a new model, but need to also provide the path to the config file of the previously trained model with `--conf_pretrained`
+To fine-tune a pre-trained model, need to follow the same step as for training a new model, but need to also provide the path to the config file of the previously trained model with `--pretrained_path`
 
 ```bash
-python /home/BertForDeprel/BertForDeprel/run.py train --model_folder_path /home/models/ --model_name my_parser  --ftrain /home/parsing_project/conllus/train.conllu  --conf_pretrained /home/models/pretrained_model.config.json
+python /home/BertForDeprel/BertForDeprel/run.py train --new_model_path /home/models/ --model_name my_parser  --ftrain /home/parsing_project/conllus/train.conllu  --pretrained_path /home/models/pretrained_model.config.json
 ```
 
 ### GPU/CPU training
 
-#### Run on a single GPU
+- `--gpu_ids 0` : For running the training on a single GPU of id 0, add the parameter . Respectively, for running on one single gpu of id 3, add the parameter ``--gpu_ids 3`
+- `--gpu_ids 0,1` : For running the training on multiple GPU of ids 0 and 1, add the parameter
+- `--gpu_ids "-2"` : For running the training on all available GPUs, add the parameter
+- `--gpu_ids "-1"` : For training on CPU only, add the parameter
 
-For running the training on a single GPU of id 0, add the parameter `--gpu_ids 0`. Respectively, for running on one single gpu of id 3, add the parameter ``--gpu_ids 3`
-
-#### Run on multiples GPUs
-
-For running the training on multiple GPU of ids 0 and 1, add the parameter `--gpu_ids 0,1`
-
-#### Run on all available GPUs
-
-For running the training on all available GPUs, add the parameter `--gpu_ids "-2"`
-
-#### Run on CPU
-
-For training on CPU only, add the parameter `--gpu_ids "-1"`
-
-## Pretrained Models
+## Pretrained Models (/!\ DEPRECATED /!\ TODO : update this section)
 
 You can find [on this Gdrive repo](https://drive.google.com/drive/folders/1lVhG00JWBxrisDRytLYH3M1uZG1ZHXol?usp=sharing) all the pretrained models, google colab script for training and publicly available treebanks (.conllu files).
 
