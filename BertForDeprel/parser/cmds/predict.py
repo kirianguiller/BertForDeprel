@@ -123,6 +123,8 @@ class PredictCmd(CMD):
         )
 
         print("Starting Predictions ...")
+        # TODO : it probably should be a dict[infile_name, List[sentences]]
+        predicted_sentences_from_all_files = []
         for in_path, out_path in in_to_out_paths.items():
             print(f"Loading dataset from {in_path}...")
 
@@ -131,7 +133,7 @@ class PredictCmd(CMD):
             predicted_sentences, elapsed_seconds = predictor.predict(
                 sentences, partial_pred_config
             )
-
+            predicted_sentences_from_all_files += predicted_sentences
             writeConlluFile(out_path, predicted_sentences, overwrite=args.overwrite)
 
             print(
@@ -139,7 +141,7 @@ class PredictCmd(CMD):
                 f"sents in {elapsed_seconds} secs`"
             )
 
-            return predicted_sentences
+        return predicted_sentences
 
     def __validate_args(self, args: Namespace):
         if not (args.model_path / CONFIG_FILE_NAME).is_file():
@@ -177,7 +179,6 @@ class PredictCmd(CMD):
                     )
                     continue
             in_to_out_paths[input_path] = output_path
-
         partial_pred_config = PartialPredictionConfig(
             keep_upos=args.keep_upos,
             keep_xpos=args.keep_xpos,
