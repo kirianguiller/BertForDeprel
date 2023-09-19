@@ -49,10 +49,12 @@ Either provide the path to a model json config :
 python /home/BertForDeprel/BertForDeprel/run.py train --conf /home/models/template.config.json   --ftrain /home/parsing_project/conllus/train.conllu
 ```
 
+
 or just give a `--new_model_path` and a `--model_name` parameter (default params will be loaded if no config or no CLI parameters are provided)
 
 ```bash
 python /home/BertForDeprel/BertForDeprel/run.py train --new_model_path /home/models/ --model_name my_parser   --ftrain /home/parsing_project/conllus/train.conllu
+
 ```
 
 PS : here an example of a valid config.json
