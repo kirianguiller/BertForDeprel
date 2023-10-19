@@ -1,0 +1,4 @@
+# TODO: figure out how to create a portable version of this;
+# We can ask the user to define $UD_HOME and probably take a corpus
+# name arg, but then we need the config.json to be somewhere.
+launch.json

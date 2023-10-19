@@ -1,0 +1,95 @@
+[tool.poetry]
+name = "BertForDeprel"
+version = "0.0.1"
+description = "Universal Dependencies Pipeline"
+authors = ["Kirian Guiller <kiriangui@gmail.com>"]
+repository = "https://github.com/kirianguiller/BertForDeprel.git"
+license = "GPL-3.0-or-later"
+keywords = [
+    "Universal Dependencies",
+    "PyTorch",
+    "BERT",
+    "Dependency Parsing",
+    "Natural Language Processing",
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+huggingface-hub = "^0.16.4"
+numpy = "^1.25.2"
+conllup = "0.4.1"
+adapter-transformers = "^3.2.0"
+torch = "^2.0.1"
+flask = "^2.3.2"
+
+# All these required due to missing deps in torch 2.0.1;
+# see https://github.com/pytorch/pytorch/issues/100974
+nvidia-cublas-cu11 = { version = "11.10.3.66", platform = 'linux' }
+nvidia-cuda-cupti-cu11 = { version = "11.7.101", platform = 'linux' }
+nvidia-cuda-nvrtc-cu11 = { version = "11.7.99", platform = 'linux' }
+nvidia-cuda-runtime-cu11 = { version = "11.7.99", platform = 'linux' }
+nvidia-cudnn-cu11 = { version = "8.5.0.96", platform = 'linux' }
+nvidia-cufft-cu11 = { version = "10.9.0.58", platform = 'linux' }
+nvidia-curand-cu11 = { version = "10.2.10.91", platform = 'linux' }
+nvidia-cusolver-cu11 = { version = "11.4.0.1", platform = 'linux' }
+nvidia-cusparse-cu11 = { version = "11.7.4.91", platform = 'linux' }
+nvidia-nccl-cu11 = { version = "2.14.3", platform = 'linux' }
+nvidia-nvtx-cu11 = { version = "11.7.91", platform = 'linux' }
+triton = { version = "2.0.0", platform = 'linux' }
+
+[tool.poetry.dev-dependencies]
+black = "^23.7.0"
+flake8 = "^6.1.0"
+isort = "^5.12.0"
+poethepoet = "^0.21.1"
+pre-commit = "^3.3.3"
+pyright = "^1.1.318"
+pytest = "^7.2.2"
+pytest-cov = "^4.1.0"
+pytest-order = "^1.1.0"
+
+[build-system]
+requires = ["poetry"]
+build-backend = "poetry.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# show all output
+addopts = ["-rPx", "-vv"]
+markers = [
+    "slow: tests take a long time to run (deselect with '-m \"not slow\"')",
+    "fragile: tests will most likely fail on your machine (deselect with '-m \"not fragile\"')",
+]
+
+[tool.isort]
+profile = "black"
+
+[tool.pyright]
+typeCheckingMode = "basic"
+
+[tool.coverage.run]
+source = ["BertForDeprel"]
+
+[tool.coverage.report]
+# if we include the fragile tests, we get 70+%
+fail_under = 49
+exclude_lines = [
+    # Have to re-enable the standard pragma
+    "pragma: no cover",
+
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self.debug",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+]
+
+[tool.poe.tasks.verify]
+cmd = "pre-commit run --all-files"
+help = "Run all lints and tests"

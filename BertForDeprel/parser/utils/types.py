@@ -1,77 +1,76 @@
-from typing import TypedDict, List
+import dataclasses
+import json
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict
 
-class EpochResults_T(TypedDict):
-    LAS: float
-    LAS_chuliu: float
-    acc_deprel: float
-    acc_pos: float
-    loss_head: float
-    loss_deprel: float
-    loss_total: float
+from .annotation_schema import AnnotationSchema_T
 
-
-class AnnotationSchema_T(TypedDict):
-    deprels: List[str]
-    uposs: List[str]
-    xposs: List[str]
-    feats: List[str]
-    lemma_scripts: List[str]
+CONFIG_FILE_NAME = "config.json"
+MODEL_FILE_NAME = "model.pt"
 
 
-
-class ModelParams_T(TypedDict):
+@dataclass
+class ModelParams_T:
     # Shared
-    model_folder_path: str
-    annotation_schema: AnnotationSchema_T
+    # Pre-trained embeddings to download from 🤗 (xlm-roberta-large /
+    # bert-multilingual-base-uncased ...)
+    embedding_type: str = "xlm-roberta-large"
+    annotation_schema: AnnotationSchema_T = field(default_factory=AnnotationSchema_T)
+    # how many subprocesses to use for data loading. 0 means that the data will be
+    # loaded in the main process. (default: 0)
+    num_workers: int = 1
+    # How many sentences to process in each batch
+    batch_size: int = 16
 
-    # Next training params (only relevent if one want to train a model or retrain/finetune)
-    max_epoch: int
-    patience: int
-    batch_size: int
-    maxlen: int
+    # Training params
+    # In our experiments, most of the models based on UD data converged in 10-15 epochs
+    max_epoch: int = 15
+    # How many epochs with no performance improvement before training is ended early
+    patience: int = 3
 
-    # Embedding (xlm-roberta-large / bert-multilingual-base-uncased ...)
-    embedding_type: str
-    # embedding_cached_path: str
+    @staticmethod
+    def from_model_path(model_path: Path) -> "ModelParams_T":
+        """Load model parameters from the model directory."""
+        with open(model_path / CONFIG_FILE_NAME, "r") as f:
+            params_dict = json.load(f)
+        model_params = ModelParams_T()
+        # TODO: Check the validity of this first; at least a version number
+        model_params.__dict__.update(params_dict)
+        if "annotation_schema" in params_dict:
+            model_params.annotation_schema = AnnotationSchema_T.from_dict(
+                params_dict["annotation_schema"]
+            )
 
-    # Finetuned training meta params
-    # n_current_epoch: int
-    # current_epoch_results: EpochResults_T
-
-
-def get_empty_current_epoch_results() -> EpochResults_T:
-    return {
-        "LAS": -1,
-        "LAS_chuliu": -1,
-        "acc_deprel": -1,
-        "acc_pos": -1,
-        "loss_head": -1,
-        "loss_deprel": -1,
-        "loss_total": -1,
-    }
-
-
-def get_empty_annotation_schema() -> AnnotationSchema_T:
-    return {
-        "deprels": [],
-        "uposs": [],
-        "xposs": [],
-        "feats": [],
-        "lemma_scripts": [],
-    }
+        return model_params
 
 
-def get_default_model_params() -> ModelParams_T:
-    params: ModelParams_T = {
-        "model_folder_path": "",
-        "annotation_schema": get_empty_annotation_schema(),
-        "max_epoch": 30,
-        "patience": 100,
-        "batch_size": 8,
-        "maxlen": 512,
-        "embedding_type": "xlm-roberta-large",
-        # "embedding_cached_path": "",
-        # "n_current_epoch": 0,
-        # "current_epoch_results": get_empty_current_epoch_results(),
-    }
-    return params
+class DataclassJSONEncoder(json.JSONEncoder):
+    """JSON encoder for data that may include dataclasses."""
+
+    def default(self, o):
+        if dataclasses.is_dataclass(o):
+            return dataclasses.asdict(o)
+        elif isinstance(o, Path):
+            return str(o)
+        return super().default(o)
+
+
+@dataclass
+class PredictionConfig:
+    # How many sentences to process in each batch
+    batch_size: int = 16
+    # how many subprocesses to use for data loading
+    num_workers: int = 1
+
+
+@dataclass
+class TrainingConfig(PredictionConfig):
+    # In our experiments, most of the models based on UD data converged in 10-15 epochs
+    max_epochs: int = 15
+    # How many epochs with no performance improvement before training is ended early
+    patience: int = 3
+    # Number of digits to round the metrics to
+    ndigits: int = 3
+    # any info to be added to the saved model metadata
+    metadata: Dict[str, Any] = field(default_factory=lambda: {})

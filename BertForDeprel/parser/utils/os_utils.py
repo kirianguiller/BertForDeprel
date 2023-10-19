@@ -1,7 +1,7 @@
 def path_or_name(string):
     kind = None
     if "/" in string:
-        kind =  "path"
+        kind = "path"
     else:
         kind = "name"
 

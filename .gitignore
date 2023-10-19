@@ -6,10 +6,14 @@ test/test_folder/models
 
 test/naija_pretrained_test/
 
-.vscode/
+tests/data/models
+tests/data/diagnostics
 
 **.pyc
+.pytest_cache
+.coverage*
 
 **/__pycache__
 **/__pycache__/
 
+*.history.json

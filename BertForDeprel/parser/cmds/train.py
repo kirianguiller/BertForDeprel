@@ -1,24 +1,46 @@
-import os
-from datetime import datetime
-from time import time
 import json
-from typing import Optional
+import sys
+from argparse import ArgumentParser
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Generator, Iterable, List, TypeVar
 
+from conllup.conllup import sentenceJson_T
 from torch import nn
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, Dataset, random_split
 
-from ..cmds.cmd import CMD
-from ..utils.load_data_utils import ConlluDataset
-from ..utils.model_utils import BertForDeprel
-from ..utils.types import ModelParams_T
-from ..utils.scores_and_losses_utils import update_history
-from ..utils.annotation_schema_utils import get_annotation_schema_from_input_folder, compute_annotation_schema, is_annotation_schema_empty
+from ..cmds.cmd import CMD, SubparsersType
+from ..modules.BertForDepRel import (
+    BertForDeprel,
+    DataDescription,
+    EvalResult,
+    TrainingDiagnostics,
+)
+from ..utils.annotation_schema import compute_annotation_schema
+from ..utils.load_data_utils import load_conllu_sentences_mapping
+from ..utils.types import DataclassJSONEncoder, ModelParams_T, TrainingConfig
 
-class Train(CMD):
-    def add_subparser(self, name, parser):
+T = TypeVar("T")
+
+
+class ListDataset(Dataset[T]):
+    """Dummy wrapper for when we need a Dataset but have a list"""
+
+    def __init__(self, sentences: List[T]):
+        self.sentences = sentences
+
+    def __len__(self):
+        return len(self.sentences)
+
+    def __getitem__(self, idx) -> T:
+        return self.sentences[idx]
+
+
+class TrainCmd(CMD):
+    def add_subparser(self, name: str, parser: SubparsersType) -> ArgumentParser:
         subparser = parser.add_parser(name, help="Train a model.")
         subparser.add_argument(
-            "--model_folder_path", "-f", help="path to models folder"
+            "--new_model_path", "-f", type=Path, help="Path to write new model to"
         )
         subparser.add_argument(
             "--embedding_type",
@@ -32,114 +54,290 @@ class Train(CMD):
             "--patience", type=int, help="number of epoch to do maximum"
         )
         subparser.add_argument(
-            "--batch_size_eval", type=int, help="number of epoch to do maximum"
+            "--ftrain",
+            required=True,
+            type=Path,
+            help="path to train file or folder (files need to have .conllu extension)",
         )
         subparser.add_argument(
-            "--ftrain", required=True, help="path to train file or folder (files need to have .conllu extension)")
-        subparser.add_argument(
-            "--ftest", default="", help="path to test file or folder (files need to have .conllu extension)")
+            "--ftest",
+            type=Path,
+            help="path to test file or folder (files need to have .conllu extension)",
+        )
         subparser.add_argument(
             "--split_ratio",
             default=0.8,
             type=float,
             help="split ratio to use (if no --ftest is provided)",
         )
-        subparser.add_argument(
-            "--path_annotation_schema", help="path to annotation schema (default : in folder/annotation_schema.json"
-        )
 
         subparser.add_argument(
-            "--path_folder_compute_annotation_schema", help="path to annotation schema (default : in folder/annotation_schema.json"
+            "--pretrained_path",
+            type=Path,
+            help="Path of pretrained model",
         )
         subparser.add_argument(
-            "--conf_pretrain", default="", help="path to pretrain model config")
-        subparser.add_argument(
-            "--overwrite_pretrain_classifiers", action="store_true", help="erase pretraines classifier heads and recompute annotation schema")
+            "--overwrite_pretrain_classifiers",
+            action="store_true",
+            help="erase pretrained classifier heads and recompute annotation schema",
+        )
 
         return subparser
 
-    def __call__(self, args, model_params: ModelParams_T):
-        super(Train, self).__call__(args, model_params)
-        if args.model_folder_path:
-            model_params["model_folder_path"] = args.model_folder_path
+    def run(self, args):
+        super().run(args)
 
-        if not os.path.isdir(model_params["model_folder_path"]):
-            os.makedirs(model_params["model_folder_path"])
+        try:
+            model_params = ModelParams_T.from_model_path(args.new_model_path)
+        except FileNotFoundError:
+            model_params = ModelParams_T()
+
+        if not args.new_model_path.is_dir():
+            args.new_model_path.mkdir(parents=True)
 
         if args.embedding_type:
-            model_params["embedding_type"] = args.embedding_type
+            model_params.embedding_type = args.embedding_type
 
         if args.max_epoch:
-            model_params["max_epoch"] = args.max_epoch
+            model_params.max_epoch = args.max_epoch
 
         if args.patience:
-            model_params["patience"] = args.patience
+            model_params.patience = args.patience
 
-        # if user provided a path to an annotation schema, use this one (or overwrite current one if it exits)
-        if args.path_annotation_schema:
-            if args.path_folder_compute_annotation_schema:
-                raise Exception("You provided both --path_annotation_schema and --path_folder_compute_annotation_schema, it's not allowed as it is ambiguous. You can provide none of them or at maximum one of this two.")
-            print(f"You provided a path to a custom annotation schema, we will use this one for your model `{args.path_annotation_schema}`")
-            with open(args.path_annotation_schema, "r") as infile:
-                model_params["annotation_schema"] = json.loads(infile.read())
+        if args.batch_size:
+            model_params.batch_size = args.batch_size
 
-        # if no annotation schema where provided, either
-        if args.path_folder_compute_annotation_schema:
-            model_params["annotation_schema"] = get_annotation_schema_from_input_folder(args.path_folder_compute_annotation_schema)
-        print("Model parameters : ", model_params)
+        if args.num_workers:
+            model_params.num_workers = args.num_workers
 
-        # if is_annotation_schema_empty(model_params["annotation_schema"]) == True:
-        #     # The annotation schema was never given in json config or path argument, we need to compute it on --ftrain
-        #     print("Computing annotation schema on --ftrain file")
-        #     model_params["annotation_schema"] = compute_annotation_schema(args.ftrain)
+        diagnostics: Dict[str, Any] = {}
 
-        pretrain_model_params: Optional[ModelParams_T] = None
-        if args.conf_pretrain:
-            # We are finetuning an existing BertForDeprel model, where a pretrain model config is provided
-            # we need to be sure that :
-            # - the annotation schema of new model is the same as finetuned
-            # - the new model doesnt erase the old one (root_path_folder + model_name are different)
-            # - the new model has same architecture as old one
-            with open(args.conf_pretrain, "r") as infile:
-                pretrain_model_params_: ModelParams_T = json.loads(infile.read())
-                if args.overwrite_pretrain_classifiers == False:
-                    model_params["annotation_schema"] = pretrain_model_params_["annotation_schema"]
-                pretrain_model_params = pretrain_model_params_
-            if os.path.join(pretrain_model_params_["model_folder_path"], "model.pt")  == \
-                os.path.join(model_params["model_folder_path"], "model.pt"):
-                assert Exception("The pretrained model and the new model have same full path. It's not allowed as it would result in erasing the pretrained model")
+        train_path_to_sentences = load_conllu_sentences_mapping(args.ftrain)
+        train_sentences = [
+            sentence
+            for sentence_list in train_path_to_sentences.values()
+            for sentence in sentence_list
+        ]
+        diagnostics["train_paths"] = list(train_path_to_sentences.keys())
 
-        dataset = ConlluDataset(args.ftrain, model_params, args.mode, compute_annotation_schema_if_not_found=True)
-
-        # prepare test dataset
         if args.ftest:
-            train_dataset = dataset
-            test_dataset = ConlluDataset(args.ftest, model_params, args.mode)
-
+            print(f"Using {args.ftrain} for training and {args.ftest} for testing")
+            test_path_to_sentences = load_conllu_sentences_mapping(args.ftest)
+            test_sentences = [
+                sentence
+                for sentence_list in test_path_to_sentences.values()
+                for sentence in sentence_list
+            ]
+            diagnostics["test_sources"] = list(test_path_to_sentences.keys())
         else:
-            train_size = int(len(dataset) * args.split_ratio)
-            test_size = len(dataset) - train_size
-            train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+            print(
+                f"Splitting {args.ftrain} into train and test sets with ratio "
+                f"{args.split_ratio}"
+            )
+            train_size = int(len(train_sentences) * args.split_ratio)
+            test_size = len(train_sentences) - train_size
+            train_sentences, test_sentences = random_split(
+                dataset=ListDataset(train_sentences), lengths=[train_size, test_size]
+            )  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+            diagnostics["test_sources"] = [
+                f"split with train/test ratio {args.split_ratio}"
+            ]
 
-        params_train = {
-            "batch_size": model_params["batch_size"],
-            "num_workers": args.num_workers,
-            "shuffle": True,
-        }
+        train_data_annotation_schema = compute_annotation_schema(iter(train_sentences))
 
-        train_loader = DataLoader(
-            train_dataset, collate_fn=dataset.collate_fn, **params_train
+        if args.pretrained_path:
+            diagnostics["pretrained_path"] = args.pretrained_path
+            print("Loading pretrained model...")
+            if args.pretrained_path.resolve() == args.new_model_path.resolve():
+                raise ValueError(
+                    "The pretrained model and the new model have same full path. It's "
+                    "not allowed as it would result in erasing the pretrained model."
+                )
+            if args.overwrite_pretrain_classifiers:
+                model = BertForDeprel.load_pretrained_for_retraining(
+                    args.pretrained_path,
+                    train_data_annotation_schema,
+                    args.device_config.device,
+                )
+            else:
+                model = BertForDeprel.load_pretrained_for_finetuning(
+                    args.pretrained_path,
+                    train_data_annotation_schema,
+                    args.device_config.device,
+                )
+        else:
+            print("Creating model for training...")
+            model = BertForDeprel.new_model(
+                model_params.embedding_type,
+                train_data_annotation_schema,
+                args.device_config.device,
+            )
+
+        model.add_diagnostic("training_command", sys.argv)
+        for k, v in diagnostics.items():
+            model.add_diagnostic(k, v)
+
+        training_config = TrainingConfig(
+            max_epochs=model_params.max_epoch,
+            patience=model_params.patience,
+            batch_size=model_params.batch_size,
+            num_workers=model_params.num_workers,
+            metadata=diagnostics,
+        )
+        trainer = Trainer(
+            training_config,
+            args.device_config.multi_gpu,
         )
 
-        params_test = {
-            "batch_size": model_params["batch_size"],
-            "num_workers": args.num_workers,
-            "shuffle": True,
-        }
-        if args.batch_size_eval:
-            params_test["batch_size"] = args.batch_size_eval
+        trainer.train_until_quiescence(
+            model, iter(train_sentences), iter(test_sentences), args.new_model_path
+        )
+
+
+# TODO: not really clear that this needs to be an object; we can pass the model and
+# config as arguments to the train method instead and it wouldn't make much difference.
+class Trainer:
+    def __init__(
+        self,
+        config: TrainingConfig,
+        multi_gpu: bool = False,
+    ):
+        self.multi_gpu = multi_gpu
+        if self.multi_gpu:
+            print("MODEL TO MULTI GPU")
+            self.model = nn.DataParallel(self.model)
+
+        self.config = config
+
+    def train_until_quiescence(
+        self,
+        model: BertForDeprel,
+        train_sentences: Iterable[sentenceJson_T],
+        test_sentences: Iterable[sentenceJson_T],
+        output_dir: Path,
+    ) -> EvalResult:
+        """Train the model until it stops improving or we've reached the specified
+        maximum number of epochs, then return the best result. Write the best model
+        to file, as well as the history of scores and the scores of the best model.
+        When finished, write a .finished file to the output directory. This can be used
+        to check if the training was interrupted, and also for signaling to other
+        processes that the training is finished."""
+        path_scores_history = output_dir / "scores.history.json"
+        path_scores_best = output_dir / "scores.best.json"
+
+        best_loss = float("inf")
+        best_LAS = float("-inf")
+        best_epoch_results = None
+        epochs_without_improvement = 0
+
+        history = []
+        total_timer_start = datetime.now()
+        for epoch, epoch_results in enumerate(
+            self.train(model, train_sentences, test_sentences)
+        ):
+            print(epoch_results)
+
+            loss_epoch = epoch_results.loss_epoch
+            LAS_epoch = epoch_results.LAS_epoch
+
+            is_best_loss = loss_epoch < best_loss
+            is_best_LAS = LAS_epoch > best_LAS
+            saved = False
+            stopping_early = False
+
+            if is_best_loss or is_best_LAS:
+                epochs_without_improvement = 0
+                if is_best_loss:
+                    best_loss = loss_epoch
+                    print("best epoch loss so far")
+
+                if is_best_LAS:
+                    best_LAS = LAS_epoch
+                    print("best epoch LAS so far")
+
+                print("Saving model")
+                model.save(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+                    output_dir, self.config
+                )
+                saved = True
+                best_epoch_results = epoch_results
+            else:
+                epochs_without_improvement += 1
+                print(
+                    "no improvement since {} epoch".format(epochs_without_improvement)
+                )
+                if epochs_without_improvement >= self.config.patience:
+                    print(
+                        "Stopping early ({} epochs without improvement)".format(
+                            self.config.patience
+                        )
+                    )
+                    print("\nbest result : ", best_epoch_results)
+                    stopping_early = True
+
+            assert epoch_results.data_description is not None
+            diagnostics = TrainingDiagnostics(
+                data_description=epoch_results.data_description,
+                epoch=epoch,
+                saved=saved,
+                is_best_loss=is_best_loss,
+                is_best_LAS=is_best_LAS,
+                epochs_without_improvement=epochs_without_improvement,
+                stopping_early=stopping_early,
+            )
+            epoch_results._set_diagnostic_info(diagnostics)
+            # redundant with the data_description, so remove it
+            del epoch_results.data_description
+            history.append(epoch_results.rounded(3))
+            with open(path_scores_history, "w") as outfile:
+                outfile.write(json.dumps(history, indent=4, cls=DataclassJSONEncoder))
+
+            if saved:
+                with open(path_scores_best, "w") as outfile:
+                    outfile.write(
+                        json.dumps(epoch_results, indent=4, cls=DataclassJSONEncoder)
+                    )
+
+            if stopping_early or epoch >= self.config.max_epochs:
+                break
+
+        total_timer_end = datetime.now()
+        total_time_elapsed = total_timer_end - total_timer_start
+
+        print("Training finished. Total time elapsed = {}".format(total_time_elapsed))
+        with (output_dir / ".finished").open("w") as outfile:
+            outfile.write("")
+
+        assert best_epoch_results is not None
+        return best_epoch_results
+
+    def train(
+        self,
+        model: BertForDeprel,
+        train_sentences: Iterable[sentenceJson_T],
+        test_sentences: Iterable[sentenceJson_T],
+    ) -> Generator[EvalResult, None, None]:
+        """Train the model on the given dataset. Yields the results of each epoch, with
+        no stopping criteria (client must decide when to stop consuming the generator).
+        """
+        train_dataset = model.encode_dataset(train_sentences)
+        test_dataset = model.encode_dataset(test_sentences)
+
+        train_loader = DataLoader(
+            train_dataset,
+            collate_fn=train_dataset.collate_train,
+            batch_size=self.config.batch_size,
+            num_workers=self.config.num_workers,
+            shuffle=True,
+            pin_memory=True,
+        )
         test_loader = DataLoader(
-            test_dataset, collate_fn=dataset.collate_fn, **params_test
+            test_dataset,
+            collate_fn=train_dataset.collate_train,
+            batch_size=self.config.batch_size,
+            num_workers=self.config.num_workers,
+            shuffle=True,
+            pin_memory=True,
         )
 
         print(
@@ -150,81 +348,33 @@ class Train(CMD):
             f"{'test:':6} {len(test_dataset):5} sentences, "
             f"{len(test_loader):3} batches, "
         )
+        # TODO: n_*_tokens would also be nice
+        data_description = DataDescription(
+            n_train_sents=len(train_dataset),
+            n_test_sents=len(test_dataset),
+            n_train_batches=len(train_loader),
+            n_test_batches=len(test_loader),
+        )
 
-        print("Create the model")
-        model = BertForDeprel(model_params, pretrain_model_params=pretrain_model_params, overwrite_pretrain_classifiers=args.overwrite_pretrain_classifiers)
+        def announce_epoch(epoch: int) -> None:
+            print(f"-----   Epoch {epoch}   -----")
 
-        n_epoch_start = 0
-        model.to(args.device)
+        epoch = 0
+        announce_epoch(epoch)
+        no_train_results: EvalResult = model.eval_on_dataset(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+            test_loader
+        )
+        no_train_results.data_description = DataDescription(0, 0, 0, 0)
+        yield no_train_results
 
-        if args.multi_gpu:
-            print("MODEL TO MULTI GPU")
-            model = nn.DataParallel(model)
-
-        # scheduler = get_linear_schedule_with_warmup(args.optimizer, args.batch_per_epoch * 5, args.batch_per_epoch*args.epochs)
-
-        total_timer_start = datetime.now()
-        epochs_no_improve = 0
-        n_epoch = 0
-
-        results = model.eval_epoch(test_loader, args.device)
-        results["n_sentences_train"] = len(train_dataset)
-        results["n_sentences_test"] = len(test_dataset)
-        results["epoch"] = n_epoch_start
-
-        history = []
-        history.append(results)
-        best_loss = results["loss_epoch"]
-        best_LAS = results["LAS_epoch"]
-        best_epoch_results = results
-        path_scores_history = os.path.join(model_params["model_folder_path"], "scores.history.json")
-        path_scores_best = os.path.join(model_params["model_folder_path"], "scores.best.json")
-        for n_epoch in range(n_epoch_start + 1, model_params["max_epoch"] + 1):
-            print("\n-----   Epoch {}   -----".format(n_epoch))
-            model.train_epoch(train_loader, args.device)
-            results = model.eval_epoch(test_loader, args.device)
-            results["n_sentences_train"] = len(train_dataset)
-            results["n_sentences_test"] = len(test_dataset)
-            results["epoch"] = n_epoch
-
-            history.append(results)
-            with open(path_scores_history, "w") as outfile:
-                outfile.write(json.dumps(history))
-
-            # history = update_history(history, results, n_epoch, args)
-            loss_epoch = results["loss_epoch"]
-            LAS_epoch = results["LAS_epoch"]
-            if loss_epoch < best_loss or LAS_epoch > best_LAS:
-                epochs_no_improve = 0
-                if loss_epoch < best_loss:
-                    best_loss = loss_epoch
-                    print("best epoch (on cumul loss) so far, saving model...")
-
-                if LAS_epoch > best_LAS:
-                    best_LAS = LAS_epoch
-                    print("best epoch (on LAS) so far, saving model...")
-
-                model.save_model(n_epoch)
-                with open(path_scores_best, "w") as outfile:
-                    outfile.write(json.dumps(results))
-                best_epoch_results = results
-
-            else:
-                epochs_no_improve += 1
-                print("no improvement since {} epoch".format(epochs_no_improve))
-                if epochs_no_improve >= model_params["patience"]:
-                    print(
-                        "Earlystopping ({} epochs without improvement)".format(
-                            model_params["patience"]
-                        )
-                    )
-                    print("\nbest result : ", best_epoch_results)
-                    break
-        total_timer_end = datetime.now()
-        total_time_elapsed = total_timer_end - total_timer_start
-
-        print("Training ended. Total time elapsed = {}".format(total_time_elapsed))
-
-        path_finished_state_file = os.path.join(model_params["model_folder_path"], ".finished")
-        with open(path_finished_state_file, "w") as outfile:
-            outfile.write("")
+        while True:
+            epoch += 1
+            announce_epoch(epoch)
+            model.train_epoch(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+                train_loader
+            )
+            results = model.eval_on_dataset(  # type: ignore (https://github.com/pytorch/pytorch/issues/90827) # noqa: E501
+                test_loader
+            )
+            results.data_description = data_description
+            yield results

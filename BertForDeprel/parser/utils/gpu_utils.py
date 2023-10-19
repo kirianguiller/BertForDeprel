@@ -1,42 +1,38 @@
-import torch
+from dataclasses import dataclass
+
+import torch.backends.mps
+import torch.cuda
+
+
+@dataclass
+class DeviceConfig:
+    device: torch.device
+    multi_gpu: bool
+
 
 def get_devices_configuration(gpu_ids):
+    gpus = gpu_ids.split(",")
 
-    def get_gpu_devices(gpu_ids: str):
-        gpus = []
-
-        for gpu in gpu_ids.split(","):
-            gpus.append(gpu)
-
-        return gpus
-
-    gpus = get_gpu_devices(gpu_ids)
-
-
-    train_on_gpu = False
+    use_gpu = False
     multi_gpu = False
-    gpu_to_train = "0"
     if torch.cuda.is_available():
-        if len(gpus) == 0:
+        if len(gpus) == 1:
             gpu = gpus[0]
             if gpu == "-1":
-                train_on_gpu = False
+                use_gpu = False
                 gpu = "0"
 
             elif gpu == "-2":
                 gpu = "0"
-                train_on_gpu = True
+                use_gpu = True
                 multi_gpu = True
-
             else:
-                train_on_gpu = True
-                gpu_to_train = gpu
+                use_gpu = True
         else:
-            # multi gpus selecting is not avalaible for the moment (it will train on all gpus)
-                train_on_gpu = True
-                multi_gpu = True
-
-
+            # multi gpus selecting is not avalaible for the moment (it will train on
+            # all gpus)
+            use_gpu = True
+            multi_gpu = True
 
         # Number of gpus
         if multi_gpu:
@@ -49,15 +45,14 @@ def get_devices_configuration(gpu_ids):
         else:
             multi_gpu = False
 
-    print(f"Train on gpu: {train_on_gpu}")
-    if train_on_gpu:
-        device = torch.device(f"cuda:0")
+    print(f"Using gpu: {use_gpu}")
+    if use_gpu:
+        device = torch.device("cuda:0")
     # TODO: probably should be user-configurable whether MPS is used
     elif torch.backends.mps.is_available():
         device = torch.device("mps")
     else:
         device = torch.device("cpu")
-    print(f"Train on device: {device}")
+    print(f"Using device: {device}")
 
-
-    return device, train_on_gpu, multi_gpu
+    return DeviceConfig(device, multi_gpu)
