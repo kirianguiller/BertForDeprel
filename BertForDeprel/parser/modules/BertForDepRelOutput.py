@@ -13,6 +13,7 @@ class BertForDeprelSentenceOutput:
     uposs: torch.Tensor
     xposs: torch.Tensor
     feats: torch.Tensor
+    miscs: torch.Tensor
     lemma_scripts: torch.Tensor
     deprels: torch.Tensor
     heads: torch.Tensor
@@ -32,6 +33,7 @@ class BertForDeprelBatchOutput:
     uposs: torch.Tensor
     xposs: torch.Tensor
     feats: torch.Tensor
+    miscs: torch.Tensor
     lemma_scripts: torch.Tensor
     deprels: torch.Tensor
     heads: torch.Tensor
@@ -49,6 +51,7 @@ class BertForDeprelBatchOutput:
             uposs=self.uposs.detach(),
             xposs=self.xposs.detach(),
             feats=self.feats.detach(),
+            miscs=self.miscs.detach(),
             lemma_scripts=self.lemma_scripts.detach(),
             deprels=self.deprels.detach(),
             heads=self.heads.detach(),
@@ -66,6 +69,7 @@ class BertForDeprelBatchOutput:
             uposs=self.uposs[sentence_idx].clone(),
             xposs=self.xposs[sentence_idx].clone(),
             feats=self.feats[sentence_idx].clone(),
+            miscs=self.miscs[sentence_idx].clone(),
             lemma_scripts=self.lemma_scripts[sentence_idx].clone(),
             tok_starts_word=self.tok_starts_word[sentence_idx],
             idx_converter=self.idx_converter[sentence_idx],

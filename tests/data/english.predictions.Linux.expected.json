@@ -1,0 +1,1858 @@
+[
+  {
+    "metaJson": {
+      "sent_id": "0051.test",
+      "text": "can you tell me the flights on october fifteenth 1991 from boston to oakland"
+    },
+    "treeJson": {
+      "nodesJson": {
+        "1": {
+          "ID": "1",
+          "FORM": "can",
+          "LEMMA": "Can",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "2": {
+          "ID": "2",
+          "FORM": "you",
+          "LEMMA": "You",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "3": {
+          "ID": "3",
+          "FORM": "tell",
+          "LEMMA": "Tell",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "4": {
+          "ID": "4",
+          "FORM": "me",
+          "LEMMA": "Me",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "5": {
+          "ID": "5",
+          "FORM": "the",
+          "LEMMA": "The",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "6": {
+          "ID": "6",
+          "FORM": "flights",
+          "LEMMA": "Flights",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "7": {
+          "ID": "7",
+          "FORM": "on",
+          "LEMMA": "On",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "8": {
+          "ID": "8",
+          "FORM": "october",
+          "LEMMA": "October",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "9": {
+          "ID": "9",
+          "FORM": "fifteenth",
+          "LEMMA": "Fifteenth",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 0,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "10": {
+          "ID": "10",
+          "FORM": "1991",
+          "LEMMA": "1991",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "11": {
+          "ID": "11",
+          "FORM": "from",
+          "LEMMA": "From",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "12": {
+          "ID": "12",
+          "FORM": "boston",
+          "LEMMA": "Boston",
+          "UPOS": "VERB",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "13": {
+          "ID": "13",
+          "FORM": "to",
+          "LEMMA": "To",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "14": {
+          "ID": "14",
+          "FORM": "oakland",
+          "LEMMA": "Oakland",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        }
+      },
+      "groupsJson": {}
+    }
+  },
+  {
+    "metaJson": {
+      "sent_id": "0052.test",
+      "text": "show me all united flights from denver to san francisco for september first 1991"
+    },
+    "treeJson": {
+      "nodesJson": {
+        "1": {
+          "ID": "1",
+          "FORM": "show",
+          "LEMMA": "Show",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "2": {
+          "ID": "2",
+          "FORM": "me",
+          "LEMMA": "Me",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "3": {
+          "ID": "3",
+          "FORM": "all",
+          "LEMMA": "All",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "4": {
+          "ID": "4",
+          "FORM": "united",
+          "LEMMA": "United",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "5": {
+          "ID": "5",
+          "FORM": "flights",
+          "LEMMA": "Flights",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 0,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "6": {
+          "ID": "6",
+          "FORM": "from",
+          "LEMMA": "From",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "7": {
+          "ID": "7",
+          "FORM": "denver",
+          "LEMMA": "Denver",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "8": {
+          "ID": "8",
+          "FORM": "to",
+          "LEMMA": "To",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "9": {
+          "ID": "9",
+          "FORM": "san",
+          "LEMMA": "San",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "10": {
+          "ID": "10",
+          "FORM": "francisco",
+          "LEMMA": "Francisco",
+          "UPOS": "NOUN",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "11": {
+          "ID": "11",
+          "FORM": "for",
+          "LEMMA": "For",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "12": {
+          "ID": "12",
+          "FORM": "september",
+          "LEMMA": "September",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "13": {
+          "ID": "13",
+          "FORM": "first",
+          "LEMMA": "First",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "14": {
+          "ID": "14",
+          "FORM": "1991",
+          "LEMMA": "1991",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        }
+      },
+      "groupsJson": {}
+    }
+  },
+  {
+    "metaJson": {
+      "sent_id": "0053.test",
+      "text": "information on american airline flights from washington to philadelphia early morning times of flight"
+    },
+    "treeJson": {
+      "nodesJson": {
+        "1": {
+          "ID": "1",
+          "FORM": "information",
+          "LEMMA": "Information",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "2": {
+          "ID": "2",
+          "FORM": "on",
+          "LEMMA": "On",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "3": {
+          "ID": "3",
+          "FORM": "american",
+          "LEMMA": "American",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "4": {
+          "ID": "4",
+          "FORM": "airline",
+          "LEMMA": "Airline",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "5": {
+          "ID": "5",
+          "FORM": "flights",
+          "LEMMA": "Flights",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "6": {
+          "ID": "6",
+          "FORM": "from",
+          "LEMMA": "From",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "7": {
+          "ID": "7",
+          "FORM": "washington",
+          "LEMMA": "Washington",
+          "UPOS": "NOUN",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 0,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "8": {
+          "ID": "8",
+          "FORM": "to",
+          "LEMMA": "To",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "9": {
+          "ID": "9",
+          "FORM": "philadelphia",
+          "LEMMA": "Philadelphia",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "10": {
+          "ID": "10",
+          "FORM": "early",
+          "LEMMA": "Early",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "11": {
+          "ID": "11",
+          "FORM": "morning",
+          "LEMMA": "Morning",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "12": {
+          "ID": "12",
+          "FORM": "times",
+          "LEMMA": "Times",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "13": {
+          "ID": "13",
+          "FORM": "of",
+          "LEMMA": "Of",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "14": {
+          "ID": "14",
+          "FORM": "flight",
+          "LEMMA": "Flight",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 7,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        }
+      },
+      "groupsJson": {}
+    }
+  },
+  {
+    "metaJson": {
+      "sent_id": "0054.test",
+      "text": "please give me the flight times i would like to fly from boston to baltimore in the morning before 8"
+    },
+    "treeJson": {
+      "nodesJson": {
+        "1": {
+          "ID": "1",
+          "FORM": "please",
+          "LEMMA": "Please",
+          "UPOS": "INTJ",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "2": {
+          "ID": "2",
+          "FORM": "give",
+          "LEMMA": "Give",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "3": {
+          "ID": "3",
+          "FORM": "me",
+          "LEMMA": "Me",
+          "UPOS": "INTJ",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "4": {
+          "ID": "4",
+          "FORM": "the",
+          "LEMMA": "The",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "5": {
+          "ID": "5",
+          "FORM": "flight",
+          "LEMMA": "Flight",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "6": {
+          "ID": "6",
+          "FORM": "times",
+          "LEMMA": "Times",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "7": {
+          "ID": "7",
+          "FORM": "i",
+          "LEMMA": "I",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "8": {
+          "ID": "8",
+          "FORM": "would",
+          "LEMMA": "Would",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "9": {
+          "ID": "9",
+          "FORM": "like",
+          "LEMMA": "Like",
+          "UPOS": "INTJ",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 0,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "10": {
+          "ID": "10",
+          "FORM": "to",
+          "LEMMA": "To",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {},
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "11": {
+          "ID": "11",
+          "FORM": "fly",
+          "LEMMA": "Fly",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {
+            "Subject": "SubjRaising"
+          }
+        },
+        "12": {
+          "ID": "12",
+          "FORM": "from",
+          "LEMMA": "From",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "13": {
+          "ID": "13",
+          "FORM": "boston",
+          "LEMMA": "Boston",
+          "UPOS": "VERB",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "14": {
+          "ID": "14",
+          "FORM": "to",
+          "LEMMA": "To",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "15": {
+          "ID": "15",
+          "FORM": "baltimore",
+          "LEMMA": "Baltimore",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {},
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "16": {
+          "ID": "16",
+          "FORM": "in",
+          "LEMMA": "In",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "17": {
+          "ID": "17",
+          "FORM": "the",
+          "LEMMA": "The",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "18": {
+          "ID": "18",
+          "FORM": "morning",
+          "LEMMA": "Morning",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "19": {
+          "ID": "19",
+          "FORM": "before",
+          "LEMMA": "Before",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "20": {
+          "ID": "20",
+          "FORM": "8",
+          "LEMMA": "8",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 9,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        }
+      },
+      "groupsJson": {}
+    }
+  },
+  {
+    "metaJson": {
+      "sent_id": "0055.test",
+      "text": "please list the flight times for boston to pittsburgh"
+    },
+    "treeJson": {
+      "nodesJson": {
+        "1": {
+          "ID": "1",
+          "FORM": "please",
+          "LEMMA": "Please",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "2": {
+          "ID": "2",
+          "FORM": "list",
+          "LEMMA": "List",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "3": {
+          "ID": "3",
+          "FORM": "the",
+          "LEMMA": "The",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "4": {
+          "ID": "4",
+          "FORM": "flight",
+          "LEMMA": "Flight",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 0,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "5": {
+          "ID": "5",
+          "FORM": "times",
+          "LEMMA": "Times",
+          "UPOS": "INTJ",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "6": {
+          "ID": "6",
+          "FORM": "for",
+          "LEMMA": "For",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "7": {
+          "ID": "7",
+          "FORM": "boston",
+          "LEMMA": "Boston",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "8": {
+          "ID": "8",
+          "FORM": "to",
+          "LEMMA": "To",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "9": {
+          "ID": "9",
+          "FORM": "pittsburgh",
+          "LEMMA": "Pittsburgh",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        }
+      },
+      "groupsJson": {}
+    }
+  },
+  {
+    "metaJson": {
+      "sent_id": "0056.test",
+      "text": "show me all flights and fares from dallas to san francisco"
+    },
+    "treeJson": {
+      "nodesJson": {
+        "1": {
+          "ID": "1",
+          "FORM": "show",
+          "LEMMA": "Show",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "2": {
+          "ID": "2",
+          "FORM": "me",
+          "LEMMA": "Me",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "3": {
+          "ID": "3",
+          "FORM": "all",
+          "LEMMA": "All",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "4": {
+          "ID": "4",
+          "FORM": "flights",
+          "LEMMA": "Flights",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "5": {
+          "ID": "5",
+          "FORM": "and",
+          "LEMMA": "And",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 0,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "6": {
+          "ID": "6",
+          "FORM": "fares",
+          "LEMMA": "Fares",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "7": {
+          "ID": "7",
+          "FORM": "from",
+          "LEMMA": "From",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "8": {
+          "ID": "8",
+          "FORM": "dallas",
+          "LEMMA": "Dallas",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "9": {
+          "ID": "9",
+          "FORM": "to",
+          "LEMMA": "To",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "10": {
+          "ID": "10",
+          "FORM": "san",
+          "LEMMA": "San",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "11": {
+          "ID": "11",
+          "FORM": "francisco",
+          "LEMMA": "Francisco",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 5,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        }
+      },
+      "groupsJson": {}
+    }
+  },
+  {
+    "metaJson": {
+      "sent_id": "0057.test",
+      "text": "please list me the flights and their cost of all airlines flying from denver to baltimore"
+    },
+    "treeJson": {
+      "nodesJson": {
+        "1": {
+          "ID": "1",
+          "FORM": "please",
+          "LEMMA": "Please",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "2": {
+          "ID": "2",
+          "FORM": "list",
+          "LEMMA": "List",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "3": {
+          "ID": "3",
+          "FORM": "me",
+          "LEMMA": "Me",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "4": {
+          "ID": "4",
+          "FORM": "the",
+          "LEMMA": "The",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "5": {
+          "ID": "5",
+          "FORM": "flights",
+          "LEMMA": "Flights",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "6": {
+          "ID": "6",
+          "FORM": "and",
+          "LEMMA": "And",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "7": {
+          "ID": "7",
+          "FORM": "their",
+          "LEMMA": "Their",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "8": {
+          "ID": "8",
+          "FORM": "cost",
+          "LEMMA": "Cost",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "9": {
+          "ID": "9",
+          "FORM": "of",
+          "LEMMA": "Of",
+          "UPOS": "INTJ",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "10": {
+          "ID": "10",
+          "FORM": "all",
+          "LEMMA": "All",
+          "UPOS": "VERB",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "11": {
+          "ID": "11",
+          "FORM": "airlines",
+          "LEMMA": "Airlines",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 0,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "12": {
+          "ID": "12",
+          "FORM": "flying",
+          "LEMMA": "Flying",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "13": {
+          "ID": "13",
+          "FORM": "from",
+          "LEMMA": "From",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "14": {
+          "ID": "14",
+          "FORM": "denver",
+          "LEMMA": "Denver",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "15": {
+          "ID": "15",
+          "FORM": "to",
+          "LEMMA": "To",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "16": {
+          "ID": "16",
+          "FORM": "baltimore",
+          "LEMMA": "Baltimore",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 11,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        }
+      },
+      "groupsJson": {}
+    }
+  },
+  {
+    "metaJson": {
+      "sent_id": "0058.test",
+      "text": "give me the flights and fares on december twenty seventh from indianapolis to orlando"
+    },
+    "treeJson": {
+      "nodesJson": {
+        "1": {
+          "ID": "1",
+          "FORM": "give",
+          "LEMMA": "Give",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "2": {
+          "ID": "2",
+          "FORM": "me",
+          "LEMMA": "Me",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "3": {
+          "ID": "3",
+          "FORM": "the",
+          "LEMMA": "The",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "4": {
+          "ID": "4",
+          "FORM": "flights",
+          "LEMMA": "Flights",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 0,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "5": {
+          "ID": "5",
+          "FORM": "and",
+          "LEMMA": "And",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "6": {
+          "ID": "6",
+          "FORM": "fares",
+          "LEMMA": "Fares",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "7": {
+          "ID": "7",
+          "FORM": "on",
+          "LEMMA": "On",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "8": {
+          "ID": "8",
+          "FORM": "december",
+          "LEMMA": "December",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "9": {
+          "ID": "9",
+          "FORM": "twenty",
+          "LEMMA": "Twenty",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "10": {
+          "ID": "10",
+          "FORM": "seventh",
+          "LEMMA": "Seventh",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "11": {
+          "ID": "11",
+          "FORM": "from",
+          "LEMMA": "From",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "12": {
+          "ID": "12",
+          "FORM": "indianapolis",
+          "LEMMA": "Indianapolis",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "13": {
+          "ID": "13",
+          "FORM": "to",
+          "LEMMA": "To",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "14": {
+          "ID": "14",
+          "FORM": "orlando",
+          "LEMMA": "Orlando",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 4,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        }
+      },
+      "groupsJson": {}
+    }
+  },
+  {
+    "metaJson": {
+      "sent_id": "0059.test",
+      "text": "what is phl"
+    },
+    "treeJson": {
+      "nodesJson": {
+        "1": {
+          "ID": "1",
+          "FORM": "what",
+          "LEMMA": "What",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 3,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "2": {
+          "ID": "2",
+          "FORM": "is",
+          "LEMMA": "Is",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 3,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "3": {
+          "ID": "3",
+          "FORM": "phl",
+          "LEMMA": "Phl",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 0,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        }
+      },
+      "groupsJson": {}
+    }
+  },
+  {
+    "metaJson": {
+      "sent_id": "0060.test",
+      "text": "is there ground transportation from lga into new york city"
+    },
+    "treeJson": {
+      "nodesJson": {
+        "1": {
+          "ID": "1",
+          "FORM": "is",
+          "LEMMA": "Is",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 10,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "2": {
+          "ID": "2",
+          "FORM": "there",
+          "LEMMA": "There",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 10,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "3": {
+          "ID": "3",
+          "FORM": "ground",
+          "LEMMA": "Ground",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 10,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "4": {
+          "ID": "4",
+          "FORM": "transportation",
+          "LEMMA": "Transportation",
+          "UPOS": "INTJ",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 10,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "5": {
+          "ID": "5",
+          "FORM": "from",
+          "LEMMA": "From",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 10,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "6": {
+          "ID": "6",
+          "FORM": "lga",
+          "LEMMA": "Lga",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 10,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "7": {
+          "ID": "7",
+          "FORM": "into",
+          "LEMMA": "Into",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 10,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "8": {
+          "ID": "8",
+          "FORM": "new",
+          "LEMMA": "New",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {
+            "VerbForm": "Inf"
+          },
+          "HEAD": 10,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "9": {
+          "ID": "9",
+          "FORM": "york",
+          "LEMMA": "York",
+          "UPOS": "NUM",
+          "XPOS": "_",
+          "FEATS": {},
+          "HEAD": 10,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        },
+        "10": {
+          "ID": "10",
+          "FORM": "city",
+          "LEMMA": "City",
+          "UPOS": "DET",
+          "XPOS": "_",
+          "FEATS": {
+            "PronType": "Dem"
+          },
+          "HEAD": 0,
+          "DEPREL": "comp:obj",
+          "DEPS": {},
+          "MISC": {}
+        }
+      },
+      "groupsJson": {}
+    }
+  }
+]

@@ -89,6 +89,12 @@ class PredictCmd(CMD):
             "EXISTING | ALL) (default : NONE)",
         )
         subparser.add_argument(
+            "--keep_miscs",
+            default="NONE",
+            help="whether to keep current miscs and not predict new ones (NONE | "
+            "EXISTING | ALL) (default : NONE)",
+        )
+        subparser.add_argument(
             "--keep_lemmas",
             default="NONE",
             help="whether to keep current lemmas and not predict new ones (NONE | "
@@ -183,6 +189,7 @@ class PredictCmd(CMD):
             keep_upos=args.keep_upos,
             keep_xpos=args.keep_xpos,
             keep_feats=args.keep_feats,
+            keep_miscs=args.keep_miscs,
             keep_deprels=args.keep_deprels,
             keep_heads=args.keep_heads,
             keep_lemmas=args.keep_lemmas,
@@ -381,6 +388,8 @@ class Predictor:
 
             feats_pred_list = raw_sentence_preds.feats.max(dim=1).indices[mask].tolist()
 
+            miscs_pred_list = raw_sentence_preds.miscs.max(dim=1).indices[mask].tolist()
+
             lemma_scripts_pred_list = (
                 raw_sentence_preds.lemma_scripts.max(dim=1).indices[mask].tolist()
             )
@@ -392,6 +401,7 @@ class Predictor:
                 chuliu_heads_list,
                 deprels_pred_chuliu_list,
                 feats_pred_list,
+                miscs_pred_list,
                 lemma_scripts_pred_list,
                 partial_pred_config=partial_pred_config,
             )

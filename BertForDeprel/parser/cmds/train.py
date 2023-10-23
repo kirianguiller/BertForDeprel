@@ -70,6 +70,12 @@ class TrainCmd(CMD):
             type=float,
             help="split ratio to use (if no --ftest is provided)",
         )
+        subparser.add_argument(
+            "--relevant_miscs",
+            nargs="+",
+            default=[],
+            help="List of miscs labels that will be trained on the misc predictor",
+        )
 
         subparser.add_argument(
             "--pretrained_path",
@@ -143,7 +149,9 @@ class TrainCmd(CMD):
                 f"split with train/test ratio {args.split_ratio}"
             ]
 
-        train_data_annotation_schema = compute_annotation_schema(iter(train_sentences))
+        train_data_annotation_schema = compute_annotation_schema(
+            iter(train_sentences), args.relevant_miscs
+        )
 
         if args.pretrained_path:
             diagnostics["pretrained_path"] = args.pretrained_path

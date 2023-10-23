@@ -21,7 +21,9 @@ model_params_test = ModelParams_T(
 
 def get_test_instance():
     sentences = list(load_conllu_sentences(PATH_TEST_CONLLU))
-    annotation_schema = compute_annotation_schema(sentences)
+    annotation_schema = compute_annotation_schema(
+        sentences, relevant_miscs=["Subject", "Content"]
+    )
 
     return UDDataset(
         sentences,
@@ -116,10 +118,11 @@ def test_add_prediction_to_sentence_json_keep_none():
     predicted_sentence_json_none = dataset.construct_sentence_prediction(
         1,
         uposs_preds=[2, 3, 4, 2, 5],
-        xposs_preds=[0, 0, 0, 0, 0],
+        xposs_preds=[1, 3, 3, 3, 2],
         chuliu_heads=[1, 2, 4, 15, 4],
         deprels_pred_chulius=[5, 2, 3, 4, 3],
-        feats_preds=[2, 3, 4, 2, 5],
+        feats_preds=[6, 3, 4, 2, 5],
+        miscs_preds=[0, 1, 2, 0, 2],
         lemma_scripts_preds=[5, 2, 3, 4, 3],
         partial_pred_config=PartialPredictionConfig(),
     )
@@ -134,6 +137,12 @@ def test_add_prediction_to_sentence_json_keep_none():
     assert predicted_sentence_json_none["treeJson"]["nodesJson"]["3"]["UPOS"] == "NOUN"
     assert predicted_sentence_json_none["treeJson"]["nodesJson"]["4"]["UPOS"] == "AUX"
     assert predicted_sentence_json_none["treeJson"]["nodesJson"]["5"]["UPOS"] == "NUM"
+
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["1"]["XPOS"] == "AUX"
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["2"]["XPOS"] == "_"
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["3"]["XPOS"] == "_"
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["4"]["XPOS"] == "_"
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["5"]["XPOS"] == "NUM"
 
     assert (
         predicted_sentence_json_none["treeJson"]["nodesJson"]["1"]["DEPREL"] == "flat"
@@ -152,6 +161,33 @@ def test_add_prediction_to_sentence_json_keep_none():
         == "compound"
     )
 
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["1"]["FEATS"] == {}
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["2"]["FEATS"] == {
+        "Number": "Sing"
+    }
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["3"]["FEATS"] == {
+        "PronType": "Art"
+    }
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["4"]["FEATS"] == {
+        "NumType": "Card"
+    }
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["5"]["FEATS"] == {
+        "PronType": "Int,Rel"
+    }
+
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["1"]["MISC"] == {
+        "Content": "Yes"
+    }
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["2"]["MISC"] == {
+        "Subject": "Dummy",
+        "NotRelevant": "Yes",
+    }
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["3"]["MISC"] == {}
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["4"]["MISC"] == {
+        "Content": "Yes"
+    }
+    assert predicted_sentence_json_none["treeJson"]["nodesJson"]["5"]["MISC"] == {}
+
 
 def test_add_prediction_to_sentence_json_keep_existing():
     dataset = get_test_instance()
@@ -160,16 +196,18 @@ def test_add_prediction_to_sentence_json_keep_existing():
     predicted_sentence_json_existing = dataset.construct_sentence_prediction(
         1,
         uposs_preds=[2, 3, 4, 2, 5],
-        xposs_preds=[0, 0, 0, 0, 0],
+        xposs_preds=[2, 2, 3, 3, 3],
         chuliu_heads=[1, 2, 4, 15, 4],
         deprels_pred_chulius=[5, 2, 3, 4, 3],
         feats_preds=[2, 3, 4, 2, 5],
+        miscs_preds=[1, 2, 0, 1, 2],
         lemma_scripts_preds=[5, 2, 3, 4, 3],
         partial_pred_config=PartialPredictionConfig(
             keep_upos="EXISTING",
             keep_xpos="EXISTING",
             keep_deprels="EXISTING",
             keep_feats="EXISTING",
+            keep_miscs="EXISTING",
             keep_heads="EXISTING",
             keep_lemmas="EXISTING",
         ),
@@ -196,6 +234,17 @@ def test_add_prediction_to_sentence_json_keep_existing():
     assert (
         predicted_sentence_json_existing["treeJson"]["nodesJson"]["5"]["UPOS"] == "NUM"
     )
+    assert (
+        predicted_sentence_json_existing["treeJson"]["nodesJson"]["1"]["XPOS"] == "ADP"
+    )
+    assert (
+        predicted_sentence_json_existing["treeJson"]["nodesJson"]["2"]["XPOS"] == "NUM"
+    )
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["3"]["XPOS"] == "_"
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["4"]["XPOS"] == "_"
+    assert (
+        predicted_sentence_json_existing["treeJson"]["nodesJson"]["5"]["XPOS"] == "NUM"
+    )
 
     assert (
         predicted_sentence_json_existing["treeJson"]["nodesJson"]["1"]["DEPREL"]
@@ -218,6 +267,41 @@ def test_add_prediction_to_sentence_json_keep_existing():
         == "flat"
     )
 
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["1"]["FEATS"] == {
+        "PronType": "Int,Rel"
+    }
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["2"]["FEATS"] == {
+        "Mood": "Ind",
+        "Number": "Sing",
+        "Person": "3",
+        "Tense": "Pres",
+        "VerbForm": "Fin",
+    }
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["3"]["FEATS"] == {
+        "Number": "Sing"
+    }
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["4"]["FEATS"] == {
+        "Number": "Sing"
+    }
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["5"]["FEATS"] == {
+        "NumType": "Card"
+    }
+
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["1"]["MISC"] == {
+        "Content": "Yes",
+        "Subject": "Dummy",
+    }
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["2"]["MISC"] == {
+        "NotRelevant": "Yes"
+    }
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["3"]["MISC"] == {
+        "Content": "Yes"
+    }
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["4"]["MISC"] == {
+        "Subject": "Dummy"
+    }
+    assert predicted_sentence_json_existing["treeJson"]["nodesJson"]["5"]["MISC"] == {}
+
 
 def test_add_prediction_to_sentence_json_keep_all():
     dataset = get_test_instance()
@@ -229,12 +313,14 @@ def test_add_prediction_to_sentence_json_keep_all():
         chuliu_heads=[1, 2, 4, 15, 4],
         deprels_pred_chulius=[5, 2, 3, 4, 3],
         feats_preds=[2, 3, 4, 2, 5],
+        miscs_preds=[2, 0, 1, 2, 2],
         lemma_scripts_preds=[5, 2, 3, 4, 3],
         partial_pred_config=PartialPredictionConfig(
             keep_upos="ALL",
             keep_xpos="ALL",
             keep_deprels="ALL",
             keep_feats="ALL",
+            keep_miscs="ALL",
             keep_heads="ALL",
             keep_lemmas="ALL",
         ),

@@ -1,7 +1,7 @@
 import json
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Literal
 
 import pytest
 import torch
@@ -25,6 +25,15 @@ from BertForDeprel.parser.utils.types import (
     TrainingConfig,
 )
 
+import os
+
+SYSTEM_OS: Literal["Unknown", "Linux", "MacOS"] = "Unknown"
+if os.name == "posix" and "Linux" in os.uname():
+    SYSTEM_OS = "Linux"
+elif os.name == "posix" and "darwin" in os.uname():
+    SYSTEM_OS = "MacOS"
+
+
 PARENT = Path(__file__).parent
 PATH_TEST_DATA_FOLDER = PARENT / "data"
 PATH_DIAGNOSTIC_OUTPUT_FOLDER = PATH_TEST_DATA_FOLDER / "diagnostics"
@@ -34,14 +43,14 @@ PATH_MODELS_DIR = PATH_TEST_DATA_FOLDER / "models"
 PATH_TRAIN_NAIJA = PATH_TEST_DATA_FOLDER / "naija.train.conllu"
 PATH_TEST_NAIJA = PATH_TEST_DATA_FOLDER / "naija.test.conllu"
 PATH_EXPECTED_PREDICTIONS_NAIJA = (
-    PATH_TEST_DATA_FOLDER / "naija.predictions.expected.json"
+    PATH_TEST_DATA_FOLDER / f"naija.predictions.{SYSTEM_OS}.expected.json"
 )
 NAIJA_MODEL_DIR = PATH_MODELS_DIR / "naija"
 
 PATH_TEST_ENGLISH = PATH_TEST_DATA_FOLDER / "english.test.conllu"
 PATH_TRAIN_ENGLISH = PATH_TEST_DATA_FOLDER / "english.train.conllu"
 PATH_EXPECTED_PREDICTIONS_ENGLISH = (
-    PATH_TEST_DATA_FOLDER / "english.predictions.expected.json"
+    PATH_TEST_DATA_FOLDER / f"english.predictions.{SYSTEM_OS}.expected.json"
 )
 ENGLISH_MODEL_DIR = PATH_MODELS_DIR / "english"
 SEED = 42
@@ -54,13 +63,9 @@ DEVICE_CONFIG = get_devices_configuration("-1")
 # generated model is used in other tests
 @pytest.mark.order("first")
 @pytest.mark.slow
-@pytest.mark.fragile
 def test_train_naija_model():
-    _test_model_train_single(
-        PATH_TRAIN_NAIJA,
-        PATH_TEST_NAIJA,
-        NAIJA_MODEL_DIR,
-        [
+    if SYSTEM_OS == "Linux":
+        first_two_epochs_results = [
             EvalResult(
                 LAS_epoch=0.0,
                 LAS_chuliu_epoch=0.0,
@@ -69,12 +74,62 @@ def test_train_naija_model():
                 acc_uposs_epoch=0.046,
                 acc_xposs_epoch=1.0,
                 acc_feats_epoch=0.0,
+                acc_miscs_epoch=1.0,
                 acc_lemma_scripts_epoch=0.0,
                 loss_head_epoch=0.609,
                 loss_deprel_epoch=0.722,
                 loss_uposs_epoch=0.602,
                 loss_xposs_epoch=0.106,
                 loss_feats_epoch=0.673,
+                loss_miscs_epoch=0.048,
+                loss_lemma_scripts_epoch=0.732,
+                loss_epoch=0.582,
+                data_description=DataDescription(0, 0, 0, 0),
+            ),
+            EvalResult(
+                LAS_epoch=0.0,
+                LAS_chuliu_epoch=0.0,
+                acc_head_epoch=0.077,
+                acc_deprel_epoch=0.308,
+                acc_uposs_epoch=0.108,
+                acc_xposs_epoch=1.0,
+                acc_feats_epoch=0.015,
+                acc_miscs_epoch=1.0,
+                acc_lemma_scripts_epoch=0.0,
+                loss_head_epoch=0.608,
+                loss_deprel_epoch=0.675,
+                loss_uposs_epoch=0.585,
+                loss_xposs_epoch=0.089,
+                loss_feats_epoch=0.642,
+                loss_miscs_epoch=0.04,
+                loss_lemma_scripts_epoch=0.675,
+                loss_epoch=0.552,
+                data_description=DataDescription(
+                    n_train_sents=39,
+                    n_test_sents=5,
+                    n_train_batches=3,
+                    n_test_batches=1,
+                ),
+            ),
+        ]
+    else:
+        first_two_epochs_results = [
+            EvalResult(
+                LAS_epoch=0.0,
+                LAS_chuliu_epoch=0.0,
+                acc_head_epoch=0.077,
+                acc_deprel_epoch=0.0,
+                acc_uposs_epoch=0.046,
+                acc_xposs_epoch=1.0,
+                acc_feats_epoch=0.0,
+                acc_miscs_epoch=0.0,
+                acc_lemma_scripts_epoch=0.0,
+                loss_head_epoch=0.609,
+                loss_deprel_epoch=0.722,
+                loss_uposs_epoch=0.602,
+                loss_xposs_epoch=0.106,
+                loss_feats_epoch=0.673,
+                loss_miscs_epoch=0.673,
                 loss_lemma_scripts_epoch=0.69,
                 loss_epoch=0.567,
                 data_description=DataDescription(0, 0, 0, 0),
@@ -87,12 +142,14 @@ def test_train_naija_model():
                 acc_uposs_epoch=0.046,
                 acc_xposs_epoch=1.0,
                 acc_feats_epoch=0.0,
+                acc_miscs_epoch=0.0,
                 acc_lemma_scripts_epoch=0.0,
                 loss_head_epoch=0.608,
                 loss_deprel_epoch=0.674,
                 loss_uposs_epoch=0.586,
                 loss_xposs_epoch=0.083,
                 loss_feats_epoch=0.646,
+                loss_miscs_epoch=0.646,
                 loss_lemma_scripts_epoch=0.627,
                 loss_epoch=0.537,
                 data_description=DataDescription(
@@ -102,20 +159,19 @@ def test_train_naija_model():
                     n_test_batches=1,
                 ),
             ),
-        ],
+        ]
+
+    _test_model_train_single(
+        PATH_TRAIN_NAIJA, PATH_TEST_NAIJA, NAIJA_MODEL_DIR, first_two_epochs_results
     )
 
 
 # generated model is used in other tests
 @pytest.mark.order("first")
 @pytest.mark.slow
-@pytest.mark.fragile
 def test_train_english_model():
-    _test_model_train_single(
-        PATH_TRAIN_ENGLISH,
-        PATH_TEST_ENGLISH,
-        ENGLISH_MODEL_DIR,
-        [
+    if SYSTEM_OS == "Linux":
+        first_two_epochs_results = [
             EvalResult(
                 LAS_epoch=0.0,
                 LAS_chuliu_epoch=0.0,
@@ -124,12 +180,62 @@ def test_train_english_model():
                 acc_uposs_epoch=0.088,
                 acc_xposs_epoch=1.0,
                 acc_feats_epoch=0.008,
+                acc_miscs_epoch=0.04,
+                acc_lemma_scripts_epoch=0.208,
+                loss_head_epoch=0.322,
+                loss_deprel_epoch=0.318,
+                loss_uposs_epoch=0.258,
+                loss_xposs_epoch=0.037,
+                loss_feats_epoch=0.341,
+                loss_miscs_epoch=0.08,
+                loss_lemma_scripts_epoch=0.267,
+                loss_epoch=0.27,
+                data_description=DataDescription(0, 0, 0, 0),
+            ),
+            EvalResult(
+                LAS_epoch=0.0,
+                LAS_chuliu_epoch=0.0,
+                acc_head_epoch=0.064,
+                acc_deprel_epoch=0.28,
+                acc_uposs_epoch=0.096,
+                acc_xposs_epoch=1.0,
+                acc_feats_epoch=0.032,
+                acc_miscs_epoch=1.0,
+                acc_lemma_scripts_epoch=0.232,
+                loss_head_epoch=0.322,
+                loss_deprel_epoch=0.295,
+                loss_uposs_epoch=0.251,
+                loss_xposs_epoch=0.03,
+                loss_feats_epoch=0.331,
+                loss_miscs_epoch=0.052,
+                loss_lemma_scripts_epoch=0.25,
+                loss_epoch=0.255,
+                data_description=DataDescription(
+                    n_train_sents=50,
+                    n_test_sents=10,
+                    n_train_batches=4,
+                    n_test_batches=1,
+                ),
+            ),
+        ]
+    else:
+        first_two_epochs_results = [
+            EvalResult(
+                LAS_epoch=0.0,
+                LAS_chuliu_epoch=0.0,
+                acc_head_epoch=0.08,
+                acc_deprel_epoch=0.008,
+                acc_uposs_epoch=0.088,
+                acc_xposs_epoch=1.0,
+                acc_feats_epoch=0.008,
+                acc_miscs_epoch=0.008,
                 acc_lemma_scripts_epoch=0.008,
                 loss_head_epoch=0.322,
                 loss_deprel_epoch=0.318,
                 loss_uposs_epoch=0.258,
                 loss_xposs_epoch=0.037,
                 loss_feats_epoch=0.341,
+                loss_miscs_epoch=0.341,
                 loss_lemma_scripts_epoch=0.298,
                 loss_epoch=0.262,
                 data_description=DataDescription(0, 0, 0, 0),
@@ -142,12 +248,14 @@ def test_train_english_model():
                 acc_uposs_epoch=0.104,
                 acc_xposs_epoch=1.0,
                 acc_feats_epoch=0.008,
+                acc_miscs_epoch=0.008,
                 acc_lemma_scripts_epoch=0.144,
                 loss_head_epoch=0.321,
                 loss_deprel_epoch=0.295,
                 loss_uposs_epoch=0.251,
                 loss_xposs_epoch=0.026,
                 loss_feats_epoch=0.332,
+                loss_miscs_epoch=0.332,
                 loss_lemma_scripts_epoch=0.268,
                 loss_epoch=0.249,
                 data_description=DataDescription(
@@ -157,7 +265,13 @@ def test_train_english_model():
                     n_test_batches=1,
                 ),
             ),
-        ],
+        ]
+
+    _test_model_train_single(
+        PATH_TRAIN_ENGLISH,
+        PATH_TEST_ENGLISH,
+        ENGLISH_MODEL_DIR,
+        first_two_epochs_results,
     )
 
 
@@ -191,7 +305,6 @@ def _test_model_train_single(path_train, path_test, path_out, expected_eval):
 
 
 @pytest.mark.slow
-@pytest.mark.fragile
 def test_predict_multilingual():
     model_config = ModelParams_T.from_model_path(NAIJA_MODEL_DIR)
 
@@ -216,13 +329,13 @@ def test_predict_multilingual():
 
     # On my M1, it's <7s.
     _test_predict_single(
-        predictor, naija_sentences, PATH_EXPECTED_PREDICTIONS_NAIJA, 10
+        predictor, naija_sentences, PATH_EXPECTED_PREDICTIONS_NAIJA, 10, "naija"
     )
 
     english_sentences = list(load_conllu_sentences(PATH_TEST_ENGLISH))
     model.activate("english")
     _test_predict_single(
-        predictor, english_sentences, PATH_EXPECTED_PREDICTIONS_ENGLISH, 10
+        predictor, english_sentences, PATH_EXPECTED_PREDICTIONS_ENGLISH, 10, "english"
     )
 
 
@@ -230,7 +343,11 @@ predict_id = 0
 
 
 def _test_predict_single(
-    predictor: Predictor, input: List[sentenceJson_T], expected: Path, max_seconds: int
+    predictor: Predictor,
+    input: List[sentenceJson_T],
+    expected: Path,
+    max_seconds: int,
+    language: str,
 ):
     actual, elapsed_seconds = predictor.predict(input)
 
@@ -239,7 +356,11 @@ def _test_predict_single(
 
     global predict_id
     predict_id += 1
-    with (PATH_DIAGNOSTIC_OUTPUT_FOLDER / f"actual-{predict_id}.json").open("w") as f:
+    path_output_predictions = (
+        PATH_DIAGNOSTIC_OUTPUT_FOLDER
+        / f"{language}.predictions.{SYSTEM_OS}.actual-{predict_id}.json"
+    )
+    with (path_output_predictions).open("w") as f:
         json.dump(actual, f, indent=2)
 
     assert actual == expected
@@ -252,7 +373,6 @@ def _test_predict_single(
 
 
 @pytest.mark.slow
-@pytest.mark.fragile
 def test_eval():
     """There is no eval API, per se, but this demonstrates how to do it. TODO: it's
     pretty convoluted."""
@@ -273,8 +393,30 @@ def test_eval():
 
     # TODO: these are different on each machine, and therefore this test FAILS anywhere
     # but mine.
-    assert results.rounded(3) == pytest.approx(
-        EvalResult(
+    if SYSTEM_OS == "Linux":
+        assert results.rounded(3) == EvalResult(
+            LAS_epoch=0.0,
+            LAS_chuliu_epoch=0.0,
+            acc_head_epoch=0.077,
+            acc_deprel_epoch=0.308,
+            acc_uposs_epoch=0.108,
+            acc_xposs_epoch=1.0,
+            acc_feats_epoch=0.015,
+            acc_miscs_epoch=1.0,
+            acc_lemma_scripts_epoch=0.0,
+            loss_head_epoch=0.608,
+            loss_deprel_epoch=0.675,
+            loss_uposs_epoch=0.585,
+            loss_xposs_epoch=0.089,
+            loss_feats_epoch=0.642,
+            loss_miscs_epoch=0.04,
+            loss_lemma_scripts_epoch=0.675,
+            loss_epoch=0.552,
+            training_diagnostics=None,
+        ).rounded(3)
+
+    else:
+        assert results.rounded(3) == EvalResult(
             LAS_epoch=0.015,
             LAS_chuliu_epoch=0.015,
             acc_head_epoch=0.123,
@@ -282,14 +424,15 @@ def test_eval():
             acc_uposs_epoch=0.046,
             acc_xposs_epoch=1.0,
             acc_feats_epoch=0.0,
+            acc_miscs_epoch=0.0,
             acc_lemma_scripts_epoch=0.0,
             loss_head_epoch=0.608,
             loss_deprel_epoch=0.674,
             loss_uposs_epoch=0.586,
             loss_xposs_epoch=0.083,
             loss_feats_epoch=0.646,
+            loss_miscs_epoch=0.646,
             loss_lemma_scripts_epoch=0.627,
             loss_epoch=0.537,
             training_diagnostics=None,
-        ),
-    )
+        ).rounded(3)

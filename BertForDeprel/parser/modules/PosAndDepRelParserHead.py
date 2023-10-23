@@ -12,6 +12,7 @@ class PosAndDeprelParserHead(Module):
         n_uposs: int,
         n_deprels: int,
         n_feats: int,
+        n_miscs: int,
         n_lemma_scripts: int,
         n_xposs: int,
         llm_output_size: int,
@@ -32,6 +33,7 @@ class PosAndDeprelParserHead(Module):
         self.uposs_ffn = Linear(llm_output_size, n_uposs)
         self.xposs_ffn = Linear(llm_output_size, n_xposs)
         self.feats_ffn = Linear(llm_output_size, n_feats)
+        self.miscs_ffn = Linear(llm_output_size, n_miscs)
         self.lemma_scripts_ffn = Linear(llm_output_size, n_lemma_scripts)
 
     def forward(
@@ -40,6 +42,7 @@ class PosAndDeprelParserHead(Module):
         uposs = self.uposs_ffn(x)
         xposs = self.xposs_ffn(x)
         feats = self.feats_ffn(x)
+        miscs = self.miscs_ffn(x)
         lemma_scripts = self.lemma_scripts_ffn(x)
         down_projection_embedding = self.down_projection(x)  # torch.Size([16, 28, 256])
         # Predicting binary relations among all words, so x and y are the same arg
@@ -56,6 +59,7 @@ class PosAndDeprelParserHead(Module):
             uposs=uposs,
             xposs=xposs,
             feats=feats,
+            miscs=miscs,
             lemma_scripts=lemma_scripts,
             deprels=deprels,
             heads=heads,

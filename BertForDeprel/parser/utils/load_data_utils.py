@@ -3,8 +3,6 @@ from typing import Dict, Iterable, List
 
 from conllup.conllup import readConlluFile, sentenceJson_T
 
-CONLLU_BLANK = "_"
-
 
 # batch classes are for entire datasets of parses
 def resolve_conllu_paths(path: Path) -> List[Path]:

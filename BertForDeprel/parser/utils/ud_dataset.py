@@ -8,9 +8,8 @@ from torch import Tensor, tensor
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from .annotation_schema import DUMMY_ID, AnnotationSchema_T
+from .annotation_schema import DUMMY_ID, AnnotationSchema_T, CONLLU_BLANK
 from .lemma_script_utils import apply_lemma_rule
-from .load_data_utils import CONLLU_BLANK
 
 CopyOption = Literal["NONE", "EXISTING", "ALL"]
 
@@ -22,6 +21,7 @@ class PartialPredictionConfig:
     keep_heads: CopyOption = "NONE"
     keep_deprels: CopyOption = "NONE"
     keep_feats: CopyOption = "NONE"
+    keep_miscs: CopyOption = "NONE"
     keep_lemmas: CopyOption = "NONE"
 
 
@@ -113,6 +113,7 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
     heads: Tensor
     deprels: Tensor
     feats: Tensor
+    miscs: Tensor
     lemma_scripts: Tensor
 
     def __init__(
@@ -123,6 +124,7 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
         heads: Tensor,
         deprels: Tensor,
         feats: Tensor,
+        miscs: Tensor,
         lemma_scripts: Tensor,
     ):
         super().__init__(**pred_data.__dict__)
@@ -131,6 +133,7 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
         self.heads = heads
         self.deprels = deprels
         self.feats = feats
+        self.miscs = miscs
         self.lemma_scripts = lemma_scripts
 
     def to(self, device: torch.device):
@@ -141,6 +144,7 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
             uposs=self.uposs.to(device),
             xposs=self.xposs.to(device),
             feats=self.feats.to(device),
+            miscs=self.miscs.to(device),
             lemma_scripts=self.lemma_scripts.to(device),
         )
 
@@ -151,6 +155,7 @@ class SequenceTrainingBatch_T(SequencePredictionBatch_T):
         self.uposs = self.uposs.pin_memory()
         self.xposs = self.xposs.pin_memory()
         self.feats = self.feats.pin_memory()
+        self.miscs = self.miscs.pin_memory()
         self.lemma_scripts = self.lemma_scripts.pin_memory()
         return self
 
@@ -165,6 +170,7 @@ class SequenceTraining_T(SequencePrediction_T):
     heads: List[int]
     deprels: List[int]
     feats: List[int]
+    miscs: List[int]
     lemma_scripts: List[int]
 
     def __init__(
@@ -175,6 +181,7 @@ class SequenceTraining_T(SequencePrediction_T):
         heads: List[int],
         deprels: List[int],
         feats: List[int],
+        miscs: List[int],
         lemma_scripts: List[int],
     ):
         super().__init__(**pred_data.__dict__)
@@ -183,6 +190,7 @@ class SequenceTraining_T(SequencePrediction_T):
         self.heads = heads
         self.deprels = deprels
         self.feats = feats
+        self.miscs = miscs
         self.lemma_scripts = lemma_scripts
 
 
@@ -306,6 +314,7 @@ class UDDataset(Dataset[SequenceTraining_T]):
         xposs = [DUMMY_ID]
         heads = [DUMMY_ID]
         feats = [DUMMY_ID]
+        miscs = [DUMMY_ID]
         lemma_scripts = [DUMMY_ID]
         deprels = [DUMMY_ID]
         skipped_tokens = 0
@@ -327,6 +336,9 @@ class UDDataset(Dataset[SequenceTraining_T]):
             ] + token_padding
             feat = [
                 self.annotation_schema.encode_feats(token["FEATS"], token["FORM"])
+            ] + token_padding
+            misc = [
+                self.annotation_schema.encode_misc(token["MISC"], token["FORM"])
             ] + token_padding
             lemma_script = [
                 self.annotation_schema.encode_lemma_script(
@@ -352,6 +364,7 @@ class UDDataset(Dataset[SequenceTraining_T]):
             heads += head
             deprels += deprel
             feats += feat
+            miscs += misc
             lemma_scripts += lemma_script
 
         return SequenceTraining_T(
@@ -361,6 +374,7 @@ class UDDataset(Dataset[SequenceTraining_T]):
             heads=heads,
             deprels=deprels,
             feats=feats,
+            miscs=miscs,
             lemma_scripts=lemma_scripts,
         )
 
@@ -447,6 +461,12 @@ class UDDataset(Dataset[SequenceTraining_T]):
                 for sentence in sentences
             ]
         )
+        miscs_batch = tensor(
+            [
+                self._pad_list(sentence.miscs, DUMMY_ID, max_sentence_length)
+                for sentence in sentences
+            ]
+        )
         lemma_scripts_batch = tensor(
             [
                 self._pad_list(sentence.lemma_scripts, DUMMY_ID, max_sentence_length)
@@ -461,6 +481,7 @@ class UDDataset(Dataset[SequenceTraining_T]):
             heads=heads_batch,
             deprels=deprels_batch,
             feats=feats_batch,
+            miscs=miscs_batch,
             lemma_scripts=lemma_scripts_batch,
         )
 
@@ -472,6 +493,7 @@ class UDDataset(Dataset[SequenceTraining_T]):
         chuliu_heads: List[int] = [],
         deprels_pred_chulius: List[int] = [],
         feats_preds: List[int] = [],
+        miscs_preds: List[int] = [],
         lemma_scripts_preds: List[int] = [],
         partial_pred_config=PartialPredictionConfig(),
     ) -> sentenceJson_T:
@@ -485,6 +507,8 @@ class UDDataset(Dataset[SequenceTraining_T]):
 
         # For each of the predicted fields, we overwrite the value copied from the input
         # with the predicted value if configured to do so.
+        # MISC is a special case as it can be parially predicted (lot of miscs are info
+        # that are unpredictable or not relevant to be predicted)
         for n_token, token in enumerate(tokens):
             if partial_pred_config.keep_upos == "NONE" or (
                 partial_pred_config.keep_upos == "EXISTING"
@@ -520,6 +544,15 @@ class UDDataset(Dataset[SequenceTraining_T]):
                 token["FEATS"] = _featuresConllToJson(
                     annotation_schema.feats[feats_preds[n_token]]
                 )
+
+            if partial_pred_config.keep_miscs == "NONE" or (
+                partial_pred_config.keep_miscs == "EXISTING"
+            ):
+                miscs_to_rewrite = _featuresConllToJson(
+                    annotation_schema.miscs[miscs_preds[n_token]]
+                )
+                for key, value in miscs_to_rewrite.items():
+                    token["MISC"][key] = value
 
             if partial_pred_config.keep_lemmas == "NONE" or (
                 partial_pred_config.keep_lemmas == "EXISTING"

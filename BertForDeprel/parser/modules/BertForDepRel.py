@@ -54,6 +54,7 @@ class EvalResultAccumulator:
     good_uposs_epoch, total_uposs_epoch, total_loss_uposs_epoch = 0.0, 0.0, 0.0
     good_xposs_epoch, total_xposs_epoch, total_loss_xposs_epoch = 0.0, 0.0, 0.0
     good_feats_epoch, total_feats_epoch, total_loss_feats_epoch = 0.0, 0.0, 0.0
+    good_miscs_epoch, total_miscs_epoch, total_loss_miscs_epoch = 0.0, 0.0, 0.0
     (
         good_lemma_scripts_epoch,
         total_lemma_scripts_epoch,
@@ -125,6 +126,12 @@ class EvalResultAccumulator:
         self.good_feats_epoch += good_feats_batch
         self.total_feats_epoch += total_feats_batch
 
+        good_miscs_batch, total_miscs_batch = compute_acc_class(
+            model_output.miscs, batch.miscs
+        )
+        self.good_miscs_epoch += good_miscs_batch
+        self.total_miscs_epoch += total_miscs_batch
+
         good_lemma_scripts_batch, total_lemma_scripts_batch = compute_acc_class(
             model_output.lemma_scripts, batch.lemma_scripts
         )
@@ -145,6 +152,11 @@ class EvalResultAccumulator:
             model_output.feats, batch.feats, self.criterion
         )
         self.total_loss_feats_epoch += loss_feats_batch.item()
+
+        loss_miscs_batch = compute_loss_class(
+            model_output.miscs, batch.miscs, self.criterion
+        )
+        self.total_loss_miscs_epoch += loss_miscs_batch.item()
 
         loss_lemma_scripts_batch = compute_loss_class(
             model_output.lemma_scripts, batch.lemma_scripts, self.criterion
@@ -167,6 +179,9 @@ class EvalResultAccumulator:
         loss_feats_epoch = self.total_loss_feats_epoch / self.total_sents
         acc_feats_epoch = self.good_feats_epoch / self.total_feats_epoch
 
+        loss_miscs_epoch = self.total_loss_miscs_epoch / self.total_sents
+        acc_miscs_epoch = self.good_miscs_epoch / self.total_miscs_epoch
+
         loss_lemma_scripts_epoch = (
             self.total_loss_lemma_scripts_epoch / self.total_sents
         )
@@ -183,6 +198,7 @@ class EvalResultAccumulator:
             + loss_uposs_epoch
             + loss_xposs_epoch
             + loss_feats_epoch
+            + loss_miscs_epoch
             + loss_lemma_scripts_epoch
         )
         loss_epoch /= 6
@@ -195,12 +211,14 @@ class EvalResultAccumulator:
             acc_uposs_epoch=acc_uposs_epoch,
             acc_xposs_epoch=acc_xposs_epoch,
             acc_feats_epoch=acc_feats_epoch,
+            acc_miscs_epoch=acc_miscs_epoch,
             acc_lemma_scripts_epoch=acc_lemma_scripts_epoch,
             loss_head_epoch=loss_head_epoch,
             loss_deprel_epoch=loss_deprel_epoch,
             loss_uposs_epoch=loss_uposs_epoch,
             loss_xposs_epoch=loss_xposs_epoch,
             loss_feats_epoch=loss_feats_epoch,
+            loss_miscs_epoch=loss_miscs_epoch,
             loss_lemma_scripts_epoch=loss_lemma_scripts_epoch,
             loss_epoch=loss_epoch,
         )
@@ -234,12 +252,14 @@ class EvalResult:
     acc_uposs_epoch: float
     acc_xposs_epoch: float
     acc_feats_epoch: float
+    acc_miscs_epoch: float
     acc_lemma_scripts_epoch: float
     loss_head_epoch: float
     loss_deprel_epoch: float
     loss_uposs_epoch: float
     loss_xposs_epoch: float
     loss_feats_epoch: float
+    loss_miscs_epoch: float
     loss_lemma_scripts_epoch: float
     loss_epoch: float
     data_description: Optional[DataDescription] = None
@@ -269,6 +289,7 @@ class EvalResult:
             f"Acc. deprel = {self.acc_deprel_epoch:.3f}\n"
             f"Acc. upos = {self.acc_uposs_epoch:.3f}\n"
             f"Acc. feat = {self.acc_feats_epoch:.3f}\n"
+            f"Acc. misc = {self.acc_miscs_epoch:.3f}\n"
             f"Acc. lemma_script = {self.acc_lemma_scripts_epoch:.3f}\n"
             f"Acc. xposs = {self.acc_xposs_epoch:.3f}\n"
         )
@@ -523,6 +544,7 @@ class BertForDeprel(Module):
         loss_batch += compute_loss_class(preds.uposs, batch.uposs, self.criterion)
         loss_batch += compute_loss_class(preds.xposs, batch.xposs, self.criterion)
         loss_batch += compute_loss_class(preds.feats, batch.feats, self.criterion)
+        loss_batch += compute_loss_class(preds.miscs, batch.miscs, self.criterion)
         loss_batch += compute_loss_class(
             preds.lemma_scripts, batch.lemma_scripts, self.criterion
         )
@@ -709,9 +731,16 @@ class BertForDeprel(Module):
         n_xposs = len(self.annotation_schema.xposs)
         n_deprels = len(self.annotation_schema.deprels)
         n_feats = len(self.annotation_schema.feats)
+        n_miscs = len(self.annotation_schema.miscs)
         n_lemma_scripts = len(self.annotation_schema.lemma_scripts)
         self.tagger_layer = PosAndDeprelParserHead(
-            n_uposs, n_deprels, n_feats, n_lemma_scripts, n_xposs, llm_hidden_size
+            n_uposs,
+            n_deprels,
+            n_feats,
+            n_miscs,
+            n_lemma_scripts,
+            n_xposs,
+            llm_hidden_size,
         )
         self.tagger_layer.train(self.training)
 
@@ -752,6 +781,8 @@ class BertForDeprel(Module):
                 "lemma_scripts_ffn.bias",
                 "feats_ffn.weight",
                 "feats_ffn.bias",
+                "miscs_ffn.weight",
+                "miscs_ffn.bias",
             ]:
                 print(f"Overwriting pretrained layer {layer_name}")
                 continue

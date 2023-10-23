@@ -2,8 +2,11 @@ from pathlib import Path
 
 from conllup.conllup import readConlluFile
 
-from BertForDeprel.parser.utils.annotation_schema import compute_annotation_schema
-from BertForDeprel.parser.utils.load_data_utils import CONLLU_BLANK
+from BertForDeprel.parser.utils.annotation_schema import (
+    compute_annotation_schema,
+    NONE_VOCAB,
+    CONLLU_BLANK,
+)
 
 PATH_TEST_DATA_FOLDER = Path(__file__).parent / "data"
 PATH_TEST_MODELS_FOLDER = Path(__file__).parent / "models"
@@ -16,9 +19,11 @@ def test_health():
 
 def test_compute_annotation_schema():
     sentences = readConlluFile(str(PATH_TEST_CONLLU))
-    annotation_schema = compute_annotation_schema(sentences)
+    annotation_schema = compute_annotation_schema(
+        sentences, relevant_miscs=["Subject"]
+    )
     assert annotation_schema.deprels == [
-        "_none",
+        NONE_VOCAB,
         "comp:obj",
         "comp:pred",
         "compound",
@@ -38,8 +43,15 @@ def test_compute_annotation_schema():
         "PronType=Art",
         "PronType=Int,Rel",
         CONLLU_BLANK,
-        "_none",
+        NONE_VOCAB,
     ]
+
+    assert annotation_schema.miscs == [
+        "Subject=Dummy",
+        CONLLU_BLANK,
+        NONE_VOCAB,
+    ]
+
     assert annotation_schema.uposs == [
         "ADJ",
         "ADP",
@@ -50,10 +62,10 @@ def test_compute_annotation_schema():
         "PRON",
         "PROPN",
         "VERB",
-        "_none",
+        NONE_VOCAB,
     ]
     assert annotation_schema.lemma_scripts == [
-        "_none",
+        NONE_VOCAB,
         "↑0;d¦",
         "↑0¦↓1;d¦",
         "↓0;abe",
