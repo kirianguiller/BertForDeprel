@@ -33,12 +33,6 @@ poetry install
 poetry run pytest
 ```
 
-[//]: # (source venv/bin/activate)
-
-[//]: # (pip install -r requirements.txt)
-
-[//]: # (```)
-
 ## How to run
 
 ### Train a model
@@ -185,6 +179,21 @@ Among others, here are the most important pretrained models :
 -   [English model trained from scratch on written english](https://drive.google.com/drive/folders/1-UB0WNG8Drt_oXC7wfHlK5goMH6CC4IM?usp=sharing)
 -   [Naija model trained from scratch on spoken naija]("TODO")
 -   [Naija model fine-tuned on spoken naija from model pretrained on written english]("TODO")
+
+
+## How to contribute
+### Pre-commit
+We use pre-commit hooks for maintaining the quality of code that gets committed to a repository.
+If you don't have it installed in your python environment :
+```
+pip install pre-commit
+pre-commit install
+```
+
+If you want to run the pre-commit hook pipeline independently of a commit :
+```
+pre-commit run --all-files
+```
 
 ## Major TODOs
 

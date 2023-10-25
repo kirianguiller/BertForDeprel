@@ -8,7 +8,7 @@ from torch import Tensor, tensor
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from .annotation_schema import DUMMY_ID, AnnotationSchema_T, CONLLU_BLANK
+from .annotation_schema import CONLLU_BLANK, DUMMY_ID, AnnotationSchema_T
 from .lemma_script_utils import apply_lemma_rule
 
 CopyOption = Literal["NONE", "EXISTING", "ALL"]

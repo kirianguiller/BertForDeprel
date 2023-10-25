@@ -3,9 +3,9 @@ from pathlib import Path
 from conllup.conllup import readConlluFile
 
 from BertForDeprel.parser.utils.annotation_schema import (
-    compute_annotation_schema,
-    NONE_VOCAB,
     CONLLU_BLANK,
+    NONE_VOCAB,
+    compute_annotation_schema,
 )
 
 PATH_TEST_DATA_FOLDER = Path(__file__).parent / "data"
@@ -19,9 +19,7 @@ def test_health():
 
 def test_compute_annotation_schema():
     sentences = readConlluFile(str(PATH_TEST_CONLLU))
-    annotation_schema = compute_annotation_schema(
-        sentences, relevant_miscs=["Subject"]
-    )
+    annotation_schema = compute_annotation_schema(sentences, relevant_miscs=["Subject"])
     assert annotation_schema.deprels == [
         NONE_VOCAB,
         "comp:obj",

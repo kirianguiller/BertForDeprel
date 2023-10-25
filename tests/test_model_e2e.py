@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 from pathlib import Path
 from typing import List, Literal
@@ -24,8 +25,6 @@ from BertForDeprel.parser.utils.types import (
     PredictionConfig,
     TrainingConfig,
 )
-
-import os
 
 SYSTEM_OS: Literal["Unknown", "Linux", "MacOS"] = "Unknown"
 if os.name == "posix" and "Linux" in os.uname():
